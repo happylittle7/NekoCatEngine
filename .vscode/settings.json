@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "sdl_ttf.h": "c",
+        "sdl.h": "c",
+        "sdl_image.h": "c",
+        "piyen,c": "c"
+    }
+}
