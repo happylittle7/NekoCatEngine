@@ -3,6 +3,7 @@ char_list = ["ohm","ohmf","ohmm"]
 [ohm]
 name = "歐姆巴"
 color = "#F5D80A"
+
 sprites_list = ["happy","sad"]
 sprites.happy = "ohm_happy.png"
 sprites.sad = "ohm_sad.png"
@@ -11,6 +12,14 @@ sprites.sad = "ohm_sad.png"
 name = "歐姆爸"
 color = "#F5D80A"
 
+sprites_list = ["happy","sad"]
+sprites.happy = "ohmf_happy.png"
+sprites.sad = "ohmf_sad.png"
+
 [ohmm]
 name = "歐姆媽"
 color = "#F5D80A"
+
+sprites_list = ["happy","sad"]
+sprites.happy = "ohmm_happy.png"
+sprites.sad = "ohmm_sad.png"
