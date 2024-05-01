@@ -1,4 +1,4 @@
 # NekoCatEngine
-A c based visual novel Engine
-I am Batman
+This branch is designed for testing reading scirpt files in toml.
 
+# Environment
