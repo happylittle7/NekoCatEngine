@@ -7,3 +7,8 @@ You can use the following command to build.
 ```
 make
 ```
+## How to run?
+You can use the following command to run.
+```
+./main
+```
