@@ -1,4 +1,3 @@
 # NekoCatEngine
-A c based visual novel Engine
-I am Batman
+A C based visual novel Engine
 
