@@ -68,13 +68,13 @@ int main(int32_t argc, char* argv[])
     // char* imagePath = (char*)calloc(1, 255);
     // snprintf(imagePath, sizeof(imagePath), "%s%s", basePath, "hello_world.png");
     // printf("imagePath: %s\n", imagePath);
-    SDL_Surface* loadedSurface = IMG_Load("./image/hello_world.png");
+    SDL_Surface* loadedSurface = IMG_Load("./image/background_01.png");
     if (!loadedSurface) 
     {
         printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
         return -1;
     }
-    SDL_Surface* loaded_dialog_box = IMG_Load("./image/dialog.png");
+    SDL_Surface* loaded_dialog_box = IMG_Load("./image/dialog_box.png");
     if (!loaded_dialog_box) 
     {
         printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
@@ -129,28 +129,29 @@ int main(int32_t argc, char* argv[])
             {
                 quit = 1;
             }
-        }
- 
-        SDL_RenderClear(renderer);
-        SDL_RenderCopy(renderer, backgroundTexture, NULL, NULL);  // 渲染背景
-        renderTexture(dialog_box_texture, renderer, dialogBox_start_x, dialogBox_start_y, 640, 130);
- 
-        if (step == 0) {
-            displayText(renderer, font, firstText, textColor, text_start_x, text_start_y);
-            SDL_RenderPresent(renderer);
-            SDL_Delay(2000);  // Display for 2 seconds
-            step = 1;
-        }else if (step == 1){
+        
+
             SDL_RenderClear(renderer);
-            SDL_RenderCopy(renderer, backgroundTexture, NULL, NULL);  // 重新渲染背景
+            SDL_RenderCopy(renderer, backgroundTexture, NULL, NULL);  // 渲染背景
             renderTexture(dialog_box_texture, renderer, dialogBox_start_x, dialogBox_start_y, 640, 130);
-            SDL_RenderPresent(renderer);
-            SDL_Delay(1000);  // Clear for 1 second
-            step = 2;
-        }else if (step == 2){
-            displayText(renderer, font, secondText, textColor, text_start_x, text_start_y);
-            SDL_RenderPresent(renderer);
-            SDL_Delay(2000);  // Display for 2 seconds
+
+            if (step == 0) {
+                displayText(renderer, font, firstText, textColor, text_start_x, text_start_y);
+                SDL_RenderPresent(renderer);
+                SDL_Delay(2000);  // Display for 2 seconds
+                step = 1;
+            }else if (step == 1){
+                SDL_RenderClear(renderer);
+                SDL_RenderCopy(renderer, backgroundTexture, NULL, NULL);  // 重新渲染背景
+                renderTexture(dialog_box_texture, renderer, dialogBox_start_x, dialogBox_start_y, 640, 130);
+                SDL_RenderPresent(renderer);
+                SDL_Delay(1000);  // Clear for 1 second
+                step = 2;
+            }else if (step == 2){
+                displayText(renderer, font, secondText, textColor, text_start_x, text_start_y);
+                SDL_RenderPresent(renderer);
+                SDL_Delay(2000);  // Display for 2 seconds
+            }
         }
     }
  
