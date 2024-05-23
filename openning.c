@@ -72,7 +72,7 @@ int main(int32_t argc, char* argv[])
         return 1;
     }
 
-    TTF_Font* title_font = TTF_OpenFont("./font/ChakraPetch-Bold.ttf", 24);
+    TTF_Font* title_font = TTF_OpenFont("./font/Cubic_11_1.100_R.ttf", 55);
     if (!title_font) 
     {
         printf("Failed to load font! TTF_Error: %s\n", TTF_GetError());
@@ -90,7 +90,7 @@ int main(int32_t argc, char* argv[])
  
     while (!quit) 
     {
-        while (SDL_PollEvent(&e) != 0) 
+        while (SDL_PollEvent(&e) != 0 && !quit) 
         {
             if (e.type == SDL_QUIT) 
             {
@@ -105,7 +105,7 @@ int main(int32_t argc, char* argv[])
             chooseTextColor(title_text_color, &titleTextColor);
 
             //渲染標題字
-            title_font = TTF_OpenFont("./font/ChakraPetch-Bold.ttf", 55);
+            // title_font = TTF_OpenFont("./font/ChakraPetch-Bold.ttf", 55);
             displayTextWithShadow(renderer, title_font, title, titleTextColor, title_x, title_y, 5);
             SDL_RenderPresent(renderer);
             // renderTexture(dialog_box_texture, renderer, dialogBox_start_x, dialogBox_start_y, 640, 130);
