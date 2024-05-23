@@ -13,7 +13,8 @@ void chooseTextColor(uint8_t text_color, SDL_Color* titleTextColor)
     }
 }
 
-void displayTextWithShadow(SDL_Renderer* renderer, TTF_Font* font, const char* text, SDL_Color titleTextColor, int32_t x, int32_t y, int32_t move){
+void displayTextWithShadow(SDL_Renderer* renderer, TTF_Font* font, const char* text, SDL_Color titleTextColor, int32_t x, int32_t y, int32_t move)
+{
     SDL_Color shadowColor = {0, 0, 0};
     displayText(renderer, font, text, shadowColor, x+move, y+move);
     displayText(renderer, font, text, titleTextColor, x, y);
