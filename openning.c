@@ -105,7 +105,8 @@ int main(int32_t argc, char* argv[])
     }
     SDL_Texture* whitebuttonTexture = SDL_CreateTextureFromSurface(renderer, whitebuttonSurface);
     SDL_SetTextureAlphaMod(whitebuttonTexture, 200); //調整按鈕透明度
- 
+
+    //事件處理
     SDL_Event e;
     int32_t quit = 0;
     int32_t step = 0;
@@ -191,46 +192,8 @@ int main(int32_t argc, char* argv[])
             displayText(renderer, title_font, "Aboutus", aboutusTextColor, aboutus_button_x + 27, aboutus_button_y + 10);
         }
 
+        //更新畫面
         SDL_RenderPresent(renderer);
-
-
-        // if (step == 0) 
-        // {
-        //     char new_text[1024]={0};
-        //     for (int32_t i=0 ; i < strlen(firstText) ; i++)
-        //     {
-        //         new_text[i]=firstText[i];
-        //         // displayText(renderer, font, new_text, titleTextColor, text_start_x, text_start_y);
-        //         SDL_RenderPresent(renderer);
-        //         SDL_Delay(200);  // Display for 2 seconds
-        //     }
-        //     SDL_Delay(2000);  // Display for 2 seconds
-        //     step = 1;
-            
-        // }
-        // else if (step == 1)
-        // {
-        //     SDL_RenderClear(renderer);
-        //     SDL_RenderCopy(renderer, backgroundTexture, NULL, NULL);  // 重新渲染背景
-        //     // renderTexture(dialog_box_texture, renderer, dialogBox_start_x, dialogBox_start_y, 640, 130);
-        //     SDL_RenderPresent(renderer);
-        //     SDL_Delay(1000);  // Clear for 1 second
-        //     step = 2;
-        // }
-        // else if (step == 2)
-        // {
-        //     char new_text[1024]={0};
-        //     for (int32_t i=0 ; i < strlen(secondText) ; i++)
-        //     {
-        //         new_text[i] = secondText[i];
-        //         // displayText(renderer, font, new_text, titleTextColor, text_start_x, text_start_y);
-        //         SDL_RenderPresent(renderer);
-        //         SDL_Delay(200);  // Display for 2 seconds
-        //     }
-        //     SDL_RenderPresent(renderer);
-        //     step = 3;
-        //     //SDL_Delay(2000);  // Display for 2 seconds
-        // }
     }
  
     TTF_CloseFont(title_font);
