@@ -11,7 +11,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_image.h>
-#include "text.h"
+#include "./Library/text.h"
 
 #define WHITE 255, 255, 255
 #define BLACK 0, 0, 0
@@ -46,16 +46,17 @@ int main(int32_t argc, char* argv[])
     TTF_Init();  // 初始化 SDL_ttf
 
     //開啟視窗
-    SDL_Window* window = SDL_CreateWindow("Openning", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, window_width, window_height, SDL_WINDOW_SHOWN);
+    SDL_Window* window = SDL_CreateWindow("Openning", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, window_width, window_height, SDL_WINDOW_RESIZABLE);
     if (!window) 
     {
         printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
         return -1;
     }
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    SDL_SetWindowFullscreen( window, SDL_WINDOW_FULLSCREEN);
 
     //開始頁面背景圖片
-    SDL_Surface* loadedSurface = IMG_Load("./image/openning.png");
+    SDL_Surface* loadedSurface = IMG_Load("./Assets/image/openning.png");
     if (!loadedSurface) 
     {
         printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
@@ -77,7 +78,7 @@ int main(int32_t argc, char* argv[])
     }
 
     //字體
-    TTF_Font* title_font = TTF_OpenFont("./font/Cubic_11_1.100_R.ttf", 55);
+    TTF_Font* title_font = TTF_OpenFont("./Assets/font/Cubic_11_1.100_R.ttf", 55);
     if (!title_font) 
     {
         printf("Failed to load font! TTF_Error: %s\n", TTF_GetError());
@@ -88,7 +89,7 @@ int main(int32_t argc, char* argv[])
     }
 
     //按鈕
-    SDL_Surface* blackbuttonSurface = IMG_Load("./image/black_button.png");
+    SDL_Surface* blackbuttonSurface = IMG_Load("./Assets/image/black_button.png");
     if (!blackbuttonSurface) 
     {
         printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
@@ -97,7 +98,7 @@ int main(int32_t argc, char* argv[])
     SDL_Texture* blackbuttonTexture = SDL_CreateTextureFromSurface(renderer, blackbuttonSurface);
     SDL_SetTextureAlphaMod(blackbuttonTexture, 200); //調整按鈕透明度
 
-    SDL_Surface* whitebuttonSurface = IMG_Load("./image/white_button.png");
+    SDL_Surface* whitebuttonSurface = IMG_Load("./Assets/image/white_button.png");
     if (!whitebuttonSurface) 
     {
         printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
@@ -140,14 +141,14 @@ int main(int32_t argc, char* argv[])
         //渲染標題字
         SDL_Color titleTextColor;
         chooseTextColor(title_text_color, &titleTextColor);
-        title_font = TTF_OpenFont("./font/Cubic_11_1.100_R.ttf", 55);
+        title_font = TTF_OpenFont("./Assets/font/Cubic_11_1.100_R.ttf", 55);
         displayTextWithShadow(renderer, title_font, title, titleTextColor, title_x, title_y, 5);
         // SDL_RenderPresent(renderer);
         // renderTexture(dialog_box_texture, renderer, dialogBox_start_x, dialogBox_start_y, 640, 130);
 
         //start button
         SDL_Color startTextColor;
-        title_font = TTF_OpenFont("./font/Cubic_11_1.100_R.ttf", 30);
+        title_font = TTF_OpenFont("./Assets/font/Cubic_11_1.100_R.ttf", 30);
         if(mouse_x >= start_button_x && mouse_x <= start_button_x + button_width && mouse_y >= start_button_y && mouse_y <= start_button_y + button_height)
         {
             chooseTextColor(0, &startTextColor);
@@ -171,7 +172,7 @@ int main(int32_t argc, char* argv[])
 
         //aboutus button
         SDL_Color aboutusTextColor;
-        title_font = TTF_OpenFont("./font/Cubic_11_1.100_R.ttf", 30);
+        title_font = TTF_OpenFont("./Assets/font/Cubic_11_1.100_R.ttf", 30);
         if(mouse_x >= aboutus_button_x && mouse_x <= aboutus_button_x + button_width && mouse_y >= aboutus_button_y && mouse_y <= aboutus_button_y + button_height)
         {
             chooseTextColor(0, &aboutusTextColor);
