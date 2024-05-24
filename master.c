@@ -14,6 +14,9 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_image.h>
+#include "text.h"
+#include "backpack.h"
+
 
 #define WHITE 255, 255, 255
 #define BLACK 0, 0, 0
@@ -25,20 +28,6 @@ static int32_t dialogBox_start_x=0;
 static int32_t dialogBox_start_y=350;
 static uint8_t text_color = 0;
 
-// 顯示文本的函數，負責將指定文本渲染到指定位置
-void displayText(SDL_Renderer* renderer, TTF_Font* font, const char* text, SDL_Color textColor, int32_t x, int32_t y) 
-{
-    SDL_Surface* textSurface = TTF_RenderText_Solid(font, text, textColor);
-    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
-    int text_width = textSurface->w;  // 文本寬度
-    int text_height = textSurface->h; // 文本高度
-
-    SDL_Rect renderQuad = { x, y, text_width, text_height };  // 定義渲染區域
-    SDL_RenderCopy(renderer, textTexture, NULL, &renderQuad);  // 執行渲染操作
-
-    SDL_FreeSurface(textSurface);  // 釋放表面資源
-    SDL_DestroyTexture(textTexture);  // 銷毀紋理資源
-}
 /*
 void displayIMG(SDL_Renderer* renderer, SDL_Texture* my_texture, int32_t x, int32_t y) 
 {
@@ -66,37 +55,44 @@ void renderTexture(SDL_Texture *tex, SDL_Renderer *renderer, int x, int y, int w
  
 int main(int32_t argc, char* argv[]) 
 {
-    SDL_Init(SDL_INIT_VIDEO);  // 初始化 SDL2
-    TTF_Init();  // 初始化 SDL_ttf
-    // char* basePath = SDL_GetBasePath();
-    // char* imagePath = (char*)calloc(1, 255);
-    // snprintf(imagePath, sizeof(imagePath), "%s%s", basePath, "hello_world.png");
-    // printf("imagePath: %s\n", imagePath);
-    SDL_Surface* loadedSurface = IMG_Load("./image/background_01.png");
-    if (!loadedSurface) 
-    {
-        printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
-        return -1;
-    }
-    SDL_Surface* loaded_dialog_box = IMG_Load("./image/dialog_box.png");
-    if (!loaded_dialog_box) 
-    {
-        printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
-        return -1;
-    }
+    // 初始化
+    SDL_Init(SDL_INIT_VIDEO);
+    TTF_Init(); 
+
+    // 開啟視窗
     SDL_Window* window = SDL_CreateWindow("Hello SDL2", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_SHOWN);
     if (!window) 
     {
         printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
         return 1;
     }
- 
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    SDL_Texture* backgroundTexture = SDL_CreateTextureFromSurface(renderer, loadedSurface);
-    SDL_Texture* dialog_box_texture = SDL_CreateTextureFromSurface(renderer, loaded_dialog_box);
 
-    printf("dialog_box : w=%d h=%d\n",loaded_dialog_box->w,loaded_dialog_box->h);
+    // 建立渲染器
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+
+    // 載入背景圖片
+    SDL_Surface* loadedSurface = IMG_Load("./image/background_01.png");
+    if (!loadedSurface) 
+    {
+        printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
+        return -1;
+    }
+    SDL_Texture* backgroundTexture = SDL_CreateTextureFromSurface(renderer, loadedSurface);
     printf("backgrond : w=%d h=%d\n",loadedSurface->w,loadedSurface->h);
+
+    // 載入對話框圖片
+    SDL_Surface* loaded_dialog_box = IMG_Load("./image/dialog_box.png");
+    if (!loaded_dialog_box) 
+    {
+        printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
+        return -1;
+    }
+    SDL_Texture* dialog_box_texture = SDL_CreateTextureFromSurface(renderer, loaded_dialog_box);
+    printf("dialog_box : w=%d h=%d\n",loaded_dialog_box->w,loaded_dialog_box->h);
+
+    loadBackpackImages("./image/white_button.png", "./image/black_button.png", "./image/white_backpack.png", "./image/black_backpack.png", renderer);
+
+    // 釋放表面資源
     SDL_FreeSurface(loadedSurface);
     if (!renderer) 
     {
@@ -105,8 +101,9 @@ int main(int32_t argc, char* argv[])
         SDL_Quit();
         return 1;
     }
- 
-    TTF_Font* font = TTF_OpenFont("./font/Ubuntu-Regular.ttf", 24);
+
+    // 載入字體
+    TTF_Font* font = TTF_OpenFont("./font/Cubic_11_1.100_R.ttf", 24);
     if (!font) 
     {
         printf("Failed to load font! TTF_Error: %s\n", TTF_GetError());
@@ -115,21 +112,13 @@ int main(int32_t argc, char* argv[])
         SDL_Quit();
         return 1;
     }
- 
-    SDL_Color textColor;
 
-    if(text_color){
-        textColor.r = 255;
-        textColor.g = 255;
-        textColor.b = 255;
-    }else{
-        textColor.r = 0;
-        textColor.g = 0;
-        textColor.b = 0;
-    }
+    // 選擇字體顏色
+    SDL_Color textColor;
+    chooseTextColor(text_color, &textColor);
 
     const char *firstText = "Hello!";
-    const char *secondText = "My name is Chen Boyen. What's your name?";
+    const char *secondText = "What's your name?";
  
     SDL_Event e;
     int quit = 0;
