@@ -218,7 +218,7 @@ void displayTextWithShadow(SDL_Renderer* renderer, TTF_Font* font, const char* t
 
 void displayText(SDL_Renderer* renderer, TTF_Font* font, const char* text, SDL_Color titleTextColor, int32_t x, int32_t y) 
 {
-    SDL_Surface* textSurface = TTF_RenderText_Solid(font, text, titleTextColor);
+    SDL_Surface* textSurface = TTF_RenderUTF8_Solid(font, text, titleTextColor);
     SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
     int text_width = textSurface->w;  // 文本寬度
     int text_height = textSurface->h; // 文本高度

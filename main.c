@@ -13,7 +13,7 @@ int main(int32_t argc, char* argv[])
     openningData data;
     openningPath path;
     openningDataInit(&data);
-    strcpy(data.title, "NekoCat Engine");
+    strcpy(data.title, "貓貓の引擎");
     strcpy(path.backgroundPath, "./Assets/image/openning.png");
     strcpy(path.fontPath, "./Assets/font/Cubic_11_1.100_R.ttf");
     strcpy(path.blackButtonPath, "./Assets/image/black_button.png");
@@ -31,7 +31,7 @@ int main(int32_t argc, char* argv[])
         printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
         return -1;
     }
-    SDL_SetWindowFullscreen( window, SDL_WINDOW_FULLSCREEN);
+    SDL_SetWindowFullscreen( window, SDL_WINDOW_FULLSCREEN); // Fullscreen
 
     // open the openning window
     int32_t option = openningMain(&data, &path, window);
