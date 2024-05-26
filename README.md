@@ -7,5 +7,5 @@
 **text.c, text.h**: 和文字有關的 library  
 
 ### 正在執行的任務  
-*分支處理者現在在學離散數學  因為他期末快炸了*  
-*the developer of this branch is studying Distrete Mathematics because he thinks that he will get a bad grade on the final exam.* 
+*分支研發者現在正學習離散數學  因為他期末快炸了*  
+*The developer of this branch is studying Distrete Mathematics because he thinks that he will get a bad grade on the final exam.* 
