@@ -39,3 +39,5 @@ typedef struct _openningPath{
 void openningDataInit(openningData* data);
 
 int32_t openningMain(openningData* data, openningPath* path, SDL_Window* window);
+
+uint8_t judgeButtonPressed(int32_t x, int32_t y, int32_t button_x, int32_t button_y, int32_t button_width, int32_t button_height);

@@ -142,7 +142,7 @@ int32_t openningMain(openningData *data, openningPath *path, SDL_Window* window)
         //start button
         SDL_Color startTextColor;
         title_font = TTF_OpenFont("./Assets/font/Cubic_11_1.100_R.ttf", 30 * window_width * window_height / (3*640.0 * 480.0));
-        if(mouse_x >= start_button_x && mouse_x <= start_button_x + button_width && mouse_y >= start_button_y && mouse_y <= start_button_y + button_height)
+        if(judgeButtonPressed(mouse_x, mouse_y, start_button_x, start_button_y, button_width, button_height))
         {
             chooseTextColor(0, &startTextColor);
             renderTexture(whitebuttonTexture, renderer, start_button_x, start_button_y, button_width, button_height);
@@ -166,7 +166,7 @@ int32_t openningMain(openningData *data, openningPath *path, SDL_Window* window)
         //aboutus button
         SDL_Color aboutusTextColor;
         title_font = TTF_OpenFont("./Assets/font/Cubic_11_1.100_R.ttf", 30 * window_width * window_height / (3*640.0 * 480.0));
-        if(mouse_x >= aboutus_button_x && mouse_x <= aboutus_button_x + button_width && mouse_y >= aboutus_button_y && mouse_y <= aboutus_button_y + button_height)
+        if(judgeButtonPressed(mouse_x, mouse_y, aboutus_button_x, aboutus_button_y, button_width, button_height))
         {
             chooseTextColor(0, &aboutusTextColor);
             renderTexture(whitebuttonTexture, renderer, aboutus_button_x, aboutus_button_y, button_width, button_height);
@@ -228,4 +228,11 @@ void displayText(SDL_Renderer* renderer, TTF_Font* font, const char* text, SDL_C
 
     SDL_FreeSurface(textSurface);  // 釋放表面資源
     SDL_DestroyTexture(textTexture);  // 銷毀紋理資源
+}
+
+uint8_t judgeButtonPressed(int32_t x, int32_t y, int32_t button_x, int32_t button_y, int32_t button_width, int32_t button_height){
+    if(x >= button_x && x <= button_x + button_width && y >= button_y && y <= button_y + button_height){
+        return 1;
+    }
+    return 0;
 }
