@@ -12,7 +12,7 @@ int main(int32_t argc, char* argv[])
     // Initialize data and path
     openningData data;
     openningPath path;
-    openningDataInit(&data);
+    openningDataInit(&data); // Initialize pre-defined data
     strcpy(data.title, "貓貓の引擎");
     strcpy(path.backgroundPath, "./Assets/image/openning.png");
     strcpy(path.fontPath, "./Assets/font/Cubic_11_1.100_R.ttf");

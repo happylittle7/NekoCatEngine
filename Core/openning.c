@@ -14,30 +14,24 @@ void openningDataInit(openningData* data){
     data->title_text_color = 1;
     data->title_x = 140.0/640.0;
     data->title_y = 100.0/480.0;
-    data->window_width = 640.0;
-    data->window_height = 480.0;
     data->start_button_x = 240.0/640.0;
     data->start_button_y = 250.0/480.0;
     data->aboutus_button_x = data->start_button_x;
-    data->aboutus_button_y = data->start_button_y + 80.0/480.0;
-    data->button_width = 160.0/640.0;
-    data->button_height = 60.0/480.0;
+    data->aboutus_button_y = 330.0/480.0;
+    data->normal_button_width = 160.0/640.0;
+    data->normal_button_height = 60.0/480.0;
+    data->exit_button_x = 0.94;
+    data->exit_button_y = 0.0235;
+    data->exit_button_width = 0.05;
+    data->exit_button_height = 0.05;
 }
 
 int32_t openningMain(openningData *data, openningPath *path, SDL_Window* window) 
 {
-    uint8_t title_text_color = data->title_text_color;
-    double title_x = data->title_x;
-    double title_y = data->title_y;
-    int32_t window_width = data->window_width;
-    int32_t window_height = data->window_height;
-    double start_button_x = data->start_button_x;
-    double start_button_y = data->start_button_y;
-    double aboutus_button_x = data->aboutus_button_x;
-    double aboutus_button_y = data->aboutus_button_y;
-    double button_width = data->button_width;
-    double button_height = data->button_height;
     double option = 0; //-1 = Error, 0 = Quit, 1 = start, 2 = aboutus
+    int32_t mouse_press = 0;
+    int32_t window_width, window_height;
+    uint8_t title_text_color = data->title_text_color;
 
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     if (!renderer) 
@@ -59,7 +53,7 @@ int32_t openningMain(openningData *data, openningPath *path, SDL_Window* window)
     SDL_FreeSurface(loadedSurface);
 
     //字體
-    TTF_Font* title_font = TTF_OpenFont(path->fontPath, 55 * window_width / 640.0);
+    TTF_Font* title_font = TTF_OpenFont(path->fontPath, 55);
     if (!title_font) 
     {
         printf("Failed to load font! TTF_Error: %s\n", TTF_GetError());
@@ -98,8 +92,6 @@ int32_t openningMain(openningData *data, openningPath *path, SDL_Window* window)
 
     while (!quit) 
     {
-        int32_t mouse_press = 0;
-
         while (SDL_PollEvent(&e) != 0 && !quit) 
         {
             switch(e.type)
@@ -117,35 +109,44 @@ int32_t openningMain(openningData *data, openningPath *path, SDL_Window* window)
             SDL_GetMouseState(&mouse_x, &mouse_y); //處理鼠標位置
         }
 
-        SDL_GetWindowSize(window, &window_width, &window_height);
-        title_x = 140.0/640.0 * (double)window_width;
-        title_y = 100.0/480.0 * (double)window_height;
-        start_button_x = 240.0/640.0 * (double)window_width;
-        start_button_y = 250.0/480.0 * (double)window_height;
-        aboutus_button_x = start_button_x;
-        aboutus_button_y = start_button_y + 80.0/480.0 * (double)window_height;
-        button_width = 160.0/640.0 * (double)window_width;
-        button_height = 60.0/480.0 * (double)window_height;
-
         //渲染背景
         SDL_RenderClear(renderer);
         SDL_RenderCopy(renderer, backgroundTexture, NULL, NULL);  // 渲染背景
 
+        //取得視窗大小
+        SDL_GetWindowSize(window, &window_width, &window_height);
+        // printf("window_width = %d, window_height = %d\n", window_width, window_height);
+
+        //改變參數
+        double title_x = data->title_x * (double)window_width;
+        double title_y = data->title_y * (double)window_height;
+        double start_button_x = data->start_button_x * (double)window_width;
+        double start_button_y = data->start_button_y * (double)window_height;
+        double aboutus_button_x = data->aboutus_button_x * (double)window_width;
+        double aboutus_button_y = data->aboutus_button_y * (double)window_height;
+        double normal_button_width = data->normal_button_width * (double)window_width;
+        double normal_button_height = data->normal_button_height * (double)window_height;
+        double exit_button_x = data->exit_button_x * (double)window_width;
+        double exit_button_y = data->exit_button_y * (double)window_height;
+        double exit_button_width = data->exit_button_width * (double)window_width;
+        double exit_button_height = exit_button_width;
+
         //渲染標題字
         SDL_Color titleTextColor;
         chooseTextColor(title_text_color, &titleTextColor);
-        title_font = TTF_OpenFont("./Assets/font/Cubic_11_1.100_R.ttf", 55 * window_width * window_height / (2.2*640.0 * 480.0));
+        title_font = TTF_OpenFont(path->fontPath, 55 * window_width * window_height / (2.2*640.0 * 480.0));
         displayTextWithShadow(renderer, title_font, data->title, titleTextColor, title_x, title_y, 5);
+
         // SDL_RenderPresent(renderer);
         // renderTexture(dialog_box_texture, renderer, dialogBox_start_x, dialogBox_start_y, 640, 130);
 
         //start button
         SDL_Color startTextColor;
-        title_font = TTF_OpenFont("./Assets/font/Cubic_11_1.100_R.ttf", 30 * window_width * window_height / (3*640.0 * 480.0));
-        if(judgeButtonPressed(mouse_x, mouse_y, start_button_x, start_button_y, button_width, button_height))
+        title_font = TTF_OpenFont(path->fontPath, 30 * window_width * window_height / (3*640.0 * 480.0));
+        if(judgeButtonPressed(mouse_x, mouse_y, start_button_x, start_button_y, normal_button_width, normal_button_height))
         {
             chooseTextColor(0, &startTextColor);
-            renderTexture(whitebuttonTexture, renderer, start_button_x, start_button_y, button_width, button_height);
+            renderTexture(whitebuttonTexture, renderer, start_button_x, start_button_y, normal_button_width, normal_button_height);
             displayText(renderer, title_font, "Start", startTextColor, start_button_x + 57 * window_width / 640.0, start_button_y + 10 * window_height / 480.0);
 
             if(mouse_press == 1)
@@ -159,17 +160,17 @@ int32_t openningMain(openningData *data, openningPath *path, SDL_Window* window)
         else
         {
             chooseTextColor(1, &startTextColor);
-            renderTexture(blackbuttonTexture, renderer, start_button_x, start_button_y, button_width, button_height);
+            renderTexture(blackbuttonTexture, renderer, start_button_x, start_button_y, normal_button_width, normal_button_height);
             displayText(renderer, title_font, "Start", startTextColor, start_button_x + 57 * window_width / 640.0, start_button_y + 10 * window_height / 480.0);
         }
 
         //aboutus button
         SDL_Color aboutusTextColor;
-        title_font = TTF_OpenFont("./Assets/font/Cubic_11_1.100_R.ttf", 30 * window_width * window_height / (3*640.0 * 480.0));
-        if(judgeButtonPressed(mouse_x, mouse_y, aboutus_button_x, aboutus_button_y, button_width, button_height))
+        title_font = TTF_OpenFont(path->fontPath, 30 * window_width * window_height / (3*640.0 * 480.0));
+        if(judgeButtonPressed(mouse_x, mouse_y, aboutus_button_x, aboutus_button_y, normal_button_width, normal_button_height))
         {
             chooseTextColor(0, &aboutusTextColor);
-            renderTexture(whitebuttonTexture, renderer, aboutus_button_x, aboutus_button_y, button_width, button_height);
+            renderTexture(whitebuttonTexture, renderer, aboutus_button_x, aboutus_button_y, normal_button_width, normal_button_height);
             displayText(renderer, title_font, "Aboutus", aboutusTextColor, aboutus_button_x + 37 * window_width / 640.0, aboutus_button_y + 10 * window_height / 480.0);
             // printf("mouse on aboutus button\n");
             if(mouse_press == 1)
@@ -182,9 +183,33 @@ int32_t openningMain(openningData *data, openningPath *path, SDL_Window* window)
         else
         {
             chooseTextColor(1, &aboutusTextColor);
-            renderTexture(blackbuttonTexture, renderer, aboutus_button_x, aboutus_button_y, button_width, button_height);
+            renderTexture(blackbuttonTexture, renderer, aboutus_button_x, aboutus_button_y, normal_button_width, normal_button_height);
             displayText(renderer, title_font, "Aboutus", aboutusTextColor, aboutus_button_x + 37 * window_width / 640.0, aboutus_button_y + 10 * window_height / 480.0);
         }
+
+        //exit button
+        SDL_Color exitTextColor;
+        title_font = TTF_OpenFont(path->fontPath, 35 * window_width * window_height / (3*640.0 * 480.0));
+        if(judgeButtonPressed(mouse_x, mouse_y, exit_button_x, exit_button_y, exit_button_width, exit_button_height))
+        {
+            chooseTextColor(0, &exitTextColor);
+            renderTexture(whitebuttonTexture, renderer, exit_button_x, exit_button_y, exit_button_width, exit_button_height);
+            displayText(renderer, title_font, "×", exitTextColor, exit_button_x + 0.25 * exit_button_width, exit_button_y + 0.1 * exit_button_height);
+            // printf("mouse on exit button\n");
+            if(mouse_press == 1)
+            {
+                printf("exit button is pressed\n");
+                quit = 1;
+                option = 0;
+            }
+        }
+        else
+        {
+            chooseTextColor(1, &exitTextColor);
+            renderTexture(blackbuttonTexture, renderer, exit_button_x, exit_button_y, exit_button_width, exit_button_height);
+            displayText(renderer, title_font, "×", exitTextColor, exit_button_x + 0.25 * exit_button_width, exit_button_y + 0.1 * exit_button_height);
+        }
+
 
         //更新畫面
         SDL_RenderPresent(renderer);
@@ -230,8 +255,8 @@ void displayText(SDL_Renderer* renderer, TTF_Font* font, const char* text, SDL_C
     SDL_DestroyTexture(textTexture);  // 銷毀紋理資源
 }
 
-uint8_t judgeButtonPressed(int32_t x, int32_t y, int32_t button_x, int32_t button_y, int32_t button_width, int32_t button_height){
-    if(x >= button_x && x <= button_x + button_width && y >= button_y && y <= button_y + button_height){
+uint8_t judgeButtonPressed(int32_t x, int32_t y, int32_t button_x, int32_t button_y, int32_t normal_button_width, int32_t normal_button_height){
+    if(x >= button_x && x <= button_x + normal_button_width && y >= button_y && y <= button_y + normal_button_height){
         return 1;
     }
     return 0;
