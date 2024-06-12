@@ -102,7 +102,7 @@ int main(int32_t argc, char* argv[])
         return 1;
     }
  
-    TTF_Font* font = TTF_OpenFont("./font/Ubuntu-Regular.ttf", 24);
+    TTF_Font* font = TTF_OpenFont("./font/NotoSansTC-VariableFont_wght.ttf", 24);
     if (!font) 
     {
         printf("Failed to load font! TTF_Error: %s\n", TTF_GetError());
@@ -114,8 +114,8 @@ int main(int32_t argc, char* argv[])
  
     SDL_Color textColor = {0, 0, 0};
 
-    const char *firstText = "Hello!";
-    const char *secondText = "My name is Chen Boyen. What's your name?";
+    const char *firstText = "你好!";
+    const char *secondText = "我叫陳柏諺, 你這屁眼! What's your name?";
  
     SDL_Event e;
     int quit = 0;
@@ -135,12 +135,14 @@ int main(int32_t argc, char* argv[])
             SDL_RenderCopy(renderer, backgroundTexture, NULL, NULL);  // 渲染背景
             renderTexture(dialog_box_texture, renderer, dialogBox_start_x, dialogBox_start_y, 640, 130);
 
-            if (step == 0) {
+            if (step == 0) 
+            {
                 displayText(renderer, font, firstText, textColor, text_start_x, text_start_y);
                 SDL_RenderPresent(renderer);
                 SDL_Delay(2000);  // Display for 2 seconds
                 step = 1;
-            }else if (step == 1){
+            }else if (step == 1)
+            {
                 SDL_RenderClear(renderer);
                 SDL_RenderCopy(renderer, backgroundTexture, NULL, NULL);  // 重新渲染背景
                 renderTexture(dialog_box_texture, renderer, dialogBox_start_x, dialogBox_start_y, 640, 130);
