@@ -29,6 +29,8 @@ void renderTexture(SDL_Texture *tex, SDL_Renderer *renderer, int x, int y, int w
     dst.w = w;
     dst.h = h;
     SDL_RenderCopy(renderer, tex, NULL, &dst);
+
+    return;
 }
 
 void openningDataInit(openningData *data)
@@ -47,6 +49,8 @@ void openningDataInit(openningData *data)
     data->exit_button_y = 0.0585;
     data->exit_button_width = 0.05;
     data->exit_button_height = 0.05;
+
+    return;
 }
 
 int32_t openningMain(openningData *data, openningPath *path, SDL_Window *window)
@@ -257,6 +261,8 @@ void chooseTextColor(uint8_t text_color, SDL_Color *titleTextColor)
         titleTextColor->g = 0;
         titleTextColor->b = 0;
     }
+
+    return;
 }
 
 void displayTextWithShadow(SDL_Renderer *renderer, TTF_Font *font, const char *text, SDL_Color titleTextColor, int32_t x, int32_t y, int32_t move, char *option_x, char *option_y)
@@ -267,6 +273,8 @@ void displayTextWithShadow(SDL_Renderer *renderer, TTF_Font *font, const char *t
     SDL_Color shadowColor = {0, 0, 0};
     displayText(renderer, font, text, shadowColor, x + move, y + move, option_x, option_y);
     displayText(renderer, font, text, titleTextColor, x, y, option_x, option_y);
+
+    return;
 }
 
 void displayText(SDL_Renderer *renderer, TTF_Font *font, const char *text, SDL_Color titleTextColor, int32_t x, int32_t y, char *option_x, char *option_y)
@@ -302,6 +310,8 @@ void displayText(SDL_Renderer *renderer, TTF_Font *font, const char *text, SDL_C
 
     SDL_FreeSurface(textSurface);    // 釋放表面資源
     SDL_DestroyTexture(textTexture); // 銷毀紋理資源
+
+    return;
 }
 
 uint8_t judgeButtonPressed(int32_t x, int32_t y, int32_t button_x, int32_t button_y, int32_t normal_button_width, int32_t normal_button_height, char *option_x, char *option_y)

@@ -56,4 +56,6 @@ void displayText(SDL_Renderer *renderer, TTF_Font *font, const char *text, SDL_C
 
     SDL_FreeSurface(textSurface);    // 釋放表面資源
     SDL_DestroyTexture(textTexture); // 銷毀紋理資源
+
+    return;
 }
