@@ -1,8 +1,29 @@
 #include "openning.h"
 
-void renderTexture(SDL_Texture *tex, SDL_Renderer *renderer, int x, int y, int w, int h)
+void renderTexture(SDL_Texture *tex, SDL_Renderer *renderer, int x, int y, int w, int h, char *option_x, char *option_y)
 {
+    // option_x = "LEFT, "CENTER" or "RIGHT"
+    // option_y = "TOP, "CENTER" or "BOTTOM"
     SDL_Rect dst;
+
+    if (option_x == "CENTER")
+    {
+        x = x - w / 2;
+    }
+    else if (option_x == "RIGHT")
+    {
+        x = x - w;
+    }
+
+    if (option_y == "CENTER")
+    {
+        y = y - h / 2;
+    }
+    else if (option_y == "BOTTOM")
+    {
+        y = y - h;
+    }
+
     dst.x = x;
     dst.y = y;
     dst.w = w;
@@ -12,17 +33,18 @@ void renderTexture(SDL_Texture *tex, SDL_Renderer *renderer, int x, int y, int w
 
 void openningDataInit(openningData *data)
 {
+    // 所有位置皆為比例
     data->title_text_color = 1;
     data->title_x = 0.5;
     data->title_y = 100.0 / 480.0;
     data->start_button_x = 0.5;
-    data->start_button_y = 250.0 / 480.0;
+    data->start_button_y = 280.0 / 480.0;
     data->aboutus_button_x = data->start_button_x;
-    data->aboutus_button_y = 330.0 / 480.0;
+    data->aboutus_button_y = 360.0 / 480.0;
     data->normal_button_width = 160.0 / 640.0;
     data->normal_button_height = 60.0 / 480.0;
-    data->exit_button_x = 0.94;
-    data->exit_button_y = 0.0235;
+    data->exit_button_x = 0.9675;
+    data->exit_button_y = 0.0585;
     data->exit_button_width = 0.05;
     data->exit_button_height = 0.05;
 }
@@ -136,7 +158,7 @@ int32_t openningMain(openningData *data, openningPath *path, SDL_Window *window)
         SDL_Color titleTextColor;
         chooseTextColor(title_text_color, &titleTextColor);
         title_font = TTF_OpenFont(path->fontPath, 55 * window_width * window_height / (2.2 * 640.0 * 480.0));
-        displayTextWithShadow(renderer, title_font, data->title, titleTextColor, title_x, title_y, 5, "CENTER");
+        displayTextWithShadow(renderer, title_font, data->title, titleTextColor, title_x, title_y, 5, "CENTER", "TOP");
 
         // SDL_RenderPresent(renderer);
         // renderTexture(dialog_box_texture, renderer, dialogBox_start_x, dialogBox_start_y, 640, 130);
@@ -144,11 +166,11 @@ int32_t openningMain(openningData *data, openningPath *path, SDL_Window *window)
         // start button
         SDL_Color startTextColor;
         title_font = TTF_OpenFont(path->fontPath, 30 * window_width * window_height / (3 * 640.0 * 480.0));
-        if (judgeButtonPressed(mouse_x, mouse_y, start_button_x - normal_button_width / 2.0, start_button_y, normal_button_width, normal_button_height))
+        if (judgeButtonPressed(mouse_x, mouse_y, start_button_x, start_button_y, normal_button_width, normal_button_height, "CENTER", "CENTER"))
         {
             chooseTextColor(0, &startTextColor);
-            renderTexture(whitebuttonTexture, renderer, start_button_x - normal_button_width / 2.0, start_button_y, normal_button_width, normal_button_height);
-            displayText(renderer, title_font, "Start", startTextColor, start_button_x, start_button_y + 10 * window_height / 480.0, "CENTER");
+            renderTexture(whitebuttonTexture, renderer, start_button_x, start_button_y, normal_button_width, normal_button_height, "CENTER", "CENTER");
+            displayText(renderer, title_font, "Start", startTextColor, start_button_x, start_button_y, "CENTER", "CENTER");
 
             if (mouse_press == 1)
             {
@@ -161,18 +183,18 @@ int32_t openningMain(openningData *data, openningPath *path, SDL_Window *window)
         else
         {
             chooseTextColor(1, &startTextColor);
-            renderTexture(blackbuttonTexture, renderer, start_button_x - normal_button_width / 2.0, start_button_y, normal_button_width, normal_button_height);
-            displayText(renderer, title_font, "Start", startTextColor, start_button_x, start_button_y + 10 * window_height / 480.0, "CENTER");
+            renderTexture(blackbuttonTexture, renderer, start_button_x, start_button_y, normal_button_width, normal_button_height, "CENTER", "CENTER");
+            displayText(renderer, title_font, "Start", startTextColor, start_button_x, start_button_y, "CENTER", "CENTER");
         }
 
         // aboutus button
         SDL_Color aboutusTextColor;
         title_font = TTF_OpenFont(path->fontPath, 30 * window_width * window_height / (3 * 640.0 * 480.0));
-        if (judgeButtonPressed(mouse_x, mouse_y, aboutus_button_x - normal_button_width / 2.0, aboutus_button_y, normal_button_width, normal_button_height))
+        if (judgeButtonPressed(mouse_x, mouse_y, aboutus_button_x, aboutus_button_y, normal_button_width, normal_button_height, "CENTER", "CENTER"))
         {
             chooseTextColor(0, &aboutusTextColor);
-            renderTexture(whitebuttonTexture, renderer, aboutus_button_x - normal_button_width / 2.0, aboutus_button_y, normal_button_width, normal_button_height);
-            displayText(renderer, title_font, "Aboutus", aboutusTextColor, aboutus_button_x, aboutus_button_y + 10 * window_height / 480.0, "CENTER");
+            renderTexture(whitebuttonTexture, renderer, aboutus_button_x, aboutus_button_y, normal_button_width, normal_button_height, "CENTER", "CENTER");
+            displayText(renderer, title_font, "Aboutus", aboutusTextColor, aboutus_button_x, aboutus_button_y, "CENTER", "CENTER");
             // printf("mouse on aboutus button\n");
             if (mouse_press == 1)
             {
@@ -184,18 +206,18 @@ int32_t openningMain(openningData *data, openningPath *path, SDL_Window *window)
         else
         {
             chooseTextColor(1, &aboutusTextColor);
-            renderTexture(blackbuttonTexture, renderer, aboutus_button_x - normal_button_width / 2.0, aboutus_button_y, normal_button_width, normal_button_height);
-            displayText(renderer, title_font, "Aboutus", aboutusTextColor, aboutus_button_x, aboutus_button_y + 10 * window_height / 480.0, "CENTER");
+            renderTexture(blackbuttonTexture, renderer, aboutus_button_x, aboutus_button_y, normal_button_width, normal_button_height, "CENTER", "CENTER");
+            displayText(renderer, title_font, "Aboutus", aboutusTextColor, aboutus_button_x, aboutus_button_y, "CENTER", "CENTER");
         }
 
         // exit button
         SDL_Color exitTextColor;
         title_font = TTF_OpenFont(path->fontPath, 35 * window_width * window_height / (3 * 640.0 * 480.0));
-        if (judgeButtonPressed(mouse_x, mouse_y, exit_button_x, exit_button_y, exit_button_width, exit_button_height))
+        if (judgeButtonPressed(mouse_x, mouse_y, exit_button_x, exit_button_y, exit_button_width, exit_button_height, "CENTER", "CENTER"))
         {
             chooseTextColor(0, &exitTextColor);
-            renderTexture(whitebuttonTexture, renderer, exit_button_x, exit_button_y, exit_button_width, exit_button_height);
-            displayText(renderer, title_font, "×", exitTextColor, exit_button_x + 0.25 * exit_button_width, exit_button_y + 0.1 * exit_button_height, "LEFT");
+            renderTexture(whitebuttonTexture, renderer, exit_button_x, exit_button_y, exit_button_width, exit_button_height, "CENTER", "CENTER");
+            displayText(renderer, title_font, "×", exitTextColor, exit_button_x, exit_button_y, "CENTER", "CENTER");
             // printf("mouse on exit button\n");
             if (mouse_press == 1)
             {
@@ -207,8 +229,8 @@ int32_t openningMain(openningData *data, openningPath *path, SDL_Window *window)
         else
         {
             chooseTextColor(1, &exitTextColor);
-            renderTexture(blackbuttonTexture, renderer, exit_button_x, exit_button_y, exit_button_width, exit_button_height);
-            displayText(renderer, title_font, "×", exitTextColor, exit_button_x + 0.25 * exit_button_width, exit_button_y + 0.1 * exit_button_height, "LEFT");
+            renderTexture(blackbuttonTexture, renderer, exit_button_x, exit_button_y, exit_button_width, exit_button_height, "CENTER", "CENTER");
+            displayText(renderer, title_font, "×", exitTextColor, exit_button_x, exit_button_y, "CENTER", "CENTER");
         }
 
         // 更新畫面
@@ -237,28 +259,42 @@ void chooseTextColor(uint8_t text_color, SDL_Color *titleTextColor)
     }
 }
 
-void displayTextWithShadow(SDL_Renderer *renderer, TTF_Font *font, const char *text, SDL_Color titleTextColor, int32_t x, int32_t y, int32_t move, char *option)
+void displayTextWithShadow(SDL_Renderer *renderer, TTF_Font *font, const char *text, SDL_Color titleTextColor, int32_t x, int32_t y, int32_t move, char *option_x, char *option_y)
 {
+    // option_x = "LEFT, "CENTER" or "RIGHT"
+    // option_y = "TOP, "CENTER" or "BOTTOM"
+    
     SDL_Color shadowColor = {0, 0, 0};
-    displayText(renderer, font, text, shadowColor, x + move, y + move, option);
-    displayText(renderer, font, text, titleTextColor, x, y, option);
+    displayText(renderer, font, text, shadowColor, x + move, y + move, option_x, option_y);
+    displayText(renderer, font, text, titleTextColor, x, y, option_x, option_y);
 }
 
-void displayText(SDL_Renderer *renderer, TTF_Font *font, const char *text, SDL_Color titleTextColor, int32_t x, int32_t y, char *option)
+void displayText(SDL_Renderer *renderer, TTF_Font *font, const char *text, SDL_Color titleTextColor, int32_t x, int32_t y, char *option_x, char *option_y)
 {
-    // option = "LEFT, "CENTER" or "RIGHT"
+    // option_x = "LEFT, "CENTER" or "RIGHT"
+    // option_y = "TOP, "CENTER" or "BOTTOM"
+
     SDL_Surface *textSurface = TTF_RenderUTF8_Solid(font, text, titleTextColor);
     SDL_Texture *textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
     int text_width = textSurface->w;  // 文本寬度
     int text_height = textSurface->h; // 文本高度
 
-    if (option == "CENTER")
+    if (option_x == "CENTER")
     {
         x = x - text_width / 2;
     }
-    else if (option == "RIGHT")
+    else if (option_x == "RIGHT")
     {
         x = x - text_width;
+    }
+
+    if(option_y == "CENTER")
+    {
+        y = y - text_height / 2;
+    }
+    else if(option_y == "BOTTOM")
+    {
+        y = y - text_height;
     }
 
     SDL_Rect renderQuad = {x, y, text_width, text_height};    // 定義渲染區域
@@ -268,8 +304,29 @@ void displayText(SDL_Renderer *renderer, TTF_Font *font, const char *text, SDL_C
     SDL_DestroyTexture(textTexture); // 銷毀紋理資源
 }
 
-uint8_t judgeButtonPressed(int32_t x, int32_t y, int32_t button_x, int32_t button_y, int32_t normal_button_width, int32_t normal_button_height)
+uint8_t judgeButtonPressed(int32_t x, int32_t y, int32_t button_x, int32_t button_y, int32_t normal_button_width, int32_t normal_button_height, char *option_x, char *option_y)
 {
+    // option_x = "LEFT, "CENTER" or "RIGHT"
+    // option_y = "TOP, "CENTER" or "BOTTOM"
+
+    if(option_x == "CENTER")
+    {
+        button_x = button_x - normal_button_width / 2;
+    }
+    else if(option_x == "RIGHT")
+    {
+        button_x = button_x - normal_button_width;
+    }
+
+    if(option_y == "CENTER")
+    {
+        button_y = button_y - normal_button_height / 2;
+    }
+    else if(option_y == "BOTTOM")
+    {
+        button_y = button_y - normal_button_height;
+    }
+
     if (x >= button_x && x <= button_x + normal_button_width && y >= button_y && y <= button_y + normal_button_height)
     {
         return 1;
