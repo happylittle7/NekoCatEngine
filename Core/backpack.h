@@ -53,3 +53,5 @@ void displayTextWithShadow(SDL_Renderer* renderer, TTF_Font* font, const char* t
 void backpackInit(backpackData *backpack_data, backpackItem **backpack_items);
 
 void renderTexture(SDL_Texture *tex, SDL_Renderer *renderer, int x, int y, int w, int h, char *option_x, char *option_y);
+
+int32_t backpackMain(backpackData *data, backpackItem *items, backpackPath *path, SDL_Window *window);

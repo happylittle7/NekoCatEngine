@@ -1,12 +1,15 @@
 #include "text.h"
 
-void chooseTextColor(uint8_t text_color, SDL_Color* titleTextColor)
+void chooseTextColor(uint8_t text_color, SDL_Color *titleTextColor)
 {
-    if(text_color){
+    if (text_color)
+    {
         titleTextColor->r = 255;
         titleTextColor->g = 255;
         titleTextColor->b = 255;
-    }else{
+    }
+    else
+    {
         titleTextColor->r = 0;
         titleTextColor->g = 0;
         titleTextColor->b = 0;
@@ -17,7 +20,7 @@ void displayTextWithShadow(SDL_Renderer *renderer, TTF_Font *font, const char *t
 {
     // option_x = "LEFT, "CENTER" or "RIGHT"
     // option_y = "TOP, "CENTER" or "BOTTOM"
-    
+
     SDL_Color shadowColor = {0, 0, 0};
     displayText(renderer, font, text, shadowColor, x + move, y + move, option_x, option_y);
     displayText(renderer, font, text, titleTextColor, x, y, option_x, option_y);
@@ -42,11 +45,11 @@ void displayText(SDL_Renderer *renderer, TTF_Font *font, const char *text, SDL_C
         x = x - text_width;
     }
 
-    if(option_y == "CENTER")
+    if (option_y == "CENTER")
     {
         y = y - text_height / 2;
     }
-    else if(option_y == "BOTTOM")
+    else if (option_y == "BOTTOM")
     {
         y = y - text_height;
     }

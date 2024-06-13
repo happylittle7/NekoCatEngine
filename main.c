@@ -48,6 +48,12 @@ int main(int32_t argc, char *argv[])
     SDL_Init(SDL_INIT_VIDEO);
     TTF_Init();
 
+    // 設定連結
+    char *background_path = "./Assets/image/background_01.png";
+    char *dialog_box_path = "./Assets/image/dialog_box.png";
+    char *font_path = "./Assets/font/Cubic_11_1.100_R.ttf";
+
+
     // 開啟視窗
     SDL_Window *window = SDL_CreateWindow("Hello SDL2", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_SHOWN);
     if (!window)
@@ -60,7 +66,7 @@ int main(int32_t argc, char *argv[])
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
     // 載入背景圖片
-    SDL_Surface *loadedSurface = IMG_Load("./Assets/image/background_01.png");
+    SDL_Surface *loadedSurface = IMG_Load(background_path);
     if (!loadedSurface)
     {
         printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
@@ -70,7 +76,7 @@ int main(int32_t argc, char *argv[])
     printf("backgrond : w=%d h=%d\n", loadedSurface->w, loadedSurface->h);
 
     // 載入對話框圖片
-    SDL_Surface *loaded_dialog_box = IMG_Load("./Assets/image/dialog_box.png");
+    SDL_Surface *loaded_dialog_box = IMG_Load(dialog_box_path);
     if (!loaded_dialog_box)
     {
         printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
@@ -92,7 +98,7 @@ int main(int32_t argc, char *argv[])
     }
 
     // 載入字體
-    TTF_Font *font = TTF_OpenFont("./Assets/font/Cubic_11_1.100_R.ttf", 24);
+    TTF_Font *font = TTF_OpenFont(font_path, 24);
     if (!font)
     {
         printf("Failed to load font! TTF_Error: %s\n", TTF_GetError());
@@ -112,20 +118,68 @@ int main(int32_t argc, char *argv[])
     SDL_Event e;
     int quit = 0;
     int step = 0;
+    int32_t bag_mod_openned = 0;
 
     while (!quit)
     {
         while (SDL_PollEvent(&e) != 0 && !quit)
         {
-            if (e.type == SDL_QUIT)
+            switch (e.type)
             {
+            case SDL_QUIT:
                 quit = 1;
+                break;
+            case SDL_KEYDOWN:
+                switch (e.key.keysym.sym)
+                {
+                case SDLK_e:
+                    printf("E key pressed\n");
+                    bad_mod_openned = !bag_mod_openned;
+                    break;
+                default:
+                    break;
+                }
+                break;
             }
         }
 
-        if(quit)
+        if (quit)
         {
             break;
+        }
+
+        // 背包模式
+        if (bag_mod_openned)
+        {
+            // 初始化背包
+            backpackData backpack_data;
+            backpackItem *backpack_items;
+            backpackPath backpack_path;
+
+            backpackInit(&backpack_data, &backpack_items);
+            strcpy(backpack_path.background_path, background_path);
+            strcpy(backpack_path.font_path, font_path);
+            strcpy(backpack_path.black_block_path, "./Assets/image/black_block.png");
+
+            // 初始化背包物品
+            backpack_items[0].status = 1;
+            backpack_items[0].name = "item 1";
+            backpack_items[0].description = "item 1 description";
+            backpack_items[0].image_path = "./Assets/image/item_01.png";
+            backpack_items[1].status = 1;
+            backpack_items[1].name = "item 2";
+            backpack_items[1].description = "item 2 description";
+            backpack_items[1].image_path = "./Assets/image/item_02.png";
+            backpack_items[2].status = 1;
+            backpack_items[2].name = "item 3";
+            backpack_items[2].description = "item 3 description";
+            backpack_items[2].image_path = "./Assets/image/item_03.png";
+            backpack_items[3].status = 2;
+            backpack_items[3].name = "item 4";
+            backpack_items[3].description = "item 4 description";
+            backpack_items[3].image_path = "./Assets/image/item_04.png";
+            backpack_items[4].status = 0;
+            backpack_items[5].status = 0;
         }
 
         SDL_RenderClear(renderer);
