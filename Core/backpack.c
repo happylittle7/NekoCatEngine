@@ -64,7 +64,7 @@ void displayText(SDL_Renderer *renderer, TTF_Font *font, const char *text, SDL_C
     return;
 }
 
-void backpackInit(backpackData *backpack_data)
+void backpackInit(backpackData *backpack_data, backpackItem **backpack_items)
 {
     // 初始化背包
     backpack_data->backpack_item_count = 0;
@@ -82,4 +82,49 @@ void backpackInit(backpackData *backpack_data)
     backpack_data->backpack_05_x = 0.1 + 0.15 + 0.05;
     backpack_data->backpack_05_y = 0.1 + 0.15 + 0.05;
     backpack_data->backpack_06_x = 0.1 + 0.15 + 0.05 + 0.15 + 0.05;
+
+    //item 初始化
+    *backpack_items = (backpackItem *)malloc(sizeof(backpackItem) * 6);
+    for (int i = 0; i < 6; i++)
+    {
+        (*backpack_items)[i].status = 0;
+        strcpy((*backpack_items)[i].name, "");
+        strcpy((*backpack_items)[i].description, "");
+        strcpy((*backpack_items)[i].image_path, "");
+    }
+
+    return;
+}
+
+void renderTexture(SDL_Texture *tex, SDL_Renderer *renderer, int x, int y, int w, int h, char *option_x, char *option_y)
+{
+    // option_x = "LEFT, "CENTER" or "RIGHT"
+    // option_y = "TOP, "CENTER" or "BOTTOM"
+    SDL_Rect dst;
+
+    if (option_x == "CENTER")
+    {
+        x = x - w / 2;
+    }
+    else if (option_x == "RIGHT")
+    {
+        x = x - w;
+    }
+
+    if (option_y == "CENTER")
+    {
+        y = y - h / 2;
+    }
+    else if (option_y == "BOTTOM")
+    {
+        y = y - h;
+    }
+
+    dst.x = x;
+    dst.y = y;
+    dst.w = w;
+    dst.h = h;
+    SDL_RenderCopy(renderer, tex, NULL, &dst);
+
+    return;
 }
