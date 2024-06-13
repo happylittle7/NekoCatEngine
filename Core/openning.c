@@ -56,7 +56,6 @@ void openningDataInit(openningData *data)
 int32_t openningMain(openningData *data, openningPath *path, SDL_Window *window)
 {
     double option = 0; //-1 = Error, 0 = Quit, 1 = start, 2 = aboutus
-    int32_t mouse_press = 0;
     int32_t window_width, window_height;
     uint8_t title_text_color = data->title_text_color;
 
@@ -119,6 +118,7 @@ int32_t openningMain(openningData *data, openningPath *path, SDL_Window *window)
 
     while (!quit)
     {
+        int32_t mouse_press = 0;
         while (SDL_PollEvent(&e) != 0 && !quit)
         {
             switch (e.type)
@@ -161,7 +161,7 @@ int32_t openningMain(openningData *data, openningPath *path, SDL_Window *window)
         // 渲染標題字
         SDL_Color titleTextColor;
         chooseTextColor(title_text_color, &titleTextColor);
-        title_font = TTF_OpenFont(path->fontPath, 55 * window_width * window_height / (2.2 * 640.0 * 480.0));
+        title_font = TTF_OpenFont(path->fontPath, 35 * window_width * window_height / (2.2 * 640.0 * 480.0));
         displayTextWithShadow(renderer, title_font, data->title, titleTextColor, title_x, title_y, 5, "CENTER", "TOP");
 
         // SDL_RenderPresent(renderer);
@@ -269,7 +269,7 @@ void displayTextWithShadow(SDL_Renderer *renderer, TTF_Font *font, const char *t
 {
     // option_x = "LEFT, "CENTER" or "RIGHT"
     // option_y = "TOP, "CENTER" or "BOTTOM"
-    
+
     SDL_Color shadowColor = {0, 0, 0};
     displayText(renderer, font, text, shadowColor, x + move, y + move, option_x, option_y);
     displayText(renderer, font, text, titleTextColor, x, y, option_x, option_y);
@@ -296,11 +296,11 @@ void displayText(SDL_Renderer *renderer, TTF_Font *font, const char *text, SDL_C
         x = x - text_width;
     }
 
-    if(option_y == "CENTER")
+    if (option_y == "CENTER")
     {
         y = y - text_height / 2;
     }
-    else if(option_y == "BOTTOM")
+    else if (option_y == "BOTTOM")
     {
         y = y - text_height;
     }
@@ -319,20 +319,20 @@ uint8_t judgeButtonPressed(int32_t x, int32_t y, int32_t button_x, int32_t butto
     // option_x = "LEFT, "CENTER" or "RIGHT"
     // option_y = "TOP, "CENTER" or "BOTTOM"
 
-    if(option_x == "CENTER")
+    if (option_x == "CENTER")
     {
         button_x = button_x - normal_button_width / 2;
     }
-    else if(option_x == "RIGHT")
+    else if (option_x == "RIGHT")
     {
         button_x = button_x - normal_button_width;
     }
 
-    if(option_y == "CENTER")
+    if (option_y == "CENTER")
     {
         button_y = button_y - normal_button_height / 2;
     }
-    else if(option_y == "BOTTOM")
+    else if (option_y == "BOTTOM")
     {
         button_y = button_y - normal_button_height;
     }
