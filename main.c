@@ -160,7 +160,8 @@ int main(int32_t argc, char *argv[])
             strcpy(backpack_path.background_path, background_path);
             strcpy(backpack_path.font_path, font_path);
             strcpy(backpack_path.black_block_path, "./Assets/image/black_block.png");
-
+            strcpy(backpack_path.white_edge_black_block_path, "./Assets/image/white_edge_black_block.png");
+            
             // 初始化背包物品
             backpack_items[0].status = 1;
             backpack_items[0].name = "item 1";

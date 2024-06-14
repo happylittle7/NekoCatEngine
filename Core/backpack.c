@@ -71,17 +71,18 @@ void backpackInit(backpackData *backpack_data, backpackItem **backpack_items)
     backpack_data->backpack_normal_block_width = 0.15;
     backpack_data->backpack_normal_block_height = 0.15;
     backpack_data->backpack_normal_block_gap = 0.05;
-    backpack_data->backpack_01_x = 0.1;
-    backpack_data->backpack_01_y = 0.1;
-    backpack_data->backpack_02_x = 0.1 + 0.15 + 0.05;
-    backpack_data->backpack_02_y = 0.1;
-    backpack_data->backpack_03_x = 0.1 + 0.15 + 0.05 + 0.15 + 0.05;
-    backpack_data->backpack_03_y = 0.1;
-    backpack_data->backpack_04_x = 0.1;
-    backpack_data->backpack_04_y = 0.1 + 0.15 + 0.05;
-    backpack_data->backpack_05_x = 0.1 + 0.15 + 0.05;
-    backpack_data->backpack_05_y = 0.1 + 0.15 + 0.05;
-    backpack_data->backpack_06_x = 0.1 + 0.15 + 0.05 + 0.15 + 0.05;
+    backpack_data->backpack_xy[0][0] = 0.1;
+    backpack_data->backpack_xy[0][1] = 0.1;
+    backpack_data->backpack_xy[1][0] = 0.1 + 0.15 + 0.05;
+    backpack_data->backpack_xy[1][1] = 0.1;
+    backpack_data->backpack_xy[2][0] = 0.1 + 0.15 + 0.05 + 0.15 + 0.05;
+    backpack_data->backpack_xy[2][1] = 0.1;
+    backpack_data->backpack_xy[3][0] = 0.1;
+    backpack_data->backpack_xy[3][1] = 0.1 + 0.15 + 0.05;
+    backpack_data->backpack_xy[4][0] = 0.1 + 0.15 + 0.05;
+    backpack_data->backpack_xy[4][1] = 0.1 + 0.15 + 0.05;
+    backpack_data->backpack_xy[5][0] = 0.1 + 0.15 + 0.05 + 0.15 + 0.05;
+    backpack_data->backpack_xy[5][1] = 0.1 + 0.15 + 0.05;
 
     //item 初始化
     *backpack_items = (backpackItem *)malloc(sizeof(backpackItem) * 6);
@@ -127,4 +128,161 @@ void renderTexture(SDL_Texture *tex, SDL_Renderer *renderer, int x, int y, int w
     SDL_RenderCopy(renderer, tex, NULL, &dst);
 
     return;
+}
+
+int32_t backpackMain(backpackData *data, backpackItem *items, backpackPath *path, SDL_Window *window){
+
+    double option = 0; //-1 = Error, 0 = Quit the game, 1 = Leave the backpack 
+    int32_t window_width, window_height;
+    uint8_t title_text_color = data->title_text_color;
+
+    SDL_Renderer *backpack_renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    if (!backpack_renderer)
+    {
+        printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return -1;
+    }
+
+    // background
+    SDL_Surface *background_surface = IMG_Load(path->background_path);
+    if (!background_surface)
+    {
+        printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
+        SDL_DestroyRenderer(backpack_renderer);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return -1;
+    }
+    SDL_Texture *background_texture = SDL_CreateTextureFromSurface(backpack_renderer, background_surface);
+    SDL_FreeSurface(background_surface);
+
+    // font
+    TTF_Font *font = TTF_OpenFont(path->font_path, 24);
+    if (!font)
+    {
+        printf("Failed to load font! TTF_Error: %s\n", TTF_GetError());
+        SDL_DestroyRenderer(backpack_renderer);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return -1;
+    }
+
+    // backpack_block
+    SDL_Surface *backpack_block_surface = IMG_Load(path->black_block_path);
+    if (!backpack_block_surface)
+    {
+        printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
+        SDL_DestroyRenderer(backpack_renderer);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return -1;
+    }
+    SDL_SetTextureAlphaMod(backpack_block_surface, 200); // 調整透明度
+    SDL_Texture *backpack_block_texture = SDL_CreateTextureFromSurface(backpack_renderer, backpack_block_surface);
+    SDL_FreeSurface(backpack_block_surface);
+
+    // backpack_edge_block
+    SDL_Surface *backpack_edge_block_surface = IMG_Load(path->white_edge_black_block_path);
+    if (!backpack_edge_block_surface)
+    {
+        printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
+        SDL_DestroyRenderer(backpack_renderer);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return -1;
+    }
+    SDL_Texture *backpack_edge_block_texture = SDL_CreateTextureFromSurface(backpack_renderer, backpack_edge_block_surface);
+    SDL_SetTextureAlphaMod(backpack_edge_block_surface, 200); // 調整透明度
+    SDL_FreeSurface(backpack_edge_block_surface);
+
+    // items
+    SDL_Texture *item_textures[6];
+
+    for(int32_t i = 0; i < 6; i++){
+        if(items[0]->status == 0){
+            item_textures[i] = NULL;
+            continue;
+        }
+        SDL_Surface *item_surface = IMG_Load(items[i]->image_path);
+        if (!item_surface)
+        {
+            printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
+            SDL_DestroyRenderer(backpack_renderer);
+            SDL_DestroyWindow(window);
+            SDL_Quit();
+            return -1;
+        }
+        item_textures[i] = SDL_CreateTextureFromSurface(backpack_renderer, item_surface);
+        SDL_FreeSurface(item_surface);
+    }
+
+    // 事件處理
+    SDL_Event e;
+    int32_t quit = 0;
+    int32_t choose = 0;
+    int32_t mouse_x = 0, mouse_y = 0;
+
+    while(!quit){
+        int32_t pressed = 0;
+        while(SDL_PollEvent(&e) != 0 && !quit){
+            switch(e.type){
+                case SDL_QUIT:
+                    quit = 1;
+                    option = 0;
+                    break;
+                case SDL_MOUSEBUTTONDOWN:
+                    if(e.button.button == SDL_BUTTON_LEFT){
+                        pressed = 1;
+                    }
+                    break;
+                case SDL_KEYDOWN:
+                    switch (e.key.keysym.sym)
+                    {
+                        case SDLK_e:
+                            printf("E key pressed\n");
+                            quit = 1;
+                            option = 1;
+                            break;
+                        default:
+                            break;
+                    }
+                break;
+            }
+            // 獲取滑鼠位置
+            SDL_GetMouseState(&mouse_x, &mouse_y);
+        }
+
+        // 渲染背景
+        SDL_RenderClear(backpack_renderer);
+        SDL_RenderCopy(backpack_renderer, background_texture, NULL, NULL);
+        
+        // 取得視窗大小
+        SDL_GetWindowSize(window, &window_width, &window_height);
+
+        // 改變參數
+        double block_width = data->backpack_normal_block_width * window_width;
+        double block_height = data->backpack_normal_block_height * window_height;
+        double block_gap = data->backpack_normal_block_gap * window_width;
+        double x[6],y[6];
+
+        for(int32_t i = 0;i < 6; i++){
+            x[i] = data->backpack_xy[i][0] * window_width;
+            y[i] = data->backpack_xy[i][1] * window_height;
+        }
+
+        // 渲染背包物品
+        for(int32_t i = 0; i < 6; i++){
+            if(items[i]->status == 2){
+                renderTexture(backpack_edge_block_texture, backpack_renderer, x[i], y[i], block_width, block_height, "LEFT", "TOP");
+            }else{
+                renderTexture(backpack_block_texture, backpack_renderer, x[i], y[i], block_width, block_height, "LEFT", "TOP");
+            }
+            if(item[i]->status == 0)continue;
+            renderTexture(item_textures[i], backpack_renderer, x[i] + block_width / 2.0, y[i] + block_height / 2.0, block_width, block_height, "CENTER", "CENTER");
+        }
+
+        // background
+    }
 }

@@ -22,18 +22,7 @@ typedef struct _backpackData
     double backpack_normal_block_width;
     double backpack_normal_block_height;
     double backpack_normal_block_gap;
-    double backpack_01_x;
-    double backpack_01_y;
-    double backpack_02_x;
-    double backpack_02_y;
-    double backpack_03_x;
-    double backpack_03_y;
-    double backpack_04_x;
-    double backpack_04_y;
-    double backpack_05_x;
-    double backpack_05_y;
-    double backpack_06_x;
-    double backpack_06_y;
+    double backpack_xy[6][2];
 } backpackData;
 
 typedef struct _backpackPath
@@ -42,6 +31,7 @@ typedef struct _backpackPath
     char background_path[1024];
     char font_path[1024];
     char black_block_path[1024];
+    char white_edge_black_block_path[1024];
 } backpackPath;
 
 void chooseTextColor(uint8_t text_color, SDL_Color* titleTextColor);
