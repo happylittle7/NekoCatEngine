@@ -69,28 +69,37 @@ int main(int32_t argc, char* argv[])
     }
     int32_t w_w = 640;
     int32_t w_h = 480;
+    //int32_t fullscreen_width = 700;
+    //int32_t fullscreen_height = 700;
     SDL_Window* window = SDL_CreateWindow("Hello SDL2", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, w_w, w_h, SDL_WINDOW_SHOWN);
     if (!window) 
     {
         printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
         return 1;
     }
- 
+    
+    
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND); // 设置混合模式
+    /*
+    SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+    SDL_DisplayMode dm;
+    if (SDL_GetCurrentDisplayMode(0, &dm) != 0) 
+    {
+        SDL_Log("SDL_GetCurrentDisplayMode failed: %s", SDL_GetError());
+        return 1;
+    }
+    //fullscreen_width = dm.w;
+    //fullscreen_height = dm.h;
+    */
+    //fullscreen_width = 700;
+    //fullscreen_height = 700;
+    
     RenderResources resources;
     initRenderResources(&resources);
-    //resources.background_texture = SDL_CreateTextureFromSurface(renderer, background_surface);
     resources.dialog_box_texture = SDL_CreateTextureFromSurface(renderer, loaded_dialog_box);
-    //SDL_Texture* backgroundTexture = SDL_CreateTextureFromSurface(renderer, background_surface);
-    //SDL_Texture* dialog_box_texture = SDL_CreateTextureFromSurface(renderer, loaded_dialog_box);
-    //SDL_Texture* my_ohm_Normal_texture = SDL_CreateTextureFromSurface(renderer, my_ohm_Normal);
+    
     SetDialogBox(renderer, &resources, dialogBox_start_x, dialogBox_start_y, 640, 130, 255);
-    //resources.background_texture = backgroundTexture;
-    //resources.dialog_box_texture = dialog_box_texture;
-
-    //printf("dialog_box : w=%d h=%d\n",loaded_dialog_box->w,loaded_dialog_box->h);
-    //printf("backgrond : w=%d h=%d\n",background_surface->w,background_surface->h);
     
     if (!renderer) 
     {
@@ -122,6 +131,7 @@ int main(int32_t argc, char* argv[])
         textColor.b = 0;
     }
     ///此處以下開劇本檔
+    initLeaveButton(&resources,  renderer, "X", font);
     FILE *pCharacter_file;
     FILE *pScript_file;
     FILE *pPlayer_sav_file;
@@ -178,9 +188,6 @@ int main(int32_t argc, char* argv[])
     int32_t col_in_script = 0;
     char *pr_text = NULL;
     SDL_Event e;
-    //SDL_RenderClear(renderer);
-    //SDL_RenderCopy(renderer, backgroundTexture, NULL, NULL);  // 渲染背景
-    //renderTexture(dialog_box_texture, renderer, dialogBox_start_x, dialogBox_start_y, 640, 130, 255);
     int32_t print_text_x = text_start_x;
     int32_t print_text_y = text_start_y;
     int32_t had_hit_left = 0;
@@ -191,13 +198,11 @@ int main(int32_t argc, char* argv[])
         return 1;
     }
     Mix_Music* bgm = NULL;
-    //my_RenderPresent(renderer,&resources,2);
     while (!quit) 
     {
-        //if (run_flog)
         while (SDL_PollEvent(&e) != 0) 
         {
-            if (e.type == SDL_QUIT) 
+            if (checkLeaveButton(&e,resources.leave_button)==1)
             {
                 quit = 1;
             }
@@ -211,22 +216,14 @@ int main(int32_t argc, char* argv[])
         }
         if (quit == 1)
             break;
-        //for (int32_t i = 0; i < toml_array_nelem(script_list); i++) 
-        //printf("%d %d\n",had_hit_left,now_state);
-        //printf("%d %d\n",col_in_script,toml_array_nelem(script_list));
+
         if (col_in_script != toml_array_nelem(script_list))
         {
-            //printf("the quit = %d\n",quit);
-            //SDL_RenderClear(renderer);
-            
-            //SDL_RenderCopy(renderer, my_ohm_Normal_texture, NULL, NULL);  // 渲染背景
-            //printf("%d\n",toml_array_nelem(script_list));
             toml_table_t *entry = toml_table_at(script_list, col_in_script);
             if (!entry) continue;
             const char *action = toml_raw_in(entry, "action");
             if (strcmp(action, "\"Dialog\"") == 0)
             {
-                //printf("A\n");
                 const char *command = toml_raw_in(entry, "command");
                 const char *text = toml_raw_in(entry, "text");
                 if (text != NULL && pr_text == NULL)
@@ -248,15 +245,11 @@ int main(int32_t argc, char* argv[])
                         }
                         else
                             displayText(renderer,&resources, font, &pr_text, textColor, &print_text_x, &print_text_y, w_w);
-                        //SDL_RenderClear(renderer);
-                        //SDL_Delay(2000);
                     }
                     else
                     {
-                        //printf("1\n");
                         const char *mood = toml_raw_in(entry, "mood");
                         DisplayTheExpression(renderer, &resources, Character, command, mood);
-                        //SDL_RenderCopy(renderer, my_ohm_Normal_texture, NULL, NULL);  // 渲染背景
                         if (had_hit_left == 1)
                         {
                             displayText_2(renderer,&resources, font, &pr_text, textColor, &print_text_x, &print_text_y, w_w);
@@ -272,11 +265,6 @@ int main(int32_t argc, char* argv[])
                     now_state = 2;
                     pr_text = NULL;
                     SDL_RenderClear(renderer);
-                    //freeRenderResources(&resources);
-                    //initRenderResources(&resources);
-                    //SetDialogBox(renderer, dialog_box_texture, &resources, dialogBox_start_x, dialogBox_start_y, 640, 130, 255);
-                    //resources.background_texture = backgroundTexture;
-                    //resources.dialog_box_texture = dialog_box_texture;
                     clearAndRender( &resources,  resources.background_texture );
                     print_text_x = text_start_x;
                     print_text_y = text_start_y;
@@ -286,7 +274,6 @@ int main(int32_t argc, char* argv[])
                 {
                     now_state = 1;
                 }
-                //printf("B\n");
             }
             else if (strcmp(action, "\"SetCharacter\"")==0)
             {
@@ -298,7 +285,6 @@ int main(int32_t argc, char* argv[])
                     for (int32_t i=0 ; i<3 ; i++) ///初始化character_IMG_texture不然會出事
                     {
                         resources.character_IMG_texture[i] = NULL;
-                        //resources.character_IMG_renderQuads[i] = NULL;
                     }
                 }
                 else
@@ -306,14 +292,11 @@ int main(int32_t argc, char* argv[])
                     for (int32_t i=0 ; i<3 ; i++) ///初始化character_IMG_texture不然會出事
                     {
                         resources.character_IMG_texture[i] = NULL;
-                        //resources.character_IMG_renderQuads[i] = NULL;
                     }
                     for (int32_t i = 0 ; i < toml_array_nelem(command_array) ; i++)
                     {
                         const char* Character_id = toml_string_at(command_array, i).u.s;
                         const char* mood = toml_string_at(mood_array, i).u.s;
-                        //printf("%s\n",Character_id);
-                        //printf("%s\n",mood);
                         displayIMG(renderer, &resources, Character, Character_id, mood, i, toml_array_nelem(command_array)); 
                     }
                 }
@@ -321,13 +304,10 @@ int main(int32_t argc, char* argv[])
             }
             else if (strcmp(action, "\"Option\"")==0) 
             {
-                //{ action = "Option", optionCount = 3, optionContent = ["Button1","Button2","Button3"], optionJump = ["label_id_1","label_id_2","label_id_3"]}
-
                 col_in_script = 0;
             }
             else if (strcmp(action, "\"Jump\"") == 0)
             {
-                //printf("C\n");
                 const char *label_id = toml_raw_in(entry, "label_id");
                 char *label_id_copy = calloc(1024,sizeof(char));
                 strcpy(label_id_copy,label_id);
@@ -340,20 +320,13 @@ int main(int32_t argc, char* argv[])
                 {
                     if (IsOverGap(Player_Variable, variable_array,mode_array,gap_array) == 1)
                     {
-                        //printf("1\n");
-                        //printf("%s\n",label_id_copy);
                         now_script = toml_table_in(Script,label_id_copy);
-                        //printf("1\n");
                         script_list = toml_array_in(now_script, "script");
-                        //printf("1\n");
                         col_in_script = 0;
-                        //printf("1\n");
-                        //had_hit_left = 0;
                     }
                     else
                     {
                         col_in_script++;
-                        //had_hit_left = 0;
                     }
                 }
                 else
@@ -362,8 +335,6 @@ int main(int32_t argc, char* argv[])
                     script_list = toml_array_in(now_script, "script");
                     col_in_script = 0;
                 }
-                //clearAndRender( renderer,  backgroundTexture,  dialog_box_texture, dialogBox_start_x, dialogBox_start_y); //將字跡清除
-                //printf("D\n");
             }
             else if (strcmp(action, "\"Background\"") == 0)
             {
@@ -373,14 +344,11 @@ int main(int32_t argc, char* argv[])
                 background_v_copy++;
                 background_v_copy[strlen(background_v_copy)-1] = 0;
                 
-                ///////////此處尚未完成
-                //printf("%s\n",background_v_copy);
                 toml_datum_t background_path_datum = toml_string_in(background_table, background_v_copy);
                 if (!background_path_datum.ok) 
                 {
                     printf("Error: 'background_1' not found in 'background' table\n");
                 }
-                ///這裡的路徑之後會有變化
                 char full_path[512] = {0};
                 snprintf(full_path, sizeof(full_path), "./Assets/background/%s", background_path_datum.u.s);
                 SDL_Surface* background_surface = IMG_Load(full_path);
@@ -425,45 +393,25 @@ int main(int32_t argc, char* argv[])
                 }
                 now_state = 2;
             }
-            //printf("here\n");
+            //adjustToFullscreen(&resources, w_w, w_h, fullscreen_width, fullscreen_height);
             my_RenderPresent(renderer,&resources,now_state);
             if(now_state == 2) //進入下一個此場景的action
             {
                 col_in_script++;
                 now_state = 0;
                 had_hit_left = 0;
-                //clearAndRender( renderer,  backgroundTexture,  dialog_box_texture, dialogBox_start_x, dialogBox_start_y);
             }
         }
     }
     TTF_CloseFont(font);
-    //SDL_DestroyTexture(backgroundTexture);
-    //printf("A\n");
     freeRenderResources(&resources);
-    //printf("B\n");
     SDL_DestroyRenderer(renderer);  //這行因為未知原因若不註解掉會有機率錯，但走到這行程式必定結束，資源必定會釋放，所以我註解掉了
-    /*
-    if (renderer)
-    {
-        printf("renderer NO problem!\n");
-        SDL_DestroyRenderer(renderer);
-    }
-    else
-    {
-        printf("renderer has problem!\n");
-    }
-    */
-    //printf("C\n");
     SDL_DestroyWindow(window);
-    //printf("D\n");
     IMG_Quit();
-    //printf("E\n");
     TTF_Quit();
-    //printf("F\n");
     SDL_Quit();
     Mix_FreeMusic(bgm);
     Mix_CloseAudio();
-    //printf("G\n");
     fclose(pCharacter_file);
     fclose(pScript_file);
     fclose(pPlayer_sav_file);
