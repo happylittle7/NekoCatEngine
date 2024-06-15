@@ -8,6 +8,7 @@ directory = "ohm"
 sprites_list = ["Normal","happy","sad"]
 sprites_png_list = ["ohm_Normal.png","ohm_happy.png","ohm_sad.png"]
 sprites_png = ["ohm_Normal.png","ohm_happy.png","ohm_sad.png"]
+
 [ohmf]
 name = "歐姆爸"
 color = "#F5D80A"
@@ -16,6 +17,7 @@ directory = "ohmf"
 sprites_list = ["Normal","happy","sad"]
 sprites_png_list = ["ohmf_Normal.png","ohmf_happy.png","ohmf_sad.png"]
 sprites_png = ["ohmf_Normal.png","ohmf_happy.png","ohmf_sad.png"]
+
 [ohmm]
 name = "歐姆媽"
 color = "#F5D80A"
