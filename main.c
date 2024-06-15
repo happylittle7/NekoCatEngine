@@ -14,7 +14,7 @@ int main(int32_t argc, char* argv[])
     openningPath path;
     openningDataInit(&data); // Initialize pre-defined data
     strcpy(data.title, "貓貓のengine哈哈屁眼party");
-    strcpy(path.backgroundPath, "./Assets/image/openning.png");
+    strcpy(path.backgroundPath, "./Assets/image/start_background.png");
     strcpy(path.fontPath, "./Assets/font/Cubic_11_1.100_R.ttf");
     strcpy(path.blackButtonPath, "./Assets/image/black_button.png");
     strcpy(path.whiteButtonPath, "./Assets/image/white_button.png");
