@@ -8,10 +8,22 @@ script = [
     { action = "Dialog", command = "ohmf", mood = "sad", text = "you are omuba!"},
     { action = "SetCharacter", number = 0},
     { action = "Dialog", command = "no name", text = "I love you!"},
-    { action = "Jump", label_id = "Ending", variable = ["HP","ohmLove"], mode = [1,1], gap = [50,100]},
+    { action = "Jump", label_id = "script_2", variable = ["HP","ohmLove"], mode = [1,1], gap = [50,100]},
 ]
-
-[Ending]
+[script_2]
+script = [
+    { action = "Dialog", command = "no name", text = "Hello world!"},
+    { action = "Option", optionCount = 3, optionContent = ["Button1","Button2","Button3"], optionJump = ["Ending_1","Ending_2","Ending_3"]}
+]
+[Ending_1]
+script = [
+    { action = "Dialog", command = "no name", text = "Hello world!"},
+]
+[Ending_2]
+script = [
+    { action = "Dialog", command = "no name", text = "Hello world!"},
+]
+[Ending_3]
 script = [
     { action = "Dialog", command = "no name", text = "Hello world!"},
 ]

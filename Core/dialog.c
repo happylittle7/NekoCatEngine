@@ -324,7 +324,7 @@ SDL_Texture* copyTexture(SDL_Renderer* renderer, SDL_Texture* srcTexture) //紋�
 }
 */
 // 顯示文本的函數，負責將指定文本渲染到指定位置，暫時不考慮文字太常超過對話框的h時的下拉式處理
-void displayText(SDL_Renderer* renderer,RenderResources* resources, TTF_Font* font, char** text, SDL_Color textColor, int32_t* x, int32_t* y, int32_t max_w) 
+void dialogText(SDL_Renderer* renderer,RenderResources* resources, TTF_Font* font, char** text, SDL_Color textColor, int32_t* x, int32_t* y, int32_t max_w) 
 {
     char *print_char = (*text);
     SDL_Surface* textSurface;
@@ -361,7 +361,7 @@ void displayText(SDL_Renderer* renderer,RenderResources* resources, TTF_Font* fo
     SDL_FreeSurface(textSurface);  // 釋放表面資源
 }
 
-void displayText_2(SDL_Renderer* renderer,RenderResources* resources, TTF_Font* font, char** text, SDL_Color textColor, int32_t* x, int32_t* y, int32_t max_w) //滑鼠點擊後全顯示
+void dialogText_2(SDL_Renderer* renderer,RenderResources* resources, TTF_Font* font, char** text, SDL_Color textColor, int32_t* x, int32_t* y, int32_t max_w) //滑鼠點擊後全顯示
 {
     SDL_Surface* textSurface;
     //SDL_Texture* textTexture;
@@ -423,7 +423,7 @@ void SetCharacterImg(SDL_Renderer* renderer, RenderResources *resources, int32_t
     resources->character_IMG_renderQuads[idx]->h = (int32_t)((float)h * height_ratio);
     //printf("%d %d %d %d\n",dst->x,dst->y,dst->w,dst->h);
 }
-void displayIMG(SDL_Renderer* renderer, RenderResources *resources, toml_table_t *Character, const char* Character_id, const char* mood, int32_t idx, int32_t number) {
+void displayIMG(SDL_Renderer* renderer, RenderResources *resources, toml_table_t *Character, char* directory, const char* Character_id, const char* mood, int32_t idx, int32_t number) {
     char* Character_id_cpy = (char*)malloc(1024 * sizeof(char));
     strcpy(Character_id_cpy, Character_id);
     toml_table_t *now_character = toml_table_in(Character, Character_id_cpy);
@@ -450,7 +450,7 @@ void displayIMG(SDL_Renderer* renderer, RenderResources *resources, toml_table_t
         if (strcmp(now_emo, mood) == 0) {
             const char* now_emo_path = toml_string_at(sprites_png_list, i).u.s;
             char full_path[512];
-            snprintf(full_path, sizeof(full_path), "./character.nekocat/image/%s", now_emo_path);
+            snprintf(full_path, sizeof(full_path), "./Assets/%s/character/%s", directory, now_emo_path);
             ///now_emo_path要加上./character.nekocat/image/
             SDL_Surface* character_IMG = IMG_Load(full_path);
             if (!character_IMG) 
@@ -500,7 +500,7 @@ void clearAndRender(RenderResources *resources, SDL_Texture *backgroundTexture )
 
 }
 ///顯示Expression
-void DisplayTheExpression(SDL_Renderer* renderer, RenderResources *resources, toml_table_t *Character, const char* command, const char* mood) ///此段函數要在左上角印出腳色圖片
+void DisplayTheExpression(SDL_Renderer* renderer, RenderResources *resources, toml_table_t *Character, char* directory, const char* command, const char* mood) ///此段函數要在左上角印出腳色圖片
 {
     char* command_cpy = calloc(1024,sizeof(char));
     strcpy(command_cpy,command);
@@ -544,7 +544,7 @@ void DisplayTheExpression(SDL_Renderer* renderer, RenderResources *resources, to
             const char* now_emo_path = toml_string_at(sprites_png_list, i).u.s;
             //printf("path = %s\n",now_emo_path);
             char full_path[512];
-            snprintf(full_path, sizeof(full_path), "./character.nekocat/image/%s", now_emo_path);
+            snprintf(full_path, sizeof(full_path), "./Assets/%s/%s", directory,now_emo_path);
             ///now_emo_path要加上./character.nekocat/image/
             SDL_Surface* character_IMG = IMG_Load(full_path);
             //printf("%s\n",now_emo);
