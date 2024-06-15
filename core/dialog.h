@@ -43,11 +43,11 @@ typedef struct
     Button** now_option_button;
     Button* leave_button;
 } RenderResources;
+void change_ratio();
+int32_t handleButtonEvents(SDL_Event* e, RenderResources* resources) ;
 void initButton(SDL_Renderer* renderer, TTF_Font* font, Button* button, SDL_Rect rect, SDL_Color color, const char* text);
-int32_t checkLeaveButton(SDL_Event* e, Button* leave_button) ;
-int32_t handleButtonEvents(SDL_Event* e, RenderResources* resources, int32_t num_option_buttons);
+int32_t checkLeaveButton(SDL_Event* e, Button* leave_button);
 void renderButton(SDL_Renderer* renderer, Button* button);
-int32_t isButtonClicked(Button button, int32_t x, int32_t y); 
 void initRenderResources(RenderResources* resources);
 void freeRenderResources(RenderResources* resources);
 void displayText(SDL_Renderer* renderer,RenderResources* resources, TTF_Font* font, char** text, SDL_Color textColor, int32_t* x, int32_t* y, int32_t max_w);
@@ -62,4 +62,5 @@ void my_RenderPresent(SDL_Renderer* renderer, RenderResources* resources, int32_
 int32_t IsOverGap(toml_table_t *Player_Variable, toml_array_t* variable_array, toml_array_t* mode_array, toml_array_t* gap_array);
 int32_t init_music();
 void initLeaveButton(RenderResources* resources, SDL_Renderer* renderer, const char* text, TTF_Font* font);
-void adjustToFullscreen(RenderResources* resources, int32_t window_width, int32_t window_height, int32_t fullscreen_width, int32_t fullscreen_height);
+void MakeOption(RenderResources* resources, SDL_Renderer* renderer, const char* optionContent_id, TTF_Font* font, int32_t index, int32_t totalOptions);
+//void adjustToFullscreen(RenderResources* resources, int32_t window_width, int32_t window_height, int32_t fullscreen_width, int32_t fullscreen_height);
