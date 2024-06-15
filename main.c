@@ -134,7 +134,7 @@ int main(int32_t argc, char *argv[])
                 {
                 case SDLK_e:
                     printf("E key pressed\n");
-                    bad_mod_openned = !bag_mod_openned;
+                    bag_mod_openned = !bag_mod_openned;
                     break;
                 default:
                     break;
@@ -164,23 +164,30 @@ int main(int32_t argc, char *argv[])
             
             // 初始化背包物品
             backpack_items[0].status = 1;
-            backpack_items[0].name = "item 1";
-            backpack_items[0].description = "item 1 description";
-            backpack_items[0].image_path = "./Assets/image/item_01.png";
-            backpack_items[1].status = 1;
-            backpack_items[1].name = "item 2";
-            backpack_items[1].description = "item 2 description";
-            backpack_items[1].image_path = "./Assets/image/item_02.png";
-            backpack_items[2].status = 1;
-            backpack_items[2].name = "item 3";
-            backpack_items[2].description = "item 3 description";
-            backpack_items[2].image_path = "./Assets/image/item_03.png";
-            backpack_items[3].status = 2;
-            backpack_items[3].name = "item 4";
-            backpack_items[3].description = "item 4 description";
-            backpack_items[3].image_path = "./Assets/image/item_04.png";
+            backpack_items[1].status = 2;
+            backpack_items[2].status = 0;
+            backpack_items[3].status = 0;
             backpack_items[4].status = 0;
             backpack_items[5].status = 0;
+            strcpy(backpack_items[0].name, "Item 1");
+            strcpy(backpack_items[1].name, "Item 2");
+            strcpy(backpack_items[2].name, "Item 3");
+            strcpy(backpack_items[3].name, "Item 4");
+            strcpy(backpack_items[4].name, "Item 5");
+            strcpy(backpack_items[5].name, "Item 6");
+            strcpy(backpack_items[0].description, "Item 1 description");
+            strcpy(backpack_items[1].description, "Item 2 description");
+            strcpy(backpack_items[2].description, "Item 3 description");
+            strcpy(backpack_items[3].description, "Item 4 description");
+            strcpy(backpack_items[4].description, "Item 5 description");
+            strcpy(backpack_items[5].description, "Item 6 description");
+            strcpy(backpack_items[0].image_path, "./Assets/image/item_01.png");
+            strcpy(backpack_items[1].image_path, "./Assets/image/item_02.png");
+            strcpy(backpack_items[2].image_path, "./Assets/image/item_03.png");
+            strcpy(backpack_items[3].image_path, "./Assets/image/item_04.png");
+            strcpy(backpack_items[4].image_path, "./Assets/image/item_05.png");
+            strcpy(backpack_items[5].image_path, "./Assets/image/item_06.png");
+            
         }
 
         SDL_RenderClear(renderer);

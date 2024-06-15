@@ -134,7 +134,7 @@ int32_t backpackMain(backpackData *data, backpackItem *items, backpackPath *path
 
     double option = 0; //-1 = Error, 0 = Quit the game, 1 = Leave the backpack 
     int32_t window_width, window_height;
-    uint8_t title_text_color = data->title_text_color;
+    uint8_t title_text_color = 0;
 
     SDL_Renderer *backpack_renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     if (!backpack_renderer)
@@ -179,8 +179,8 @@ int32_t backpackMain(backpackData *data, backpackItem *items, backpackPath *path
         SDL_Quit();
         return -1;
     }
-    SDL_SetTextureAlphaMod(backpack_block_surface, 200); // 調整透明度
     SDL_Texture *backpack_block_texture = SDL_CreateTextureFromSurface(backpack_renderer, backpack_block_surface);
+    SDL_SetTextureAlphaMod(backpack_block_texture, 200); // 調整透明度
     SDL_FreeSurface(backpack_block_surface);
 
     // backpack_edge_block
@@ -194,18 +194,18 @@ int32_t backpackMain(backpackData *data, backpackItem *items, backpackPath *path
         return -1;
     }
     SDL_Texture *backpack_edge_block_texture = SDL_CreateTextureFromSurface(backpack_renderer, backpack_edge_block_surface);
-    SDL_SetTextureAlphaMod(backpack_edge_block_surface, 200); // 調整透明度
     SDL_FreeSurface(backpack_edge_block_surface);
+    SDL_SetTextureAlphaMod(backpack_edge_block_texture, 200); // 調整透明度
 
     // items
     SDL_Texture *item_textures[6];
 
     for(int32_t i = 0; i < 6; i++){
-        if(items[0]->status == 0){
+        if(items[0].status == 0){
             item_textures[i] = NULL;
             continue;
         }
-        SDL_Surface *item_surface = IMG_Load(items[i]->image_path);
+        SDL_Surface *item_surface = IMG_Load(items[i].image_path);
         if (!item_surface)
         {
             printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
@@ -274,12 +274,12 @@ int32_t backpackMain(backpackData *data, backpackItem *items, backpackPath *path
 
         // 渲染背包物品
         for(int32_t i = 0; i < 6; i++){
-            if(items[i]->status == 2){
+            if(items[i].status == 2){
                 renderTexture(backpack_edge_block_texture, backpack_renderer, x[i], y[i], block_width, block_height, "LEFT", "TOP");
             }else{
                 renderTexture(backpack_block_texture, backpack_renderer, x[i], y[i], block_width, block_height, "LEFT", "TOP");
             }
-            if(item[i]->status == 0)continue;
+            if(items[i].status == 0)continue;
             renderTexture(item_textures[i], backpack_renderer, x[i] + block_width / 2.0, y[i] + block_height / 2.0, block_width, block_height, "CENTER", "CENTER");
         }
 
