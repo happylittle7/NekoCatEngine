@@ -5,12 +5,13 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_image.h>
+#include "dialog.h"
 
 #pragma once
 
 typedef struct _backpackItem
 {
-    uint8_t status; // 0: nothing, 1: obtained, 2: used
+    int32_t status; // 0: nothing, 1: obtained, 2: used
     char name[512];
     char description[1024];
     char image_path[1024];
@@ -36,12 +37,15 @@ typedef struct _backpackPath
 
 void chooseTextColor(uint8_t text_color, SDL_Color* titleTextColor);
 
-void displayText(SDL_Renderer* renderer, TTF_Font* font, const char* text, SDL_Color titleTextColor, int32_t x, int32_t y, char* option_x, char* option_y);
+void myDisplayText(SDL_Renderer* renderer, TTF_Font* font, const char* text, SDL_Color titleTextColor, int32_t x, int32_t y, char* option_x, char* option_y);
 
-void displayTextWithShadow(SDL_Renderer* renderer, TTF_Font* font, const char* text, SDL_Color titleTextColor, int32_t x, int32_t y, int32_t move, char* option_x, char* option_y);
+void myDisplayTextWithShadow(SDL_Renderer* renderer, TTF_Font* font, const char* text, SDL_Color titleTextColor, int32_t x, int32_t y, int32_t move, char* option_x, char* option_y);
 
-void backpackInit(backpackData *backpack_data, backpackItem **backpack_items);
+void backpackDataInit(backpackData *backpack_data);
 
 void renderTexture(SDL_Texture *tex, SDL_Renderer *renderer, int x, int y, int w, int h, char *option_x, char *option_y);
 
-int32_t backpackMain(backpackData *data, backpackItem *items, backpackPath *path, SDL_Window *window);
+int32_t backpackMain(backpackData *data, backpackItem *items, backpackPath *path, RenderResources* resources, SDL_Window *window);
+
+int32_t backpackItemInit(backpackItem **items, int32_t **status, char ***name, char ***description, char ***image_path);
+

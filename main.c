@@ -187,7 +187,7 @@ int main(int32_t argc, char *argv[])
             strcpy(backpack_items[3].image_path, "./Assets/image/item_04.png");
             strcpy(backpack_items[4].image_path, "./Assets/image/item_05.png");
             strcpy(backpack_items[5].image_path, "./Assets/image/item_06.png");
-            
+
         }
 
         SDL_RenderClear(renderer);
@@ -200,7 +200,7 @@ int main(int32_t argc, char *argv[])
             for (int32_t i = 0; i < strlen(firstText); i++)
             {
                 new_text[i] = firstText[i];
-                displayText(renderer, font, new_text, textColor, text_start_x, text_start_y, "LEFT", "TOP");
+                myDisplayText(renderer, font, new_text, textColor, text_start_x, text_start_y, "LEFT", "TOP");
                 SDL_RenderPresent(renderer);
                 SDL_Delay(200); // Display for 2 seconds
             }
@@ -222,7 +222,7 @@ int main(int32_t argc, char *argv[])
             for (int32_t i = 0; i < strlen(secondText); i++)
             {
                 new_text[i] = secondText[i];
-                displayText(renderer, font, new_text, textColor, text_start_x, text_start_y, "LEFT", "TOP");
+                myDisplayText(renderer, font, new_text, textColor, text_start_x, text_start_y, "LEFT", "TOP");
                 SDL_RenderPresent(renderer);
                 SDL_Delay(200); // Display for 2 seconds
             }

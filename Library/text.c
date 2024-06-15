@@ -16,17 +16,17 @@ void chooseTextColor(uint8_t text_color, SDL_Color *titleTextColor)
     }
 }
 
-void displayTextWithShadow(SDL_Renderer *renderer, TTF_Font *font, const char *text, SDL_Color titleTextColor, int32_t x, int32_t y, int32_t move, char *option_x, char *option_y)
+void myDisplayTextWithShadow(SDL_Renderer *renderer, TTF_Font *font, const char *text, SDL_Color titleTextColor, int32_t x, int32_t y, int32_t move, char *option_x, char *option_y)
 {
     // option_x = "LEFT, "CENTER" or "RIGHT"
     // option_y = "TOP, "CENTER" or "BOTTOM"
 
     SDL_Color shadowColor = {0, 0, 0};
-    displayText(renderer, font, text, shadowColor, x + move, y + move, option_x, option_y);
-    displayText(renderer, font, text, titleTextColor, x, y, option_x, option_y);
+    myDisplayText(renderer, font, text, shadowColor, x + move, y + move, option_x, option_y);
+    myDisplayText(renderer, font, text, titleTextColor, x, y, option_x, option_y);
 }
 
-void displayText(SDL_Renderer *renderer, TTF_Font *font, const char *text, SDL_Color titleTextColor, int32_t x, int32_t y, char *option_x, char *option_y)
+void myDisplayText(SDL_Renderer *renderer, TTF_Font *font, const char *text, SDL_Color titleTextColor, int32_t x, int32_t y, char *option_x, char *option_y)
 {
     // option_x = "LEFT, "CENTER" or "RIGHT"
     // option_y = "TOP, "CENTER" or "BOTTOM"

@@ -12,6 +12,7 @@
 和文字框渲染無關，註解文字框渲染程式，問題碼依然存在
 */
 #include "./Core/dialog.h"
+#include "./Core/backpack.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -99,7 +100,8 @@ int main(int32_t argc, char* argv[])
         SDL_Quit();
         return 1;
     }
-    TTF_Font* font = TTF_OpenFont("./Assets/Font/Cubic_11_1.100_R.ttf", 24); ///這裡的路徑之後會有變化
+    char *font_path = "./Assets/Font/Cubic_11_1.100_R.ttf"; ///這裡的路徑之後會有變化
+    TTF_Font* font = TTF_OpenFont(font_path, 24); ///這裡的路徑之後會有變化
     if (!font) 
     {
         printf("Failed to load font! TTF_Error: %s\n", TTF_GetError());
@@ -184,6 +186,8 @@ int main(int32_t argc, char* argv[])
     int32_t print_text_x = text_start_x;
     int32_t print_text_y = text_start_y;
     int32_t had_hit_left = 0;
+    int32_t backpack_openned = 0;
+    int32_t now_handle = 3;
     ////音樂處理
     if (!init_music()) 
     {
@@ -197,16 +201,31 @@ int main(int32_t argc, char* argv[])
         //if (run_flog)
         while (SDL_PollEvent(&e) != 0) 
         {
-            if (e.type == SDL_QUIT) 
-            {
-                quit = 1;
-            }
-            else if (e.type == SDL_MOUSEBUTTONDOWN) 
-            {
-                if (e.button.button == SDL_BUTTON_LEFT) 
-                {
-                    had_hit_left = 1;
-                }
+            switch(e.type){
+                case SDL_QUIT:
+                    quit = 1;
+                    break;
+                case SDL_KEYDOWN:
+                    printf("test 02\n");
+                    switch (e.key.keysym.sym)
+                    {
+                        case SDLK_e:
+                            printf("test 03\n");
+                            backpack_openned = 1;
+                            printf("backpack_openned = %d\n",backpack_openned);
+                            break;
+                        default:
+                            break;
+                    }
+                    printf("backpack_openned = %d\n",backpack_openned);
+                    break;
+                case SDL_MOUSEBUTTONDOWN:
+                    if(e.button.button == SDL_BUTTON_LEFT){
+                        had_hit_left = 1;
+                    }
+                    break;
+                default:
+                    break;
             }
         }
         if (quit == 1)
@@ -424,6 +443,87 @@ int main(int32_t argc, char* argv[])
                     }
                 }
                 now_state = 2;
+            }
+            
+            if(backpack_openned)
+            {
+                printf("test 01");
+                // Initialize backpack
+                backpackData backpack_data;
+                backpackItem *backpack_items;
+                backpackPath backpack_path;
+                char *background_path = "./Assets/backpack/background_backpack.png";
+                // Initialize backpack_data
+                backpackDataInit(&backpack_data);
+                // Initialize backpack_path
+                strcpy(backpack_path.background_path, background_path);
+                strcpy(backpack_path.font_path, font_path);
+                strcpy(backpack_path.black_block_path, "./Assets/image/black_block.png");
+                strcpy(backpack_path.white_edge_black_block_path, "./Assets/image/white_edge_black_block.png");
+                // Initialize backpack_items
+                // Initialize backpack_items
+                int32_t *status;
+                status = calloc(6,sizeof(int32_t));
+                status[0] = 0;
+                status[1] = 1;
+                status[2] = 1;
+                status[3] = 1;
+                status[4] = 0;
+                status[5] = 0;
+                if(now_handle >= 0 && now_handle < 6){
+                    if(status[now_handle] == 1)status[now_handle] = 2;
+                }
+                char **name = calloc(6,sizeof(char*));
+                name[0] = NULL;
+                name[1] = "eraser";
+                name[2] = "pencil";
+                name[3] = "buttle";
+                name[4] = NULL;
+                name[5] = NULL;
+                char **description = calloc(6,sizeof(char*));
+                description[0] = NULL;
+                description[1] = "我的橡皮擦";
+                description[2] = "警長巴巴的鉛筆";
+                description[3] = "艾西莫夫的水壺";
+                description[4] = NULL;
+                description[5] = NULL;
+                // char *description[6] = {NULL, "我的橡皮擦", "警長巴巴的鉛筆", "艾西莫夫的水壺", NULL, NULL};
+                char **image_path = calloc(6,sizeof(char*));
+                image_path[0] = NULL;
+                image_path[1] = "eraser.png";
+                image_path[2] = "pencil.png";
+                image_path[3] = "waterbuttle.png";
+                image_path[4] = NULL;
+                image_path[5] = NULL;
+                // char *image_path[6] = {NULL, "eraser.png", "pencil.png", "waterbuttle.png", NULL, NULL};
+                
+                backpackItemInit(&backpack_items, &status, &name, &description, &image_path);
+
+                // Backpack main
+                RenderResources backpack_resources;
+                initRenderResources(&backpack_resources);
+                int32_t result = backpackMain(&backpack_data, backpack_items, &backpack_path, &backpack_resources, window);
+                switch(result){
+                    case -1:
+                        printf("Failed to initialize backpack!\n");
+                        break;
+                    case 0:
+                        printf("Leave the game\n");
+                        backpack_openned = 0;
+                        quit = 1;
+                        break;
+                    case 7:
+                        printf("Backpack closed!\n");
+                        backpack_openned = 0;
+                        break;
+                    case 1 ... 6:
+                        printf("Item %d used!\n", result);
+                        now_handle = result - 1;
+                        backpack_openned = 0;
+                        break;
+                }
+                freeRenderResources(&backpack_resources);
+                continue;
             }
             //printf("here\n");
             my_RenderPresent(renderer,&resources,now_state);

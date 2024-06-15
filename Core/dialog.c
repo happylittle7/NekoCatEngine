@@ -81,6 +81,18 @@ void initRenderResources(RenderResources* resources)
         resources->character_IMG_renderQuads[i] = (SDL_Rect*)malloc(sizeof(SDL_Rect));  // 分配内存
     }
     resources->expression_texture = NULL;  // 新增
+    resources->now_option_button = NULL;
+    resources->leave_button = NULL;
+    resources->backpack_block_texture = NULL;
+    resources->white_edge_black_block_texture = NULL;
+    resources->backpack_block_renderQuads = (SDL_Rect**)calloc(6, sizeof(SDL_Rect*));
+    for (int i = 0; i < 3; ++i) {
+        resources->backpack_block_renderQuads[i] = (SDL_Rect*)malloc(sizeof(SDL_Rect));  // 分配内存
+    }
+    resources->item_texture = (SDL_Texture**)malloc(6 * sizeof(SDL_Texture*));
+    for (int i = 0; i < 6; ++i) {
+        resources->item_texture[i] = NULL;
+    }
 }
 void freeRenderResources(RenderResources* resources) 
 {
@@ -127,6 +139,64 @@ void freeRenderResources(RenderResources* resources)
         resources->expression_texture = NULL;
     }
     //printf("7\n");
+    if (resources->now_option_button) 
+    {
+        for (int i = 0; i < 3; ++i) 
+        {
+            if (resources->now_option_button[i]) 
+            {
+                free(resources->now_option_button[i]);
+            }
+        }
+        free(resources->now_option_button);
+        resources->now_option_button = NULL;
+    }
+    //printf("8\n");
+    if (resources->leave_button) 
+    {
+        free(resources->leave_button);
+        resources->leave_button = NULL;
+    }
+    //printf("9\n");
+    if (resources->backpack_block_texture) 
+    {
+        SDL_DestroyTexture(resources->backpack_block_texture);
+        resources->backpack_block_texture = NULL;
+    }
+    //printf("10\n");
+    if (resources->white_edge_black_block_texture) 
+    {
+        SDL_DestroyTexture(resources->white_edge_black_block_texture);
+        resources->white_edge_black_block_texture = NULL;
+    }
+    //printf("11\n");
+    if (resources->backpack_block_renderQuads) 
+    {
+        for (int i = 0; i < 6; i++) 
+        {
+            if (resources->backpack_block_renderQuads[i]) 
+            {
+                free(resources->backpack_block_renderQuads[i]);
+            }
+        }
+        free(resources->backpack_block_renderQuads);
+        resources->backpack_block_renderQuads = NULL;
+    }
+    //printf("12\n");
+    if (resources->item_texture) 
+    {
+        for (int i = 0; i < 6; i++) 
+        {
+            if (resources->item_texture[i]) 
+            {
+                SDL_DestroyTexture(resources->item_texture[i]);
+            }
+        }
+        free(resources->item_texture);
+        resources->item_texture = NULL;
+    }
+    //printf("13\n");
+    return;
 }
 /*
 SDL_Texture* copyTexture(SDL_Renderer* renderer, SDL_Texture* srcTexture) //紋理深拷貝
