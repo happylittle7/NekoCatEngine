@@ -271,6 +271,10 @@ int32_t openningMain(openningData *data, openningPath *path, SDL_Window *window)
 
     SDL_DestroyTexture(backgroundTexture);
     SDL_DestroyRenderer(renderer);
+    if (option==1)
+    {
+        SDL_RenderClear(renderer);
+    }
     return option;
 }
 
