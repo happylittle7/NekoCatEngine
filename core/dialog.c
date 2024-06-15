@@ -7,6 +7,7 @@
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_mixer.h>
 #include <SDL2/SDL_image.h>
+/*
 void initButton(SDL_Renderer* renderer, TTF_Font* font, Button* button, SDL_Rect rect, SDL_Color color, const char* text) {
     button->rect = rect;
     button->color = color;
@@ -18,20 +19,22 @@ void initButton(SDL_Renderer* renderer, TTF_Font* font, Button* button, SDL_Rect
     button->texture = SDL_CreateTextureFromSurface(renderer, surface);
     SDL_FreeSurface(surface);
 }
+*/
 int32_t checkLeaveButton(SDL_Event* e, Button* leave_button) 
 {
     if (e->type == SDL_MOUSEBUTTONDOWN) {
         int x, y;
         SDL_GetMouseState(&x, &y);
-        if (x >= leave_button->rect.x &&
-            x <= leave_button->rect.x + leave_button->rect.w &&
-            y >= leave_button->rect.y &&
-            y <= leave_button->rect.y + leave_button->rect.h) {
+        if (x >= leave_button->IMG_rect.x &&
+            x <= leave_button->IMG_rect.x + leave_button->IMG_rect.w &&
+            y >= leave_button->IMG_rect.y &&
+            y <= leave_button->IMG_rect.y + leave_button->IMG_rect.h) {
             return 1; // Leave button clicked
         }
     }
     return 0; // Leave button not clicked
 }
+/*
 int32_t handleButtonEvents(SDL_Event* e, RenderResources* resources, int32_t num_option_buttons) 
 {
     if (e->type == SDL_MOUSEBUTTONDOWN) 
@@ -52,18 +55,12 @@ int32_t handleButtonEvents(SDL_Event* e, RenderResources* resources, int32_t num
     }
     return -1; // No button clicked
 }
-void renderButton(SDL_Renderer* renderer, Button* button) 
-{
-    SDL_SetRenderDrawColor(renderer, button->color.r, button->color.g, button->color.b, button->color.a);
-    SDL_RenderFillRect(renderer, &button->rect);
-    if (button->texture) {
-        SDL_RenderCopy(renderer, button->texture, NULL, &button->rect);
-    }
-}
+*/
+
 int32_t isButtonClicked(Button button, int32_t x, int32_t y) 
 {
-    if (x >= button.rect.x && x <= (button.rect.x + button.rect.w) &&
-        y >= button.rect.y && y <= (button.rect.y + button.rect.h)) 
+    if (x >= button.IMG_rect.x && x <= (button.IMG_rect.x + button.IMG_rect.w) &&
+        y >= button.IMG_rect.y && y <= (button.IMG_rect.y + button.IMG_rect.h)) 
     {
         return 1;
     }
@@ -81,6 +78,7 @@ void initRenderResources(RenderResources* resources)
         resources->character_IMG_renderQuads[i] = (SDL_Rect*)malloc(sizeof(SDL_Rect));  // 分配内存
     }
     resources->expression_texture = NULL;  // 新增
+    resources->leave_button = NULL;  // 新增
 }
 void freeRenderResources(RenderResources* resources) 
 {
@@ -126,7 +124,94 @@ void freeRenderResources(RenderResources* resources)
         SDL_DestroyTexture(resources->expression_texture);
         resources->expression_texture = NULL;
     }
+    if (resources->leave_button) 
+    {
+        if (resources->leave_button->text_texture) {
+            SDL_DestroyTexture(resources->leave_button->text_texture);
+        }
+        if (resources->leave_button->IMG_texture) {
+            SDL_DestroyTexture(resources->leave_button->IMG_texture);
+        }
+        free(resources->leave_button);
+        resources->leave_button = NULL;
+    }
     //printf("7\n");
+}
+void renderButton(SDL_Renderer* renderer, Button* button) {
+    // 渲染按鈕圖像
+    if (button->IMG_texture) {
+        SDL_RenderCopy(renderer, button->IMG_texture, NULL, &button->IMG_rect);
+    }
+
+    // 渲染按鈕文字
+    if (button->text_texture) {
+        SDL_RenderCopy(renderer, button->text_texture, NULL, &button->text_rect);
+    }
+}
+void my_RenderPresent(SDL_Renderer* renderer, RenderResources* resources, int32_t now_state) 
+{
+    // 渲染背景
+    //printf("A\n");
+    if (resources->background_texture) 
+    {
+        //printf("background_texture is OK\n");
+        if (now_state == 2)
+            SDL_RenderCopy(renderer, resources->background_texture, NULL, NULL);
+    }
+    
+    // 渲染文字框
+    if (resources->dialog_box_texture) 
+    {
+        //printf("dialog_box_texture is OK\n");
+        if (now_state == 2)
+            SDL_RenderCopy(renderer, resources->dialog_box_texture, NULL, &resources->dialog_box_renderQuad);
+    }
+    
+    // 渲染角色立绘
+    if (resources->character_IMG_texture) 
+    {
+        //printf("character_IMG_texture is OK\n");
+        if (now_state == 2)
+            for (int32_t i=0 ; i<3 ; i++)
+            {
+                if (resources->character_IMG_texture[i]!=NULL)
+                {
+                    //printf("here\n");
+                    SDL_RenderCopy(renderer, resources->character_IMG_texture[i], NULL, (resources->character_IMG_renderQuads[i])); // 此處尚未完成
+                }
+            }
+        
+    }
+    //printf("B\n");
+    // 渲染表情
+    if (resources->expression_texture) 
+    {
+        //printf("expression_texture is OK\n");
+        if (now_state == 2)
+            SDL_RenderCopy(renderer, resources->expression_texture, NULL, &resources->expression_renderQuad);
+    }
+    // 渲染文字
+    if (resources->text_texture) 
+    {
+        //printf("text_texture is OK\n");
+        SDL_RenderCopy(renderer, resources->text_texture, NULL, &resources->text_renderQuad);
+    }
+    /*
+    for (int i = 0; i < 3; ++i) 
+    {
+        if (resources->now_option_button[i]) 
+        {
+            renderButton(renderer, resources->now_option_button[i]);
+        }
+    }
+    */
+    if (resources->leave_button->text_texture) 
+    {
+        renderButton(renderer, resources->leave_button);
+    }
+    
+    // 更新屏幕
+    SDL_RenderPresent(renderer);
 }
 /*
 SDL_Texture* copyTexture(SDL_Renderer* renderer, SDL_Texture* srcTexture) //紋理深拷貝
@@ -388,70 +473,7 @@ void DisplayTheExpression(SDL_Renderer* renderer, RenderResources *resources, to
         } 
     }
 }
-void my_RenderPresent(SDL_Renderer* renderer, RenderResources* resources, int32_t now_state) 
-{
-    // 渲染背景
-    //printf("A\n");
-    if (resources->background_texture) 
-    {
-        //printf("background_texture is OK\n");
-        if (now_state == 2)
-            SDL_RenderCopy(renderer, resources->background_texture, NULL, NULL);
-    }
-    
-    // 渲染文字框
-    if (resources->dialog_box_texture) 
-    {
-        //printf("dialog_box_texture is OK\n");
-        if (now_state == 2)
-            SDL_RenderCopy(renderer, resources->dialog_box_texture, NULL, &resources->dialog_box_renderQuad);
-    }
-    
-    // 渲染角色立绘
-    if (resources->character_IMG_texture) 
-    {
-        //printf("character_IMG_texture is OK\n");
-        if (now_state == 2)
-            for (int32_t i=0 ; i<3 ; i++)
-            {
-                if (resources->character_IMG_texture[i]!=NULL)
-                {
-                    //printf("here\n");
-                    SDL_RenderCopy(renderer, resources->character_IMG_texture[i], NULL, (resources->character_IMG_renderQuads[i])); // 此處尚未完成
-                }
-            }
-        
-    }
-    //printf("B\n");
-    // 渲染表情
-    if (resources->expression_texture) 
-    {
-        //printf("expression_texture is OK\n");
-        if (now_state == 2)
-            SDL_RenderCopy(renderer, resources->expression_texture, NULL, &resources->expression_renderQuad);
-    }
-    // 渲染文字
-    if (resources->text_texture) 
-    {
-        //printf("text_texture is OK\n");
-        SDL_RenderCopy(renderer, resources->text_texture, NULL, &resources->text_renderQuad);
-    }
-    /*
-    for (int i = 0; i < 3; ++i) 
-    {
-        if (resources->now_option_button[i]) 
-        {
-            renderButton(renderer, resources->now_option_button[i]);
-        }
-    }
-    if (resources->leave_button) 
-    {
-        renderButton(renderer, resources->leave_button);
-    }
-    */
-    // 更新屏幕
-    SDL_RenderPresent(renderer);
-}
+
 int32_t IsOverGap(toml_table_t *Player_Variable, toml_array_t* variable_array, toml_array_t* mode_array, toml_array_t* gap_array) {
     int32_t num_variables = toml_array_nelem(variable_array);
     //printf("A\n");
@@ -521,4 +543,76 @@ int32_t init_music()
     }
 
     return 1;
+}
+void initLeaveButton(RenderResources* resources, SDL_Renderer* renderer, const char* text, TTF_Font* font) {
+    SDL_Color textColor = {0, 0, 0, 255};  // Black color for text
+    SDL_Color bgColor = {255, 255, 255, 255};  // White color for button background
+    SDL_Rect rect = {590, 0, 50, 50};  // Adjusted the size for better button appearance
+
+    resources->leave_button = (Button*)malloc(sizeof(Button));
+
+    // Initialize text texture
+    SDL_Surface* textSurface = TTF_RenderUTF8_Blended(font, text, textColor);
+    resources->leave_button->text_texture = SDL_CreateTextureFromSurface(renderer, textSurface);
+    
+    // Get text width and height
+    int32_t text_width = textSurface->w;  // 文本寬度
+    int32_t text_height = textSurface->h; // 文本高度
+    SDL_FreeSurface(textSurface);
+    
+    resources->leave_button->text_rect = (SDL_Rect){rect.x + (rect.w - text_width) / 2, rect.y + (rect.h - text_height) / 2, text_width, text_height};
+
+    // Initialize background rectangle (button background)
+    SDL_Texture* button_bg_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, rect.w, rect.h);
+    SDL_SetRenderTarget(renderer, button_bg_texture);
+    SDL_SetRenderDrawColor(renderer, bgColor.r, bgColor.g, bgColor.b, bgColor.a);
+    SDL_RenderClear(renderer);
+    SDL_SetRenderTarget(renderer, NULL);
+    resources->leave_button->IMG_texture = button_bg_texture;
+    resources->leave_button->IMG_rect = rect;
+}
+void adjustToFullscreen(RenderResources* resources, int32_t window_width, int32_t window_height, int32_t fullscreen_width, int32_t fullscreen_height) {
+    float scale_x = (float)fullscreen_width / window_width;
+    float scale_y = (float)fullscreen_height / window_height;
+
+    // Adjust the dialog box
+    resources->dialog_box_renderQuad.x *= scale_x;
+    resources->dialog_box_renderQuad.y *= scale_y;
+    resources->dialog_box_renderQuad.w *= scale_x;
+    resources->dialog_box_renderQuad.h *= scale_y;
+
+    // Adjust the text box
+    resources->text_renderQuad.x *= scale_x;
+    resources->text_renderQuad.y *= scale_y;
+    resources->text_renderQuad.w *= scale_x;
+    resources->text_renderQuad.h *= scale_y;
+
+    // Adjust the expression
+    resources->expression_renderQuad.x *= scale_x;
+    resources->expression_renderQuad.y *= scale_y;
+    resources->expression_renderQuad.w *= scale_x;
+    resources->expression_renderQuad.h *= scale_y;
+
+    // Adjust the character images
+    for (int i = 0; i < 3; ++i) {
+        if (resources->character_IMG_renderQuads[i]) {
+            resources->character_IMG_renderQuads[i]->x *= scale_x;
+            resources->character_IMG_renderQuads[i]->y *= scale_y;
+            resources->character_IMG_renderQuads[i]->w *= scale_x;
+            resources->character_IMG_renderQuads[i]->h *= scale_y;
+        }
+    }
+
+    // Adjust the leave button
+    if (resources->leave_button) {
+        resources->leave_button->text_rect.x *= scale_x;
+        resources->leave_button->text_rect.y *= scale_y;
+        resources->leave_button->text_rect.w *= scale_x;
+        resources->leave_button->text_rect.h *= scale_y;
+        
+        resources->leave_button->IMG_rect.x *= scale_x;
+        resources->leave_button->IMG_rect.y *= scale_y;
+        resources->leave_button->IMG_rect.w *= scale_x;
+        resources->leave_button->IMG_rect.h *= scale_y;
+    }
 }
