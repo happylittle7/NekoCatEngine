@@ -11,6 +11,7 @@
 和文字渲染位置無關，更改文字渲染位置，問題依然存在
 和文字框渲染無關，註解文字框渲染程式，問題碼依然存在
 */
+#include "Core/openning.h"
 #include "Core/dialog.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -60,6 +61,31 @@ int main(int32_t argc, char* argv[])
 {
     SDL_Init(SDL_INIT_VIDEO);  // 初始化 SDL2
     TTF_Init();  // 初始化 SDL_ttf
+    IMG_Init(IMG_INIT_PNG);
+
+     // Initialize data and path
+    openningData data;
+    openningPath path;
+    openningDataInit(&data); // Initialize pre-defined data
+    strcpy(data.title, "貓貓のengine哈哈屁眼party");
+    strcpy(path.backgroundPath, "./Assets/image/start_background.png");
+    strcpy(path.fontPath, "./Assets/font/Cubic_11_1.100_R.ttf");
+    strcpy(path.blackButtonPath, "./Assets/image/black_button.png");
+    strcpy(path.whiteButtonPath, "./Assets/image/white_button.png");
+
+    // Create window
+    SDL_Window* window = SDL_CreateWindow("Openning", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_RESIZABLE);
+    if (!window) 
+    {
+        printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+        return -1;
+    }
+    SDL_SetWindowFullscreen( window, SDL_WINDOW_FULLSCREEN); // Fullscreen
+
+    // open the openning window
+    int32_t option = openningMain(&data, &path, window);
+
+
     SDL_Surface* loaded_dialog_box = IMG_Load("./Assets/dialog_box.png"); ///這裡的路徑之後會有變化
     if (!loaded_dialog_box) 
     {
@@ -75,26 +101,25 @@ int main(int32_t argc, char* argv[])
     
     
     //printf("%f %f\n",width_ratio,height_ratio);
-    SDL_Window* window = SDL_CreateWindow("Hello SDL2", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, w_w, w_h, SDL_WINDOW_SHOWN);
-    if (!window) 
-    {
-        printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
-        return 1;
-    }
+    //SDL_Window* window = SDL_CreateWindow("Hello SDL2", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, w_w, w_h, SDL_WINDOW_SHOWN);
     
     
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND); // 设置混合模式
     
-    SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+    //SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+    /*
     SDL_DisplayMode dm;
     if (SDL_GetCurrentDisplayMode(0, &dm) != 0) 
     {
         SDL_Log("SDL_GetCurrentDisplayMode failed: %s", SDL_GetError());
         return 1;
     }
-    int32_t fullscreen_width = dm.w;
-    int32_t fullscreen_height = dm.h;
+    */
+    int32_t fullscreen_width;
+    int32_t fullscreen_height;
+    SDL_GetWindowSize(window, &fullscreen_width, &fullscreen_height);
+    
     
     change_ratio(fullscreen_width,w_w,fullscreen_height,w_h);
     

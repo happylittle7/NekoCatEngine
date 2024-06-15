@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "Library/toml.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,7 +36,7 @@ int main(int32_t argc, char* argv[])
 
     // open the openning window
     int32_t option = openningMain(&data, &path, window);
-
+    
     // Quit SDL and TTF
     SDL_DestroyWindow(window);
     IMG_Quit();
