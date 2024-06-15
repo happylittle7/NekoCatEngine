@@ -57,7 +57,7 @@ void openningDataInit(openningData *data)
 
 int32_t openningMain(openningData *data, openningPath *path, SDL_Window *window)
 {
-    double option = 0; //-1 = Error, 0 = Quit, 1 = start, 2 = aboutus
+    double option = 0; //-1 = Error, 0 = Quit, 1 = start, 2 = load 3 = llm mode
     int32_t window_width, window_height;
     uint8_t title_text_color = data->title_text_color;
 
@@ -202,11 +202,11 @@ int32_t openningMain(openningData *data, openningPath *path, SDL_Window *window)
         {
             chooseTextColor(0, &aboutusTextColor);
             renderTexture(whitebuttonTexture, renderer, aboutus_button_x, aboutus_button_y, normal_button_width, normal_button_height, "CENTER", "CENTER");
-            displayText(renderer, title_font, "Aboutus", aboutusTextColor, aboutus_button_x, aboutus_button_y, "CENTER", "CENTER");
+            displayText(renderer, title_font, "Load", aboutusTextColor, aboutus_button_x, aboutus_button_y, "CENTER", "CENTER");
             // printf("mouse on aboutus button\n");
             if (mouse_press == 1)
             {
-                printf("aboutus button is pressed\n");
+                printf("load button is pressed\n");
                 quit = 1;
                 option = 2;
             }
@@ -215,7 +215,7 @@ int32_t openningMain(openningData *data, openningPath *path, SDL_Window *window)
         {
             chooseTextColor(1, &aboutusTextColor);
             renderTexture(blackbuttonTexture, renderer, aboutus_button_x, aboutus_button_y, normal_button_width, normal_button_height, "CENTER", "CENTER");
-            displayText(renderer, title_font, "Aboutus", aboutusTextColor, aboutus_button_x, aboutus_button_y, "CENTER", "CENTER");
+            displayText(renderer, title_font, "Load", aboutusTextColor, aboutus_button_x, aboutus_button_y, "CENTER", "CENTER");
         }
 
         // llm mode button

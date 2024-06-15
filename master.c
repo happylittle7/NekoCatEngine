@@ -1,17 +1,4 @@
-/*
-假設視覺小說類型是戀愛小說
-需要支援好感度指數
-增加或減少好感度的數值定義在劇本檔中的選項
-需要支援玩家背包與跟物品互動的功能
-*/
-
-/*
-奇妙字幕bug實驗結果 : -> 不知為何已經解決了
-和腳色圖片渲染無關，註解腳色圖片渲染程式碼，問題依然存在
-和文字渲染位置無關，更改文字渲染位置，問題依然存在
-和文字框渲染無關，註解文字框渲染程式，問題碼依然存在
-*/
-#include "Core/dialog.h"
+#include "dialog.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,508 +8,663 @@
 #include <SDL2/SDL_mixer.h>
 #include <SDL2/SDL_image.h>
 /*
-#define WHITE 255, 255, 255
-#define BLACK 0, 0, 0
-static int32_t quit = 0;
+void initButton(SDL_Renderer* renderer, TTF_Font* font, Button* button, SDL_Rect rect, SDL_Color color, const char* text) {
+    button->rect = rect;
+    button->color = color;
+    button->text = text;
+    button->font = font;
 
-static int32_t text_start_x = 50;
-static int32_t text_start_y = 370;
-static int32_t dialogBox_start_x = 0;
-static int32_t dialogBox_start_y = 350;
-static uint8_t text_color = 0;
-static int32_t character_start_x = 50;
-static int32_t character_start_y = 320;
-typedef struct 
+    // 创建纹理
+    SDL_Surface* surface = TTF_RenderText_Blended(font, text, (SDL_Color){255, 255, 255, 255});
+    button->texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_FreeSurface(surface);
+}
+*/
+void MakeOption(RenderResources* resources, SDL_Renderer* renderer, const char* optionContent_id, TTF_Font* font, int index, int totalOptions) {
+    // 初始化资源中的按钮数组
+    //printf("A\n");
+    // 确保 resources->now_option_button 已经分配内存
+    if (resources->now_option_button == NULL) {
+        resources->now_option_button = (Button**)calloc(totalOptions, sizeof(Button*));
+    }
+
+    // 分配每个按钮的内存
+    if (resources->now_option_button[index] == NULL) {
+        resources->now_option_button[index] = (Button*)malloc(sizeof(Button));
+    }
+
+    // 定义按钮的宽度和高度
+    int buttonWidth = 400;
+    int buttonHeight = 50;
+
+    // 计算每个按钮的位置
+    int buttonX = 100; // 按钮的 X 位置
+    int buttonY = 100 + (index * (buttonHeight + 20)); // 按钮的 Y 位置
+    //printf("B\n");
+    // 初始化按钮的矩形区域
+    SDL_Rect buttonRect = {buttonX*width_ratio, buttonY*height_ratio, buttonWidth*width_ratio, buttonHeight*height_ratio};
+
+    // 创建按钮的背景纹理
+    SDL_Texture* buttonBgTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, buttonWidth, buttonHeight);
+    SDL_SetRenderTarget(renderer, buttonBgTexture);
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // 白色背景
+    SDL_RenderClear(renderer);
+    SDL_SetRenderTarget(renderer, NULL);
+    //printf("C\n");
+    // 创建按钮的文字纹理
+    SDL_Surface* textSurface = TTF_RenderUTF8_Blended(font, optionContent_id, (SDL_Color){0, 0, 0, 255}); // 黑色文字
+    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+    //printf("D\n");
+    // 获取文字的宽度和高度
+    int textWidth = textSurface->w*width_ratio;
+    int textHeight = textSurface->h*height_ratio;
+    SDL_FreeSurface(textSurface);
+    //printf("E\n");
+    // 计算文字在按钮中的位置
+    SDL_Rect textRect = {buttonX + (buttonWidth - textWidth) / 2, buttonY + (buttonHeight - textHeight) / 2, textWidth, textHeight};
+    //printf("F\n");
+    // 设置按钮对象的属性
+    resources->now_option_button[index]->text_texture = textTexture;
+    resources->now_option_button[index]->text_rect = textRect;
+    resources->now_option_button[index]->IMG_texture = buttonBgTexture;
+    resources->now_option_button[index]->IMG_rect = buttonRect;
+    //printf("E\n");
+    
+}
+void change_ratio(int32_t a, int32_t b, int32_t c, int32_t d)
 {
-    SDL_Rect rect;
-    SDL_Color color;
-    const char* text;
-    TTF_Font* font;
-    SDL_Texture* texture;
-} Button;
-typedef struct 
+    width_ratio = (float)a/b;
+    height_ratio = (float)c/d;
+    //printf("%f %f\n",width_ratio,height_ratio);
+}
+int32_t checkLeaveButton(SDL_Event* e, Button* leave_button) 
 {
-    SDL_Texture* background_texture;
-    SDL_Texture* dialog_box_texture;
-    SDL_Rect dialog_box_renderQuad;
-    SDL_Texture* text_texture;
-    SDL_Rect text_renderQuad;
-    SDL_Texture* expression_texture;
-    SDL_Rect expression_renderQuad;
-    SDL_Texture** character_IMG_texture;
-    SDL_Rect** character_IMG_renderQuads;
-    Button** now_option_button;
-    Button* leave_button;
-} RenderResources;
+    if (e->type == SDL_MOUSEBUTTONDOWN) 
+    {
+        int32_t x, y;
+        SDL_GetMouseState(&x, &y);
+        if (x >= leave_button->IMG_rect.x &&
+            x <= leave_button->IMG_rect.x + leave_button->IMG_rect.w &&
+            y >= leave_button->IMG_rect.y &&
+            y <= leave_button->IMG_rect.y + leave_button->IMG_rect.h) {
+            return 1; // Leave button clicked
+        }
+    }
+    return 0; // Leave button not clicked
+}
+/*
+int32_t handleButtonEvents(SDL_Event* e, RenderResources* resources, int32_t num_option_buttons) 
+{
+    if (e->type == SDL_MOUSEBUTTONDOWN) 
+    {
+        int x, y;
+        SDL_GetMouseState(&x, &y);
+        for (int i = 0; i < num_option_buttons; ++i) 
+        {
+            if (resources->now_option_button[i] &&
+                x >= resources->now_option_button[i]->rect.x &&
+                x <= resources->now_option_button[i]->rect.x + resources->now_option_button[i]->rect.w &&
+                y >= resources->now_option_button[i]->rect.y &&
+                y <= resources->now_option_button[i]->rect.y + resources->now_option_button[i]->rect.h) 
+            {
+                return i; // Option button i clicked
+            }
+        }
+    }
+    return -1; // No button clicked
+}
 */
 
-int main(int32_t argc, char* argv[]) 
+int32_t handleButtonEvents(SDL_Event* e, RenderResources* resources) 
 {
-    SDL_Init(SDL_INIT_VIDEO);  // 初始化 SDL2
-    TTF_Init();  // 初始化 SDL_ttf
-    SDL_Surface* loaded_dialog_box = IMG_Load("./Assets/dialog_box.png"); ///這裡的路徑之後會有變化
-    if (!loaded_dialog_box) 
+    if (e->type == SDL_MOUSEBUTTONDOWN) 
     {
-        printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
-        return -1;
-    }
-    int32_t w_w = 640;
-    int32_t w_h = 480;
-    //int32_t fullscreen_width = 700;
-    //int32_t fullscreen_height = 700;
-    //width_ratio = (float)fullscreen_width/(float)w_w;
-    //height_ratio = (float)fullscreen_height/(float)w_h;
-    
-    
-    //printf("%f %f\n",width_ratio,height_ratio);
-    SDL_Window* window = SDL_CreateWindow("Hello SDL2", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, w_w, w_h, SDL_WINDOW_SHOWN);
-    if (!window) 
-    {
-        printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
-        return 1;
-    }
-    
-    
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND); // 设置混合模式
-    
-    SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
-    SDL_DisplayMode dm;
-    if (SDL_GetCurrentDisplayMode(0, &dm) != 0) 
-    {
-        SDL_Log("SDL_GetCurrentDisplayMode failed: %s", SDL_GetError());
-        return 1;
-    }
-    int32_t fullscreen_width = dm.w;
-    int32_t fullscreen_height = dm.h;
-    
-    change_ratio(fullscreen_width,w_w,fullscreen_height,w_h);
-    
-    RenderResources resources;
-    initRenderResources(&resources);
-    resources.dialog_box_texture = SDL_CreateTextureFromSurface(renderer, loaded_dialog_box);
-    SetDialogBox(renderer, &resources, dialogBox_start_x, dialogBox_start_y, 640, 130, 255);
-    
-    if (!renderer) 
-    {
-        printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        return 1;
-    }
-    TTF_Font* font = TTF_OpenFont("./Assets/font/Cubic_11_1.100_R.ttf", 24); ///這裡的路徑之後會有變化
-    if (!font) 
-    {
-        printf("Failed to load font! TTF_Error: %s\n", TTF_GetError());
-        SDL_DestroyRenderer(renderer);
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        return 1;
-    }
-    SDL_Color textColor;
-    if(text_color)
-    {
-        textColor.r = 255;
-        textColor.g = 255;
-        textColor.b = 255;
-    }
-    else
-    {
-        textColor.r = 0;
-        textColor.g = 0;
-        textColor.b = 0;
-    }
-    ///此處以下開劇本檔
-    initLeaveButton(&resources,  renderer, "X", font);
-    FILE *pCharacter_file;
-    FILE *pScript_file;
-    FILE *pPlayer_sav_file;
-    FILE *pbackground_file;
-    FILE *pmusic_file;
-    pCharacter_file = fopen("./character.nekocat", "r");
-    if (!pCharacter_file) 
-    {
-        printf("Unable to load character!\n");
-    }
-    pScript_file = fopen("script.nekocat", "r");
-    if (!pScript_file) 
-    {
-        printf("Unable to laod script!\n");
-    }
-    pPlayer_sav_file = fopen("player.sav", "r");
-    if (!pPlayer_sav_file) 
-    {
-        printf("Error!\n");
-    }
-    pbackground_file = fopen("./assets.nekocat", "r");
-    if (!pbackground_file) 
-    {
-        printf("Error!\n");
-    }
-    pmusic_file = fopen("./assets.nekocat", "r");
-    if (!pmusic_file) 
-    {
-        printf("Error!\n");
-    }
-    
-    char errbuf[200];
-    toml_table_t *Character = toml_parse_file(pCharacter_file, errbuf, sizeof(errbuf));
-    toml_table_t *Script = toml_parse_file(pScript_file, errbuf, sizeof(errbuf));
-    toml_table_t *Player_V = toml_parse_file(pPlayer_sav_file, errbuf, sizeof(errbuf));
-    toml_table_t *background_table = toml_parse_file(pbackground_file, errbuf, sizeof(errbuf));
-    toml_table_t *music_table = toml_parse_file(pmusic_file, errbuf, sizeof(errbuf));
-    background_table = toml_table_in(background_table,"background");
-    music_table = toml_table_in(music_table,"Music");
-    toml_array_t *char_list = toml_array_in(Character, "char_list");
-    int32_t char_Size = toml_array_nelem(char_list);
-    toml_table_t *now_script = toml_table_in(Script,"Start");
-    toml_table_t *Player_Variable = toml_table_in(Player_V,"Variable");
-    
-    if (!Player_Variable) 
-    {
-        printf("Error parsing player.sav: %s\n", errbuf);
-        return 1;
-    }
-    toml_table_t *Player_Items = toml_table_in(Script,"Items");
-    toml_array_t *script_list = toml_array_in(now_script, "script");
-    ///此處以下為鍵盤互動與顯示，在此處以下，我先不會讓使用者指定背景
-    int32_t now_state = 0;
-    int32_t col_in_script = 0;
-    char *pr_text = NULL;
-    SDL_Event e;
-    int32_t print_text_x = text_start_x;
-    int32_t print_text_y = text_start_y;
-    int32_t had_hit_left = 0;
-    int32_t option_hit = 0;
-    int32_t judge_button = -2;
-    int32_t the_option = 0;
-    ////音樂處理
-    if (!init_music()) 
-    {
-        printf("Failed to initialize!\n");
-        return 1;
-    }
-    Mix_Music* bgm = NULL;
-    while (!quit) 
-    {
-        while (SDL_PollEvent(&e) != 0) 
+        int mouseX = e->button.x;
+        int mouseY = e->button.y;
+
+        // Check leave button
+        if (resources->leave_button && mouseX >= resources->leave_button->IMG_rect.x && mouseX <= resources->leave_button->IMG_rect.x + resources->leave_button->IMG_rect.w &&
+            mouseY >= resources->leave_button->IMG_rect.y && mouseY <= resources->leave_button->IMG_rect.y + resources->leave_button->IMG_rect.h) 
         {
-            judge_button = handleButtonEvents( &e,  &resources);
-            if (now_state!=3)
+            return -1; // Special value for the leave button
+        }
+
+        // Check option buttons
+        for (int i = 0; i < 3; ++i) {
+            if (resources->now_option_button[i] && mouseX >= resources->now_option_button[i]->IMG_rect.x && mouseX <= resources->now_option_button[i]->IMG_rect.x + resources->now_option_button[i]->IMG_rect.w &&
+                mouseY >= resources->now_option_button[i]->IMG_rect.y && mouseY <= resources->now_option_button[i]->IMG_rect.y + resources->now_option_button[i]->IMG_rect.h) {
+                return i; // Return the index of the button that was clicked
+            }
+        }
+    }
+
+    return -2; // Return -2 if no button was clicked
+}
+void initRenderResources(RenderResources* resources) {
+    resources->background_texture = NULL;
+    resources->dialog_box_texture = NULL;
+    resources->text_texture = NULL;
+    resources->character_IMG_texture = (SDL_Texture**)malloc(3 * sizeof(SDL_Texture*));
+    resources->character_IMG_renderQuads = (SDL_Rect**)calloc(3, sizeof(SDL_Rect*));
+    for (int i = 0; i < 3; ++i) {
+        resources->character_IMG_texture[i] = NULL;
+        resources->character_IMG_renderQuads[i] = (SDL_Rect*)malloc(sizeof(SDL_Rect));  // 分配内存
+    }
+    resources->expression_texture = NULL;  // 新增
+    resources->leave_button = NULL;  // 新增
+    //resources->now_option_button = NULL;  // 初始化为NULL
+    resources->now_option_button = (Button**)calloc(3, sizeof(Button*));  // 分配三个空间并初始化为NULL
+}
+void freeRenderResources(RenderResources* resources) {
+    if (!resources) return;
+    
+    if (resources->background_texture) {
+        SDL_DestroyTexture(resources->background_texture);
+        resources->background_texture = NULL;
+    }
+    
+    if (resources->dialog_box_texture) {
+        SDL_DestroyTexture(resources->dialog_box_texture);
+        resources->dialog_box_texture = NULL;
+    }
+    
+    if (resources->text_texture) {
+        SDL_DestroyTexture(resources->text_texture);
+        resources->text_texture = NULL;
+    }
+    
+    if (resources->character_IMG_texture) {
+        for (int i = 0; i < 3; i++) {
+            if (resources->character_IMG_texture[i]) {
+                SDL_DestroyTexture(resources->character_IMG_texture[i]);
+            }
+        }
+        free(resources->character_IMG_texture);
+        resources->character_IMG_texture = NULL;
+    }
+    
+    if (resources->character_IMG_renderQuads) {
+        for (int i = 0; i < 3; i++) {
+            if (resources->character_IMG_renderQuads[i]) {
+                free(resources->character_IMG_renderQuads[i]);
+            }
+        }
+        free(resources->character_IMG_renderQuads);
+        resources->character_IMG_renderQuads = NULL;
+    }
+    
+    if (resources->expression_texture) {
+        SDL_DestroyTexture(resources->expression_texture);
+        resources->expression_texture = NULL;
+    }
+    
+    if (resources->leave_button) {
+        if (resources->leave_button->text_texture) {
+            SDL_DestroyTexture(resources->leave_button->text_texture);
+        }
+        if (resources->leave_button->IMG_texture) {
+            SDL_DestroyTexture(resources->leave_button->IMG_texture);
+        }
+        free(resources->leave_button);
+        resources->leave_button = NULL;
+    }
+    
+    if (resources->now_option_button) {
+        for (int i = 0; i < 3; ++i) {  // 假设有3个选项按钮
+            if (resources->now_option_button[i]) {
+                if (resources->now_option_button[i]->text_texture) {
+                    SDL_DestroyTexture(resources->now_option_button[i]->text_texture);
+                }
+                if (resources->now_option_button[i]->IMG_texture) {
+                    SDL_DestroyTexture(resources->now_option_button[i]->IMG_texture);
+                }
+                free(resources->now_option_button[i]);
+            }
+        }
+        free(resources->now_option_button);
+        resources->now_option_button = NULL;
+    }
+}
+void renderButton(SDL_Renderer* renderer, Button* button) {
+    // 渲染按鈕圖像
+    if (button->IMG_texture) {
+        SDL_RenderCopy(renderer, button->IMG_texture, NULL, &button->IMG_rect);
+    }
+
+    // 渲染按鈕文字
+    if (button->text_texture) {
+        SDL_RenderCopy(renderer, button->text_texture, NULL, &button->text_rect);
+    }
+}
+void my_RenderPresent(SDL_Renderer* renderer, RenderResources* resources, int32_t now_state) 
+{
+    // 渲染背景
+    //printf("A\n");
+    //printf("%d\n",now_state);
+    if (resources->background_texture) 
+    {
+        //printf("background_texture is OK\n");
+        if (now_state==2 || now_state==5)
+            SDL_RenderCopy(renderer, resources->background_texture, NULL, NULL);
+    }
+    
+    // 渲染文字框
+    if (resources->dialog_box_texture) 
+    {
+        //printf("dialog_box_texture is OK\n");
+        if (now_state == 2 || now_state==5)
+            SDL_RenderCopy(renderer, resources->dialog_box_texture, NULL, &resources->dialog_box_renderQuad);
+    }
+    
+    // 渲染角色立绘
+    if (resources->character_IMG_texture) 
+    {
+        //printf("character_IMG_texture is OK\n");
+        if (now_state == 2)
+            for (int32_t i=0 ; i<3 ; i++)
             {
-                if (checkLeaveButton(&e,resources.leave_button) == 1)
+                if (resources->character_IMG_texture[i]!=NULL)
                 {
-                    quit = 1;
+                    //printf("here\n");
+                    SDL_RenderCopy(renderer, resources->character_IMG_texture[i], NULL, (resources->character_IMG_renderQuads[i])); // 此處尚未完成
                 }
-                else if (e.type == SDL_MOUSEBUTTONDOWN) 
-                {
-                    if (e.button.button == SDL_BUTTON_LEFT) 
-                    {
-                        had_hit_left = 1;
-                    }
-                }
+            }
+        
+    }
+    //printf("B\n");
+    // 渲染表情
+    if (resources->expression_texture) 
+    {
+        //printf("expression_texture is OK\n");
+        if (now_state == 2)
+            SDL_RenderCopy(renderer, resources->expression_texture, NULL, &resources->expression_renderQuad);
+    }
+    // 渲染文字
+    if (resources->text_texture) 
+    {
+        //printf("text_texture is OK\n");
+        SDL_RenderCopy(renderer, resources->text_texture, NULL, &resources->text_renderQuad);
+    }
+
+    // Option模式
+    printf("now state=%d\n",now_state);
+    for (int32_t i = 0; i < 3; i++) 
+    {
+        if (now_state == 3)
+        {
+            printf("here_now_state = %d\n",now_state);
+            if (resources->now_option_button[i]!=NULL) 
+            {
+                renderButton(renderer, resources->now_option_button[i]);
+            }
+        }
+            
+    }
+    if (resources->leave_button->text_texture) 
+    {
+        renderButton(renderer, resources->leave_button);
+    }
+    
+    // 更新屏幕
+    SDL_RenderPresent(renderer);
+}
+/*
+SDL_Texture* copyTexture(SDL_Renderer* renderer, SDL_Texture* srcTexture) //紋理深拷貝
+{
+    int width, height;
+    SDL_QueryTexture(srcTexture, NULL, NULL, &width, &height);
+
+    SDL_Texture* dstTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, width, height);
+
+    SDL_SetRenderTarget(renderer, dstTexture);
+    SDL_RenderCopy(renderer, srcTexture, NULL, NULL);
+    SDL_SetRenderTarget(renderer, NULL);
+
+    return dstTexture;
+}
+*/
+// 顯示文本的函數，負責將指定文本渲染到指定位置，暫時不考慮文字太常超過對話框的h時的下拉式處理
+void displayText(SDL_Renderer* renderer,RenderResources* resources, TTF_Font* font, char** text, SDL_Color textColor, int32_t* x, int32_t* y, int32_t max_w) 
+{
+    char *print_char = (*text);
+    SDL_Surface* textSurface;
+    //SDL_Texture* textTexture;
+    int32_t now_x = *x;
+    int32_t now_y = *y;
+    //y+=24;
+    char my_text[2] = {0};
+    my_text[0] = *print_char;
+    print_char++;
+    *text = print_char;
+    
+    textSurface = TTF_RenderUTF8_Blended(font, my_text, textColor);
+    resources->text_texture = SDL_CreateTextureFromSurface(renderer, textSurface);
+    SDL_SetTextureAlphaMod(resources->text_texture, 255);
+    int32_t text_width = textSurface->w;  // 文本寬度
+    int32_t text_height = textSurface->h; // 文本高度
+    //resources->text_texture = textTexture;
+    SDL_Rect renderQuad = { now_x*width_ratio, now_y*height_ratio, text_width*width_ratio, text_height*height_ratio };  // 定義渲染區域
+    resources->text_renderQuad = renderQuad;
+    //SDL_RenderCopy(renderer, textTexture, NULL, &renderQuad);  // 執行渲染操作
+    //SDL_RenderPresent(renderer);
+    SDL_Delay(50);
+    now_x += text_width;
+    if (now_x >= max_w)
+    {
+        now_y += text_height;
+        now_x = *x;
+    }
+    *x = now_x;
+    *y = now_y;
+    //SDL_RenderClear(renderer);
+    //SDL_DestroyTexture(textTexture);  // 銷毀紋理資源
+    SDL_FreeSurface(textSurface);  // 釋放表面資源
+}
+
+void displayText_2(SDL_Renderer* renderer,RenderResources* resources, TTF_Font* font, char** text, SDL_Color textColor, int32_t* x, int32_t* y, int32_t max_w) //滑鼠點擊後全顯示
+{
+    SDL_Surface* textSurface;
+    //SDL_Texture* textTexture;
+    char *print_char = (*text);
+    textSurface = TTF_RenderUTF8_Blended(font, print_char, textColor);
+    resources->text_texture = SDL_CreateTextureFromSurface(renderer, textSurface);
+    SDL_SetTextureAlphaMod(resources->text_texture, 255);
+    int32_t text_width = textSurface->w;  // 文本寬度
+    int32_t text_height = textSurface->h; // 文本高度
+    int32_t now_x = *x;
+    int32_t now_y = *y;
+    if (now_x >= max_w)
+    {
+        now_y += text_height;
+        now_x = *x;
+    }
+    SDL_Rect renderQuad = { now_x*width_ratio, now_y*height_ratio, text_width*width_ratio, text_height*height_ratio };  // 定義渲染區域
+    //resources->text_texture = textTexture;
+    resources->text_renderQuad = renderQuad;
+    //SDL_RenderCopy(renderer, textTexture, NULL, &renderQuad);  // 執行渲染操作
+    *print_char = 0;
+    *text = print_char;
+    //SDL_DestroyTexture(textTexture);  // 銷毀紋理資源
+    SDL_FreeSurface(textSurface);  // 釋放表面資源
+}
+
+///圖片縮放後再使其渲染到render
+void SetDialogBox(SDL_Renderer* renderer , RenderResources *resources, int32_t x, int32_t y, int32_t w, int32_t h, uint8_t alpha)
+{
+    SDL_SetTextureAlphaMod(resources -> dialog_box_texture, alpha);
+    //resources -> dialog_box_texture = tex;
+    SDL_Rect* dst = (SDL_Rect*)malloc(sizeof(SDL_Rect));
+    dst->x = (int32_t)((float)x * width_ratio);
+    dst->y = (int32_t)((float)y * height_ratio);
+    dst->w = (int32_t)((float)w * width_ratio);
+    dst->h = (int32_t)((float)h * height_ratio);
+    //printf("%d %d %d %d\n",dst->x,dst->y,dst->w,dst->h);
+    resources -> dialog_box_renderQuad = *dst;
+    free(dst);
+}
+void SetExpression(SDL_Renderer* renderer, RenderResources *resources, int32_t x, int32_t y, int32_t w, int32_t h, uint8_t alpha)
+{
+    SDL_SetTextureAlphaMod(resources -> expression_texture, alpha);
+    //resources -> expression_texture = tex;
+    SDL_Rect* dst = (SDL_Rect*)malloc(sizeof(SDL_Rect));
+    dst->x = (int32_t)((float)x * width_ratio);
+    dst->y = (int32_t)((float)y * height_ratio);
+    dst->w = (int32_t)((float)w * width_ratio);
+    dst->h = (int32_t)((float)h * height_ratio);
+    //printf("%d %d %d %d\n",dst->x,dst->y,dst->w,dst->h);
+    resources -> expression_renderQuad = *dst;
+    free(dst);
+}
+void SetCharacterImg(SDL_Renderer* renderer, RenderResources *resources, int32_t x, int32_t y, int32_t w, int32_t h, int32_t idx, uint8_t alpha) {
+    SDL_SetTextureAlphaMod(resources->character_IMG_texture[idx], alpha);
+    resources->character_IMG_renderQuads[idx]->x = (int32_t)((float)x * width_ratio);
+    resources->character_IMG_renderQuads[idx]->y = (int32_t)((float)y * height_ratio);
+    resources->character_IMG_renderQuads[idx]->w = (int32_t)((float)w * width_ratio);
+    resources->character_IMG_renderQuads[idx]->h = (int32_t)((float)h * height_ratio);
+    //printf("%d %d %d %d\n",dst->x,dst->y,dst->w,dst->h);
+}
+void displayIMG(SDL_Renderer* renderer, RenderResources *resources, toml_table_t *Character, const char* Character_id, const char* mood, int32_t idx, int32_t number) {
+    char* Character_id_cpy = (char*)malloc(1024 * sizeof(char));
+    strcpy(Character_id_cpy, Character_id);
+    toml_table_t *now_character = toml_table_in(Character, Character_id_cpy);
+    if (!now_character) {
+        fprintf(stderr, "Error: Character not found for command '%s'\n", Character_id_cpy);
+        free(Character_id_cpy);
+        return;
+    }
+    toml_array_t *sprites_list = toml_array_in(now_character, "sprites_list");
+    if (!sprites_list) {
+        fprintf(stderr, "Error: Sprites list not found in character for command '%s'\n", Character_id_cpy);
+        free(Character_id_cpy);
+        return;
+    }
+    toml_array_t *sprites_png_list = toml_array_in(now_character, "sprites_png_list");
+    if (!sprites_png_list) {
+        fprintf(stderr, "Error: Sprites PNG list not found in character for command '%s'\n", Character_id_cpy);
+        free(Character_id_cpy);
+        return;
+    }
+    int32_t emoSize = toml_array_nelem(sprites_list);
+    for (int32_t i = 0; i < emoSize; i++) {
+        const char* now_emo = toml_string_at(sprites_list, i).u.s;
+        if (strcmp(now_emo, mood) == 0) {
+            const char* now_emo_path = toml_string_at(sprites_png_list, i).u.s;
+            char full_path[512];
+            snprintf(full_path, sizeof(full_path), "./character.nekocat/image/%s", now_emo_path);
+            ///now_emo_path要加上./character.nekocat/image/
+            SDL_Surface* character_IMG = IMG_Load(full_path);
+            if (!character_IMG) 
+            {
+                fprintf(stderr, "Error: Unable to load image '%s': %s\n", full_path, IMG_GetError());
+                continue;
+            }
+            resources->character_IMG_texture[idx] = SDL_CreateTextureFromSurface(renderer, character_IMG);
+            SDL_FreeSurface(character_IMG);
+            if (!resources->character_IMG_texture[idx]) {
+                fprintf(stderr, "Error: Unable to create texture from surface: %s\n", SDL_GetError());
+                continue;
+            }
+            if (number == 1)
+            {
+                int32_t character_IMG_start_x = 300;
+                int32_t character_IMG_start_y = 50;
+                SetCharacterImg(renderer, resources, character_IMG_start_x + 200 * idx, character_IMG_start_y, 200, 300, idx, 255);
+            }
+            else if (number==2)
+            {
+                int32_t character_IMG_start_x = 100;
+                int32_t character_IMG_start_y = 50;
+                SetCharacterImg(renderer, resources, character_IMG_start_x + 200 * idx, character_IMG_start_y, 200, 300, idx, 255);
             }
             else
             {
-                //printf("the_judge_button = %d\n",judge_button);
-                if (judge_button==-1)
-                {
-                    quit = 1;
-                }
-                else if (judge_button!=-2)
-                {
-                    option_hit = 1;
-                    the_option = judge_button;
-                }
+                int32_t character_IMG_start_x = 50;
+                int32_t character_IMG_start_y = 50;
+                SetCharacterImg(renderer, resources, character_IMG_start_x + 200 * idx, character_IMG_start_y, 200, 300, idx, 255);
             }
-        }
-        if (quit == 1)
             break;
-        if (col_in_script != toml_array_nelem(script_list))
-        {
-            toml_table_t *entry = toml_table_at(script_list, col_in_script);
-            if (!entry) continue;
-            const char *action = toml_raw_in(entry, "action");
-            if (strcmp(action, "\"Dialog\"") == 0)
-            {
-                const char *command = toml_raw_in(entry, "command");
-                const char *text = toml_raw_in(entry, "text");
-                if (text != NULL && pr_text == NULL)
-                {
-                    pr_text = calloc(strlen(text),sizeof(char));
-                    strcpy(pr_text,text);
-                    pr_text++;
-                    pr_text[strlen(pr_text)-1] = 0;
-                }
-                if (*pr_text != 0)
-                {
-                    
-                    if (strcmp(command, "\"no name\"")==0)
-                    {
-                        resources.expression_texture = NULL;
-                        if (had_hit_left == 1)
-                        {
-                            dialogText_2(renderer,&resources, font, &pr_text, textColor, &print_text_x, &print_text_y, w_w);
-                            now_state = 1;
-                            had_hit_left = 0;
-                        }
-                        else
-                            dialogText(renderer,&resources, font, &pr_text, textColor, &print_text_x, &print_text_y, w_w);
-                    }
-                    else
-                    {
-                        printf("1\n");
-                        const char *mood = toml_raw_in(entry, "mood");
-                        char* command_cpy = calloc(1024,sizeof(char));
-                        strcpy(command_cpy,command);
-                        command_cpy++;
-                        command_cpy[strlen(command_cpy)-1] = 0;
-                        toml_table_t* Character_id_table = toml_table_in(Character,command_cpy);
-                        printf("2\n");
-                        toml_datum_t directory_copy = toml_string_in(Character_id_table, "directory");
-                        //char* directory = calloc(1024,sizeof(char));
-                        //strcpy(directory,directory_copy);
-                        //directory++;
-                        //directory[strlen(directory)-1] = 0;
-                        DisplayTheExpression(renderer, &resources, Character, directory_copy.u.s, command, mood);
-                        if (had_hit_left == 1)
-                        {
-                            dialogText_2(renderer,&resources, font, &pr_text, textColor, &print_text_x, &print_text_y, w_w);
-                            now_state = 1;
-                            had_hit_left = 0;
-                        }
-                        else
-                            dialogText(renderer,&resources, font, &pr_text, textColor, &print_text_x, &print_text_y, w_w);
-                    }
-                }
-                else if (now_state == 1 && had_hit_left == 1) //跳入下一段對話的前置作業
-                {
-                    now_state = 2;
-                    pr_text = NULL;
-                    SDL_RenderClear(renderer);
-                    //my_RenderPresent(renderer,&resources,now_state);
-                    clearAndRender( &resources,  resources.background_texture );
-                    my_RenderPresent(renderer,&resources,now_state);
-                    print_text_x = text_start_x;
-                    print_text_y = text_start_y;
-                    had_hit_left = 0;
-                }
-                else
-                {
-                    now_state = 1;
-                }
-            }
-            else if (strcmp(action, "\"SetCharacter\"")==0)
-            {
-                toml_datum_t character_number = toml_int_in(entry, "number");
-                toml_array_t* command_array = toml_array_in(entry, "command_list");
-                toml_array_t* mood_array = toml_array_in(entry, "mood_list");
-                if (character_number.u.i == 0)
-                {
-                    for (int32_t i=0 ; i<3 ; i++) ///初始化character_IMG_texture不然會出事
-                    {
-                        resources.character_IMG_texture[i] = NULL;
-                    }
-                }
-                else
-                {
-                    for (int32_t i=0 ; i<3 ; i++) ///初始化character_IMG_texture不然會出事
-                    {
-                        resources.character_IMG_texture[i] = NULL;
-                    }
-                    for (int32_t i = 0 ; i < toml_array_nelem(command_array) ; i++)
-                    {
-                        printf("A\n");
-                        const char* Character_id = toml_string_at(command_array, i).u.s;
-                        const char* mood = toml_string_at(mood_array, i).u.s;
-                        //char* Character_id_copy = calloc(1024,sizeof(char));
-                        printf("%s\n",Character_id);
-                        toml_table_t* Character_id_table = toml_table_in(Character,Character_id);
-                        printf("B\n");
-                        toml_datum_t directory_copy = toml_string_in(Character_id_table, "directory");
-                        printf("%s",directory_copy.u.s);
-                        //char* directory = calloc(1024,sizeof(char));
-                        //strcpy(directory,directory_copy);
-                        //directory++;
-                        //directory[strlen(directory)-1] = 0;
-                        printf("directory = %s\n",directory_copy.u.s);
-                        displayIMG(renderer, &resources, Character, directory_copy.u.s, Character_id, mood, i, toml_array_nelem(command_array)); 
-                    }
-                }
-                col_in_script++;
-            }
-            else if (strcmp(action, "\"Jump\"") == 0)
-            {
-                const char *label_id = toml_raw_in(entry, "label_id");
-                char *label_id_copy = calloc(1024,sizeof(char));
-                strcpy(label_id_copy,label_id);
-                label_id_copy++;
-                label_id_copy[strlen(label_id_copy)-1] = 0;
-                toml_array_t* variable_array = toml_array_in(entry, "variable");
-                toml_array_t* mode_array = toml_array_in(entry, "mode");
-                toml_array_t* gap_array = toml_array_in(entry, "gap");
-                if (!variable_array)
-                {
-                    if (IsOverGap(Player_Variable, variable_array,mode_array,gap_array) == 1)
-                    {
-                        now_script = toml_table_in(Script,label_id_copy);
-                        script_list = toml_array_in(now_script, "script");
-                        col_in_script = 0;
-                    }
-                    else
-                    {
-                        col_in_script++;
-                    }
-                }
-                else
-                {
-                    now_script = toml_table_in(Script,label_id_copy);
-                    script_list = toml_array_in(now_script, "script");
-                    col_in_script = 0;
-                }
-            }
-            else if (strcmp(action, "\"Background\"") == 0)
-            {
-                printf("here_4\n");
-                const char *background_v = toml_raw_in(entry, "background");
-                char* background_v_copy = calloc(1024,sizeof(char));
-                strcpy(background_v_copy,background_v);
-                background_v_copy++;
-                background_v_copy[strlen(background_v_copy)-1] = 0;
-                
-                toml_datum_t background_path_datum = toml_string_in(background_table, background_v_copy);
-                if (!background_path_datum.ok) 
-                {
-                    printf("Error: 'background_1' not found in 'background' table\n");
-                }
-                char full_path[512] = {0};
-                snprintf(full_path, sizeof(full_path), "./Assets/background/%s", background_path_datum.u.s);
-                SDL_Surface* background_surface = IMG_Load(full_path);
-                if (!background_surface) 
-                {
-                    printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
-                    return -1;
-                }
-                resources.background_texture = SDL_CreateTextureFromSurface(renderer,background_surface);
-                SDL_FreeSurface(background_surface);
-                now_state = 2;
-            }
-            else if (strcmp(action, "\"Music\"") == 0)
-            {
-                const char* music_id = toml_raw_in(entry, "music_id");
-                char* music_id_copy = calloc(1024,sizeof(char));
-                strcpy(music_id_copy,music_id);
-                music_id_copy++;
-                music_id_copy[strlen(music_id_copy)-1] = 0;
-                toml_datum_t music_path_datum = toml_string_in(music_table, music_id_copy);
-                if (bgm != NULL)
-                {
-                    Mix_HaltMusic();
-                    Mix_FreeMusic(bgm);
-                }
-                if (strcmp(music_path_datum.u.s,"close") != 0)
-                {
-                    char full_path[512] = {0};
-                    snprintf(full_path, sizeof(full_path), "./Assets/music/%s", music_path_datum.u.s);
-                    
-                    bgm = Mix_LoadMUS(full_path);
-                    
-                    if (bgm == NULL) 
-                    {
-                        printf("Failed to load music! SDL_mixer Error: %s\n", Mix_GetError());
-                        break;
-                    }
-                    
-                    if (Mix_PlayMusic(bgm, -1) == -1) 
-                    {
-                        printf("Failed to play music! SDL_mixer Error: %s\n", Mix_GetError());
-                        Mix_FreeMusic(bgm);
-                        break;
-                    }
-                }
-                now_state = 2;
-                
-            }
-            else if (strcmp(action, "\"Option\"") == 0)
-            {
-                now_state = 3;
-                toml_datum_t optionCount = toml_int_in(entry, "optionCount");
-                toml_array_t* optionContent = toml_array_in(entry, "optionContent");
-                //printf("%d\n",toml_array_nelem(optionContent));
-                toml_array_t* optionJump = toml_array_in(entry, "optionJump");
-                printf("%d\n",option_hit);
-                if (option_hit == 0)
-                {
-                    if (optionCount.u.i == 0)
-                    {
-                        for (int32_t i=0 ; i<3 ; i++) ///初始化character_IMG_texture不然會出事
-                        {
-                            resources.now_option_button[i] = NULL;
-                        }
-                    }
-                    else
-                    {
-                        for (int32_t i=0 ; i<3 ; i++) ///初始化character_IMG_texture不然會出事
-                        {
-                            resources.now_option_button[i] = NULL;
-                        }
-                        for (int32_t i = 0 ; i < toml_array_nelem(optionContent) ; i++)
-                        {
-                            //printf("A\n");
-                            const char* optionContent_id = toml_string_at(optionContent, i).u.s;
-                            MakeOption(&resources, renderer, optionContent_id, font, i, optionCount.u.i); 
-                        }
-                    }
-                }
-                else
-                {
-                    
-                    //judge_button
-                    //printf("the_option = %d\n",the_option);
-                    const char* optionJump_id = toml_string_at(optionJump, the_option).u.s;
-                    //printf("%s\n",optionJump_id);
-                    now_script = toml_table_in(Script,optionJump_id);
-                    script_list = toml_array_in(now_script, "script");
-                    now_state = 5; //按完按鈕後的clear
-                    option_hit = 0;
-                    col_in_script = 0;
-                    had_hit_left = 0;
-                    for (int32_t i=0 ; i<3 ; i++) ///初始化character_IMG_texture不然會出事
-                    {
-                        resources.now_option_button[i] = NULL;
-                    }
-                    //SDL_RenderClear(renderer);
-                    //clearAndRender( &resources,  resources.background_texture );
-                }
-            }
-            //else if (strcmp(action, "\"Music\"") == 0)
-            //adjustToFullscreen(&resources, w_w, w_h, fullscreen_width, fullscreen_height);
-            my_RenderPresent(renderer,&resources,now_state);
-            if(now_state == 2) //進入下一個此場景的action
-            {
-                col_in_script++;
-                now_state = 0;
-                had_hit_left = 0;
-            }
-            else if (now_state == 5)
-            {
-                now_state = 0;
-                had_hit_left = 0;
-            }
         }
     }
+    free(Character_id_cpy);
+}
+
+
+
+
+///清除顯示完的文字
+void clearAndRender(RenderResources *resources, SDL_Texture *backgroundTexture ) 
+{
+    resources->background_texture = backgroundTexture;
+    resources->text_texture = NULL;
+    //SDL_Delay(2000);
+
+}
+///顯示Expression
+void DisplayTheExpression(SDL_Renderer* renderer, RenderResources *resources, toml_table_t *Character, const char* command, const char* mood) ///此段函數要在左上角印出腳色圖片
+{
+    char* command_cpy = calloc(1024,sizeof(char));
+    strcpy(command_cpy,command);
+    command_cpy++;
+    command_cpy[strlen(command_cpy)-1] = 0;
+    toml_table_t *now_character = toml_table_in(Character, command_cpy);
+    if (!now_character)
+    {
+        fprintf(stderr, "Error: Character not found for command '%s'\n", command_cpy);
+        return;
+    }
+    
+    toml_array_t *sprites_list = toml_array_in(now_character, "sprites_list");
+    if (!sprites_list) 
+    {
+        fprintf(stderr, "Error: Sprites list not found in character for command '%s'\n", command_cpy);
+        return;
+    }
+    toml_array_t *sprites_png_list = toml_array_in(now_character, "sprites_png_list");
+    if (!sprites_png_list) 
+    {
+        fprintf(stderr, "Error: Sprites list not found in character for command '%s'\n", command_cpy);
+        return;
+    }
+    int32_t emoSize = toml_array_nelem(sprites_list);
+    for (int32_t i = 0; i < emoSize; i++) 
+    {
+        const char* now_emo = toml_string_at(sprites_list, i).u.s;
+        char* mood_copy = calloc(1024,sizeof(char));
+        strcpy(mood_copy,now_emo);
+        char* the_mood = calloc(1024,sizeof(char));
+        strcpy(the_mood,mood);
+        //printf("before the_mood = %s\n",the_mood);
+        the_mood++;
+        the_mood[strlen(the_mood)-1] = 0;
+        //printf("the_mood = %s\n",the_mood);
+        //printf("mood_copy = %s\n",mood_copy);
+        if (strcmp(mood_copy, the_mood) == 0) 
+        {
+            ///此處要加 character.nekocat 的路徑
+            const char* now_emo_path = toml_string_at(sprites_png_list, i).u.s;
+            //printf("path = %s\n",now_emo_path);
+            char full_path[512];
+            snprintf(full_path, sizeof(full_path), "./character.nekocat/image/%s", now_emo_path);
+            ///now_emo_path要加上./character.nekocat/image/
+            SDL_Surface* character_IMG = IMG_Load(full_path);
+            //printf("%s\n",now_emo);
+            if (!character_IMG) 
+            {
+                fprintf(stderr, "Error: Unable to load image '%s': %s\n", full_path, IMG_GetError());
+                continue;
+            }
+            //SDL_Texture* character_texture = SDL_CreateTextureFromSurface(renderer, character_IMG);
+            resources->expression_texture = SDL_CreateTextureFromSurface(renderer, character_IMG);
+            SDL_FreeSurface(character_IMG);
+            if (!resources->expression_texture) 
+            {
+                fprintf(stderr, "Error: Unable to create texture from surface: %s\n", SDL_GetError());
+                continue;
+            }
+            
+            SetExpression(renderer, resources, character_start_x, character_start_y, 50, 50,255);
+            //SDL_RenderCopy(renderer, character_texture, NULL, NULL);  // 渲染背景
+            //printf("here\n");
+            //SDL_DestroyTexture(character_texture);
+            break;
+        } 
+    }
+}
+
+int32_t IsOverGap(toml_table_t *Player_Variable, toml_array_t* variable_array, toml_array_t* mode_array, toml_array_t* gap_array) {
+    int32_t num_variables = toml_array_nelem(variable_array);
     //printf("A\n");
-    TTF_CloseFont(font);
-    freeRenderResources(&resources);
-    SDL_DestroyRenderer(renderer);  //這行因為未知原因若不註解掉會有機率錯，但走到這行程式必定結束，資源必定會釋放，所以我註解掉了
-    SDL_DestroyWindow(window);
-    IMG_Quit();
-    TTF_Quit();
-    SDL_Quit();
-    Mix_FreeMusic(bgm);
-    Mix_CloseAudio();
-    fclose(pCharacter_file);
-    fclose(pScript_file);
-    fclose(pPlayer_sav_file);
-    return 0;
+    if (num_variables != toml_array_nelem(mode_array) || num_variables != toml_array_nelem(gap_array))
+    {
+        printf("Error!\n");
+        return 0;
+    }
+    //printf("B\n");
+    for (int32_t i = 0; i < num_variables; i++) 
+    {
+        // 获取变量名
+        
+        const char* variable_name = toml_string_at(variable_array, i).u.s;
+        //printf("%s\n",variable_name);
+        // 获取变量的值
+        toml_datum_t var_value = toml_int_in(Player_Variable, variable_name);
+        //printf("C\n");
+        if (!var_value.ok) {
+            printf("Cannot find variable %s in Player_Variable\n", variable_name);
+            return 0;
+        }
+        
+        // 获取模式和比较值
+        int mode = toml_int_at(mode_array, i).u.i;
+        int64_t gap = toml_int_at(gap_array, i).u.i;
+        
+        //printf("%ld %ld\n",var_value.u.i,gap);
+        //printf("D\n");
+        // 根据模式进行比较
+        switch (mode) {
+            case 1: // 大于
+                if (var_value.u.i <= gap) {
+                    return 0;
+                }
+                break;
+            case 2: // 等于
+                if (var_value.u.i != gap) {
+                    return 0;
+                }
+                break;
+            case 3: // 小于
+                if (var_value.u.i >= gap) {
+                    return 0;
+                }
+                break;
+            default:
+                fprintf(stderr, "Invalid mode value %d\n", mode);
+                return 0;
+        }
+    }
+    //printf("E\n");
+    return 1;
+}
+int32_t init_music() 
+{
+    // 初始化 SDL
+    if (SDL_Init(SDL_INIT_AUDIO) < 0) {
+        printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+        return 0;
+    }
+
+    // 初始化 SDL_mixer
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+        printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
+        return 0;
+    }
+
+    return 1;
+}
+void initLeaveButton(RenderResources* resources, SDL_Renderer* renderer, const char* text, TTF_Font* font) {
+    SDL_Color textColor = {0, 0, 0, 255};  // Black color for text
+    SDL_Color bgColor = {255, 255, 255, 255};  // White color for button background
+    SDL_Rect rect = {590*width_ratio, 0*height_ratio, 50*width_ratio, 50*height_ratio};  // Adjusted the size for better button appearance
+
+    resources->leave_button = (Button*)malloc(sizeof(Button));
+
+    // Initialize text texture
+    SDL_Surface* textSurface = TTF_RenderUTF8_Blended(font, text, textColor);
+    resources->leave_button->text_texture = SDL_CreateTextureFromSurface(renderer, textSurface);
+    
+    // Get text width and height
+    int32_t text_width = textSurface->w *width_ratio;  // 文本寬度
+    int32_t text_height = textSurface->h *height_ratio; // 文本高度
+    SDL_FreeSurface(textSurface);
+    
+    resources->leave_button->text_rect = (SDL_Rect){rect.x + (rect.w - text_width) / 2, rect.y + (rect.h - text_height) / 2, text_width, text_height};
+
+    // Initialize background rectangle (button background)
+    SDL_Texture* button_bg_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, rect.w, rect.h);
+    SDL_SetRenderTarget(renderer, button_bg_texture);
+    SDL_SetRenderDrawColor(renderer, bgColor.r, bgColor.g, bgColor.b, bgColor.a);
+    SDL_RenderClear(renderer);
+    SDL_SetRenderTarget(renderer, NULL);
+    resources->leave_button->IMG_texture = button_bg_texture;
+    resources->leave_button->IMG_rect = rect;
 }
