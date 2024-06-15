@@ -40,9 +40,11 @@ void openningDataInit(openningData *data)
     data->title_x = 0.5;
     data->title_y = 100.0 / 480.0;
     data->start_button_x = 0.5;
-    data->start_button_y = 280.0 / 480.0;
+    data->start_button_y = 250.0 / 480.0;
     data->aboutus_button_x = data->start_button_x;
-    data->aboutus_button_y = 360.0 / 480.0;
+    data->aboutus_button_y = 330.0 / 480.0;
+    data->llm_mode_button_x = data->start_button_x;
+    data->llm_mode_button_y = 410.0 / 480.0;
     data->normal_button_width = 160.0 / 640.0;
     data->normal_button_height = 60.0 / 480.0;
     data->exit_button_x = 0.9675;
@@ -151,6 +153,8 @@ int32_t openningMain(openningData *data, openningPath *path, SDL_Window *window)
         double start_button_y = data->start_button_y * (double)window_height;
         double aboutus_button_x = data->aboutus_button_x * (double)window_width;
         double aboutus_button_y = data->aboutus_button_y * (double)window_height;
+        double llm_mode_button_x = data->llm_mode_button_x * (double)window_width;
+        double llm_mode_button_y = data->llm_mode_button_y * (double)window_height;
         double normal_button_width = data->normal_button_width * (double)window_width;
         double normal_button_height = data->normal_button_height * (double)window_height;
         double exit_button_x = data->exit_button_x * (double)window_width;
@@ -212,6 +216,29 @@ int32_t openningMain(openningData *data, openningPath *path, SDL_Window *window)
             chooseTextColor(1, &aboutusTextColor);
             renderTexture(blackbuttonTexture, renderer, aboutus_button_x, aboutus_button_y, normal_button_width, normal_button_height, "CENTER", "CENTER");
             displayText(renderer, title_font, "Aboutus", aboutusTextColor, aboutus_button_x, aboutus_button_y, "CENTER", "CENTER");
+        }
+
+        // llm mode button
+        SDL_Color llmTextColor;
+        title_font = TTF_OpenFont(path->fontPath, 30 * window_width * window_height / (3 * 640.0 * 480.0));
+        if (judgeButtonPressed(mouse_x, mouse_y, llm_mode_button_x, llm_mode_button_y, normal_button_width, normal_button_height, "CENTER", "CENTER"))
+        {
+            chooseTextColor(0, &llmTextColor);
+            renderTexture(whitebuttonTexture, renderer, llm_mode_button_x, llm_mode_button_y, normal_button_width, normal_button_height, "CENTER", "CENTER");
+            displayText(renderer, title_font, "LLM Mode", llmTextColor, llm_mode_button_x, llm_mode_button_y, "CENTER", "CENTER");
+            // printf("mouse on llm mode button\n");
+            if (mouse_press == 1)
+            {
+                printf("llm mode button is pressed\n");
+                quit = 1;
+                option = 3;
+            }
+        }
+        else
+        {
+            chooseTextColor(1, &llmTextColor);
+            renderTexture(blackbuttonTexture, renderer, llm_mode_button_x, llm_mode_button_y, normal_button_width, normal_button_height, "CENTER", "CENTER");
+            displayText(renderer, title_font, "LLM Mode", llmTextColor, llm_mode_button_x, llm_mode_button_y, "CENTER", "CENTER");
         }
 
         // exit button

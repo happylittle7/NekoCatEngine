@@ -25,6 +25,8 @@ typedef struct _openningData
     double start_button_y;       // start button position y
     double aboutus_button_x;     // aboutus button position x
     double aboutus_button_y;     // aboutus button position y
+    double llm_mode_button_x;    // llm mode button position x
+    double llm_mode_button_y;    // llm mode button position y 
     double normal_button_width;  // button width
     double normal_button_height; // button height
     double exit_button_x;        // exit button position x
