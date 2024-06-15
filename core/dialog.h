@@ -11,7 +11,8 @@
 #define BLACK 0, 0, 0
 static int32_t quit = 0;
 // #include "final_header"
-
+//int32_t w_w = 640;
+//int32_t w_h = 480;
 static int32_t text_start_x = 50;
 static int32_t text_start_y = 370;
 static int32_t dialogBox_start_x = 0;
@@ -19,13 +20,14 @@ static int32_t dialogBox_start_y = 350;
 static uint8_t text_color = 0;
 static int32_t character_start_x = 50;
 static int32_t character_start_y = 320;
+static float width_ratio;
+static float height_ratio;
 typedef struct 
 {
-    SDL_Rect rect;
-    SDL_Color color;
-    const char* text;
-    TTF_Font* font;
-    SDL_Texture* texture;
+    SDL_Texture* text_texture;
+    SDL_Rect text_rect;
+    SDL_Texture* IMG_texture;
+    SDL_Rect IMG_rect;
 } Button;
 typedef struct 
 {
@@ -59,3 +61,5 @@ void DisplayTheExpression(SDL_Renderer* renderer, RenderResources *resources, to
 void my_RenderPresent(SDL_Renderer* renderer, RenderResources* resources, int32_t now_state);
 int32_t IsOverGap(toml_table_t *Player_Variable, toml_array_t* variable_array, toml_array_t* mode_array, toml_array_t* gap_array);
 int32_t init_music();
+void initLeaveButton(RenderResources* resources, SDL_Renderer* renderer, const char* text, TTF_Font* font);
+void adjustToFullscreen(RenderResources* resources, int32_t window_width, int32_t window_height, int32_t fullscreen_width, int32_t fullscreen_height);
