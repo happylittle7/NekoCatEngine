@@ -1,19 +1,26 @@
 [Start]
 script = [
+    { action = "Modify variable", variable_name = "HP", value = "-1"},
+    { action = "Modify variable", variable_name = "HP", value = "-1"},
+    { action = "Give item", item_id = "pen", count = "-1"},
     { action = "Music", music_id = "BGM_1"},
     { action = "Background", background = "background_1"},
     { action = "SetCharacter", number = 2, command_list = ["ohm","ohmf"], mood_list = ["Normal","sad"]},
-    { action = "Dialog", command = "ohm", mood = "Normal", text = "I am good!"},
+    { action = "Sound", sound_id = "22score"},
+    { action = "Dialog", command = "ohm", mood = "Normal", text = "早上好中國"},
     { action = "SetCharacter", number = 3, command_list = ["ohm","ohmf","ohmf"], mood_list = ["sad","Normal","happy"]},
-    { action = "Dialog", command = "ohmf", mood = "sad", text = "you are omuba!"},
+    { action = "Sound", sound_id = "22score"},
+    { action = "Dialog", command = "ohmf", mood = "sad", text = "現在是22分"},
     { action = "SetCharacter", number = 0},
+    { action = "Sound", sound_id = "sound_1"},
     { action = "Dialog", command = "no name", text = "I love you!"},
     { action = "Jump", label_id = "script_2", variable = ["HP","ohmLove"], mode = [1,1], gap = [50,100]},
 ]
 [script_2]
 script = [
+    { action = "Sound", sound_id = "sound_1"},
     { action = "Dialog", command = "no name", text = "Hello world!"},
-    { action = "Option", optionCount = 3, optionContent = ["Button1","Button2","Button3"], optionJump = ["Ending_1","Ending_2","Ending_3"]}
+    { action = "Option", optionCount = 3, optionContent = ["我今天晚餐想吃阿婆壽司","Button2","Button3"], optionJump = ["Ending_1","Ending_2","Ending_3"]}
 ]
 [Ending_1]
 script = [

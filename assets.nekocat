@@ -3,3 +3,7 @@ background_1 = "background_1.png"
 
 [Music]
 BGM_1 = "BGM_1.mp3"
+
+[Sound]
+sound_1 = "sound_1.mp3"
+22score = "22fen.mp3"
