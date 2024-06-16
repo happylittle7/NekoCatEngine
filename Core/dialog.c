@@ -52,7 +52,7 @@ void MakeOption(RenderResources* resources, SDL_Renderer* renderer, const char* 
     SDL_SetRenderTarget(renderer, NULL);
     //printf("C\n");
     // 创建按钮的文字纹理
-    SDL_Surface* textSurface = TTF_RenderUTF8_Solid(font, optionContent_id, (SDL_Color){0, 0, 0, 255}); // 黑色文字
+    SDL_Surface* textSurface = TTF_RenderUTF8_Blended_Wrapped(font, optionContent_id, (SDL_Color){0, 0, 0, 255},400); // 黑色文字
     SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
     //printf("D\n");
     // 获取文字的宽度和高度
@@ -334,7 +334,7 @@ void dialogText(SDL_Renderer* renderer,RenderResources* resources, TTF_Font* fon
     *text = print_char;
     
     //printf("mytext=%s, %d\n",my_text,my_text);
-    textSurface = TTF_RenderUTF8_Solid(font, my_text, textColor);
+    textSurface = TTF_RenderUTF8_Blended_Wrapped(font, my_text, textColor,400);
     resources->text_texture = SDL_CreateTextureFromSurface(renderer, textSurface);
     SDL_SetTextureAlphaMod(resources->text_texture, 255);
     int32_t text_width = textSurface->w;  // 文本寬度
@@ -363,7 +363,7 @@ void dialogText_2(SDL_Renderer* renderer,RenderResources* resources, TTF_Font* f
     SDL_Surface* textSurface;
     //SDL_Texture* textTexture;
     char *print_char = (*text);
-    textSurface = TTF_RenderUTF8_Solid(font, print_char, textColor);
+    textSurface = TTF_RenderUTF8_Blended_Wrapped(font, print_char, textColor,400);
     resources->text_texture = SDL_CreateTextureFromSurface(renderer, textSurface);
     SDL_SetTextureAlphaMod(resources->text_texture, 255);
     int32_t text_width = textSurface->w;  // 文本寬度
@@ -389,7 +389,7 @@ void dialogText_3(SDL_Renderer* renderer,RenderResources* resources, TTF_Font* f
     SDL_Surface* textSurface;
     //SDL_Texture* textTexture;
     char *print_char = (*text);
-    textSurface = TTF_RenderUTF8_Solid(font, print_char, textColor);
+    textSurface = TTF_RenderUTF8_Blended_Wrapped(font, print_char, textColor,400);
     resources->text_texture = SDL_CreateTextureFromSurface(renderer, textSurface);
     SDL_SetTextureAlphaMod(resources->text_texture, 255);
     int32_t text_width = textSurface->w;  // 文本寬度
@@ -681,7 +681,7 @@ void initLeaveButton(RenderResources* resources, SDL_Renderer* renderer, const c
     resources->leave_button = (Button*)malloc(sizeof(Button));
 
     // Initialize text texture
-    SDL_Surface* textSurface = TTF_RenderUTF8_Solid(font, text, textColor);
+    SDL_Surface* textSurface = TTF_RenderUTF8_Blended_Wrapped(font, text, textColor,400);
     resources->leave_button->text_texture = SDL_CreateTextureFromSurface(renderer, textSurface);
     
     // Get text width and height
