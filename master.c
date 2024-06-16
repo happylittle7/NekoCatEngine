@@ -189,6 +189,14 @@ int main(int32_t argc, char *argv[])
     FILE *pPlayer_sav_file;
     FILE *pbackground_file;
     FILE *pmusic_file;
+    printf("before INtia\n");
+    initLeaveButton(&resources, renderer, "×", font);
+    // initLeaveButton_2(&resources, renderer, "×", font);
+    printf("after INtia\n");
+    font = TTF_OpenFont(font_path, 20);
+    initSaveButton(&resources, renderer, "Save", font);
+    // initSaveButton_2(&resources, renderer, "Save", font);
+    font = TTF_OpenFont(font_path, 24);
     pCharacter_file = fopen("./character.nekocat", "r");
     if (!pCharacter_file)
     {
@@ -309,10 +317,6 @@ int main(int32_t argc, char *argv[])
     {
         while (!quit)
         {
-            initLeaveButton(&resources, renderer, "×", font);
-            font = TTF_OpenFont(font_path, 20);
-            initSaveButton(&resources, renderer, "Save", font);
-            font = TTF_OpenFont(font_path, 24);
             had_hit_left = 0;
             while (SDL_PollEvent(&e) != 0)
             {
@@ -609,14 +613,29 @@ int main(int32_t argc, char *argv[])
                 continue;
             }
             choose_item = -1;
-            printf("%d\n", toml_array_nelem(script_list));
+            if (script_list == NULL)
+            {
+                printf("script_list is NULL\n");
+            }
+            printf("len = %d\n", toml_array_nelem(script_list));
+            
             if (col_in_script != toml_array_nelem(script_list))
             {
                 save_col_idx = col_in_script;
                 toml_table_t *entry = toml_table_at(script_list, col_in_script);
+                if(entry==NULL)
+                {
+                    printf("entry is NULL\n");
+                }
+                
                 if (!entry)
                     continue;
                 const char *action = toml_raw_in(entry, "action");
+                if(entry==NULL)
+                {
+                    printf("entry is NULL\n");
+                }
+                
                 // printf("%s\n",action);
                 if (strcmp(action, "\"Dialog\"") == 0)
                 {

@@ -1,9 +1,9 @@
 [Variable]
-HP = -9
+HP = -108
 ohmLove = 49
 
 [Items]
-pen = -103
+pen = -191
 computer = 1
 [Other]
 script = [
