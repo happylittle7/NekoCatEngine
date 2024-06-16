@@ -5,7 +5,10 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_image.h>
+#include <time.h>
 #include "dialog.h"
+static int32_t choose_item = -1;
+static int32_t now_own_item = -1;
 
 #pragma once
 
@@ -23,7 +26,11 @@ typedef struct _backpackData
     double backpack_normal_block_width;
     double backpack_normal_block_height;
     double backpack_normal_block_gap;
+    double backpack_choose_item_width;
     double backpack_xy[6][2];
+    double choose_item_xy[3][2];
+    double backpack_choose_item_height[3];
+    // double choose_item_xy[3][2];
 } backpackData;
 
 typedef struct _backpackPath
@@ -61,12 +68,16 @@ void myDisplayTextWithShadow(SDL_Renderer *renderer, TTF_Font *font, const char 
 
 void backpackDataInit(backpackData *backpack_data);
 
-int32_t backpackMain(backpackData *data, int32_t *status, char **name, char **description, char **image_path, backpackPath *path, backpackResources *resources, SDL_Renderer *backpack_renderer, TTF_Font *font, SDL_Window *window);
+int32_t backpackMain(int32_t hit, backpackData *data, int32_t *status, char **name, char **description, char **image_path, backpackPath *path, backpackResources *resources, SDL_Renderer *backpack_renderer, TTF_Font *font, SDL_Window *window);
 
 int32_t backpackItemInit(backpackItem **items, int32_t *status, char **name, char **description, char **image_path);
 
-void my_RenderPresentForBackpack(SDL_Renderer *renderer, backpackResources *resources, int32_t now_state, backpackData *data, int32_t *status, char **name, char **description, char **image_path, TTF_Font *font, SDL_Window *window);
+void my_RenderPresentForBackpack(SDL_Renderer *renderer, backpackResources *resources, int32_t now_state, backpackData *data, backpackPath *path, int32_t *status, char **name, char **description, char **image_path, TTF_Font *font, SDL_Window *window);
 
 void initBackpackResources(backpackResources* resources);
 
 void freeBackpackResources(backpackResources* resources);
+
+void multipleLineDialogText(SDL_Renderer* renderer, backpackResources *resources, TTF_Font* font, char** text, SDL_Color textColor, int32_t* x, int32_t* y, int32_t max_w);
+
+uint8_t myjudgeButtonPressed(int32_t x, int32_t y, int32_t button_x, int32_t button_y, int32_t normal_button_width, int32_t normal_button_height, char *option_x, char *option_y);

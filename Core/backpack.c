@@ -68,21 +68,33 @@ void backpackDataInit(backpackData *backpack_data)
 {
     // 初始化背包
     backpack_data->backpack_item_count = 0;
-    backpack_data->backpack_normal_block_width = 0.15;
-    backpack_data->backpack_normal_block_height = 0.15;
+    backpack_data->backpack_normal_block_width = 0.2;
+    backpack_data->backpack_normal_block_height = 0.25;
     backpack_data->backpack_normal_block_gap = 0.05;
-    backpack_data->backpack_xy[0][0] = 0.1;
+    backpack_data->backpack_choose_item_width = 0.35;
+
+    backpack_data->backpack_xy[0][0] = 0.05;
     backpack_data->backpack_xy[0][1] = 0.1;
-    backpack_data->backpack_xy[1][0] = 0.1 + 0.15 + 0.05;
+    backpack_data->backpack_xy[1][0] = 0.05 + 0.2 + 0.05;
     backpack_data->backpack_xy[1][1] = 0.1;
-    backpack_data->backpack_xy[2][0] = 0.1 + 0.15 + 0.05 + 0.15 + 0.05;
-    backpack_data->backpack_xy[2][1] = 0.1;
-    backpack_data->backpack_xy[3][0] = 0.1;
-    backpack_data->backpack_xy[3][1] = 0.1 + 0.15 + 0.05;
-    backpack_data->backpack_xy[4][0] = 0.1 + 0.15 + 0.05;
-    backpack_data->backpack_xy[4][1] = 0.1 + 0.15 + 0.05;
-    backpack_data->backpack_xy[5][0] = 0.1 + 0.15 + 0.05 + 0.15 + 0.05;
-    backpack_data->backpack_xy[5][1] = 0.1 + 0.15 + 0.05;
+    backpack_data->backpack_xy[2][0] = 0.05;
+    backpack_data->backpack_xy[2][1] = 0.1 + 0.25 + 0.05;
+    backpack_data->backpack_xy[3][0] = 0.05 + 0.2 + 0.05;
+    backpack_data->backpack_xy[3][1] = 0.1 + 0.25 + 0.05;
+    backpack_data->backpack_xy[4][0] = 0.05;
+    backpack_data->backpack_xy[4][1] = 0.1 + 0.25 + 0.05 + 0.25 + 0.05;
+    backpack_data->backpack_xy[5][0] = 0.05 + 0.2 + 0.05;
+    backpack_data->backpack_xy[5][1] = 0.1 + 0.25 + 0.05 + 0.25 + 0.05;
+
+    backpack_data->choose_item_xy[0][0] = 0.6;
+    backpack_data->choose_item_xy[0][1] = 0.1;
+    backpack_data->backpack_choose_item_height[0] = 0.45;
+    backpack_data->choose_item_xy[1][0] = 0.6;
+    backpack_data->choose_item_xy[1][1] = 0.1 + 0.45 + 0.025;
+    backpack_data->backpack_choose_item_height[1] = 0.1;
+    backpack_data->choose_item_xy[2][0] = 0.6;
+    backpack_data->choose_item_xy[2][1] = 0.1 + 0.45 + 0.025 + 0.1 + 0.025;
+    backpack_data->backpack_choose_item_height[2] = 0.25;
 
     return;
 }
@@ -120,71 +132,11 @@ void myrenderTexture(SDL_Texture *tex, SDL_Renderer *renderer, int x, int y, int
     return;
 }
 
-int32_t backpackMain(backpackData *data, int32_t *status, char **name, char **description, char **image_path, backpackPath *path, backpackResources* resources, SDL_Renderer *backpack_renderer, TTF_Font* font, SDL_Window *window){
+int32_t backpackMain(int32_t hit, backpackData *data, int32_t *status, char **name, char **description, char **image_path, backpackPath *path, backpackResources* resources, SDL_Renderer *backpack_renderer, TTF_Font* font, SDL_Window *window){
 
     double option = 0; //-1 = Error, 0 = Quit the game, 1 = Leave the backpack 
     int32_t window_width, window_height;
     uint8_t title_text_color = 0;
-
-    // // printf("test 08-3\n");
-    // font
-    // printf("path->font_path = %s\n", path->font_path);
-    // TTF_Font *font = TTF_OpenFont(path->font_path, 24);
-    // // // printf("test 08-4\n");
-    // if (!font)
-    // {
-    //     printf("Failed to load font! TTF_Error: %s\n", TTF_GetError());
-    //     SDL_DestroyRenderer(backpack_renderer);
-    //     SDL_DestroyWindow(window);
-    //     SDL_Quit();
-    //     return -1;
-    // }
-
-    // // backpack_edge_block
-    // SDL_Surface *backpack_edge_block_surface = IMG_Load(path->white_edge_black_block_path);
-    // if (!backpack_edge_block_surface)
-    // {
-    //     printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
-    //     SDL_DestroyRenderer(backpack_renderer);
-    //     SDL_DestroyWindow(window);
-    //     SDL_Quit();
-    //     return -1;
-    // }
-    // resources->white_edge_black_block_texture = SDL_CreateTextureFromSurface(backpack_renderer, backpack_edge_block_surface);
-    // SDL_FreeSurface(backpack_edge_block_surface);
-    // SDL_SetTextureAlphaMod(resources->white_edge_black_block_texture, 200); // 調整透明度
-
-    // // items
-    
-    // // printf("test 08-6\n");
-    // for(int32_t i = 0; i < 6; i++){
-    // //     printf("items[%d].status = %d\n", i, status[i]);
-    //     if(status[i] == 0){
-    //         continue;
-    //     }
-    //     char *temp;
-    //     temp = (char *)malloc(sizeof(char) * 100);
-    //     snprintf(temp, 100, "./item.nekocat/%s", image_path[i]);
-    //     printf("temp = %s\n", temp);
-    // //     printf("test 08-6-1\n");
-    //     SDL_Surface *item_surface = IMG_Load(temp);
-    //     //SDL_Surface *item_surface = NULL;
-    // //     printf("test 08-6-2\n");
-    //     if (!item_surface)
-    //     {
-    //         printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
-    //         SDL_DestroyRenderer(backpack_renderer);
-    //         SDL_DestroyWindow(window);
-    //         SDL_Quit();
-    //         return -1;
-    //     }
-    // //     printf("test 08-6-3\n");
-    //     resources->item_texture[i] = SDL_CreateTextureFromSurface(backpack_renderer, item_surface);
-    // //     printf("test 08-6-4\n");mak
-    //     SDL_FreeSurface(item_surface);
-    // }
-
-    // printf("test 08-7\n");
 
     // set backpack_block_renderQuads
     SDL_GetWindowSize(window, &window_width, &window_height);
@@ -209,6 +161,31 @@ int32_t backpackMain(backpackData *data, int32_t *status, char **name, char **de
         // printf("x = %d, y = %d, w = %d, h = %d\n", resources->item_renderQuads[i]->x, resources->item_renderQuads[i]->y, resources->item_renderQuads[i]->w, resources->item_renderQuads[i]->h);
     }
     
+    // random choose item
+    if(choose_item == -1){
+        srand((unsigned)time(NULL));
+        choose_item = rand() % now_own_item;
+    }
+
+    if(hit == 1){
+        int32_t mouse_x, mouse_y;
+        SDL_GetMouseState(&mouse_x, &mouse_y);
+        for(int32_t i = 0; i < 6; i++){
+            int32_t block_x = data->backpack_xy[i][0] * (double)window_width;
+            int32_t block_y = data->backpack_xy[i][1] * (double)window_height;
+            int32_t block_w = data->backpack_normal_block_width * (double)window_width;
+            int32_t block_h = data->backpack_normal_block_height * (double)window_height;
+            if(myjudgeButtonPressed(mouse_x, mouse_y, block_x, block_y, block_w, block_h, "LEFT", "TOP")){
+                if(status[i] == 1){
+                    status[choose_item] = 1;
+                    status[i] = 2;
+                    choose_item = i;
+                }
+                break;
+            }
+        }
+    }
+    status[choose_item] = 2;
     return 0;
 }
 
@@ -251,7 +228,7 @@ int32_t backpackItemInit(backpackItem **items, int32_t *status, char **name, cha
     return 0;
 }
 
-void my_RenderPresentForBackpack(SDL_Renderer *renderer, backpackResources *resources, int32_t now_state, backpackData *data,  int32_t *status, char **name, char **description, char **image_path, TTF_Font *font, SDL_Window *window)
+void my_RenderPresentForBackpack(SDL_Renderer *renderer, backpackResources *resources, int32_t now_state, backpackData *data, backpackPath* path, int32_t *status, char **name, char **description, char **image_path, TTF_Font *font, SDL_Window *window)
 {
     if(now_state!=4)return;
     // 渲染背景
@@ -287,6 +264,55 @@ void my_RenderPresentForBackpack(SDL_Renderer *renderer, backpackResources *reso
         int32_t item_h = block_h * 0.8;
         // printf("center_x = %d, center_y = %d, item_w = %d, item_h = %d\n", center_x, center_y, item_w, item_h);
         myrenderTexture(resources->item_texture[i], renderer, center_x, center_y, item_w, item_h, "CENTER", "CENTER");
+    }
+
+    for(int32_t i = 0; i < 3; i++){
+        int32_t block_x = data->choose_item_xy[i][0] * (double)window_width;
+        int32_t block_y = data->choose_item_xy[i][1] * (double)window_height;
+        int32_t block_w = data->backpack_choose_item_width * (double)window_width;
+        int32_t block_h = data->backpack_choose_item_height[i] * (double)window_height;
+
+        myrenderTexture(resources->backpack_block_texture, renderer, block_x, block_y, block_w, block_h, "LEFT", "TOP");
+        TTF_Font *temp_font;
+        switch(i){
+            case 0:
+                block_x = block_x + block_w / 2;
+                block_y = block_y + block_h / 2;
+                block_w = block_w * 0.8;
+                block_h = block_h * 0.8;
+                myrenderTexture(resources->item_texture[choose_item], renderer, block_x, block_y, block_w, block_h, "CENTER", "CENTER");
+                break;
+            case 1:
+                temp_font = TTF_OpenFont(path->font_path, 50);
+                if(!temp_font){
+                    printf("Failed to load font! TTF_Error: %s\n", TTF_GetError());
+                    SDL_DestroyRenderer(renderer);
+                    SDL_DestroyWindow(window);
+                    SDL_Quit();
+                    return;
+                }
+                myDisplayText(renderer, temp_font, name[choose_item], (SDL_Color){255, 255, 255}, block_x + block_w / 2, block_y + block_h / 2, "CENTER", "CENTER");
+                TTF_CloseFont(temp_font);
+                break;
+            case 2:
+                temp_font = TTF_OpenFont(path->font_path, 30);
+                if(!temp_font){
+                    printf("Failed to load font! TTF_Error: %s\n", TTF_GetError());
+                    SDL_DestroyRenderer(renderer);
+                    SDL_DestroyWindow(window);
+                    SDL_Quit();
+                    return;
+                }
+                block_x = block_x + block_w * 0.1;
+                block_y = block_y + block_h * 0.1;
+                block_w = block_w * 0.8;
+
+                printf("description = %s\n", description[choose_item]);
+                multipleLineDialogText(renderer, resources, temp_font, &description[choose_item], (SDL_Color){255, 255, 255}, &block_x, &block_y, block_w);
+                SDL_RenderCopy(renderer, resources->text_texture, NULL, &resources->text_renderQuad);
+                TTF_CloseFont(temp_font);
+                break;
+        }
     }
 
     SDL_RenderPresent(renderer);
@@ -436,4 +462,62 @@ void freeBackpackResources(backpackResources* resources)
     }
     //printf("14\n");
     return;
+}
+
+void multipleLineDialogText(SDL_Renderer* renderer, backpackResources *resources, TTF_Font* font, char** text, SDL_Color textColor, int32_t* x, int32_t* y, int32_t max_w){
+    SDL_Surface* textSurface;
+    //SDL_Texture* textTexture;
+    char *print_char = (*text);
+    textSurface = TTF_RenderUTF8_Blended_Wrapped(font, print_char, textColor,200);
+    resources->text_texture = SDL_CreateTextureFromSurface(renderer, textSurface);
+    SDL_SetTextureAlphaMod(resources->text_texture, 255);
+    int32_t text_width = textSurface->w;  // 文本寬度
+    int32_t text_height = textSurface->h; // 文本高度
+    int32_t now_x = *x;
+    int32_t now_y = *y;
+    /*
+    if (now_x >= max_w)
+    {
+        now_y += text_height;
+        now_x = *x;
+    }
+    */
+    SDL_Rect renderQuad = { now_x*width_ratio, now_y*height_ratio, text_width*width_ratio, text_height*height_ratio };  // 定義渲染區域
+    //resources->text_texture = textTexture;
+    resources->text_renderQuad = renderQuad;
+    //SDL_RenderCopy(renderer, textTexture, NULL, &renderQuad);  // 執行渲染操作
+    
+    //SDL_DestroyTexture(textTexture);  // 銷毀紋理資源
+    SDL_FreeSurface(textSurface);  // 釋放表面資源
+
+    return;
+}
+
+uint8_t myjudgeButtonPressed(int32_t x, int32_t y, int32_t button_x, int32_t button_y, int32_t normal_button_width, int32_t normal_button_height, char *option_x, char *option_y){
+    // option_x = "LEFT, "CENTER" or "RIGHT"
+    // option_y = "TOP, "CENTER" or "BOTTOM"
+
+    if (option_x == "CENTER")
+    {
+        button_x = button_x - normal_button_width / 2;
+    }
+    else if (option_x == "RIGHT")
+    {
+        button_x = button_x - normal_button_width;
+    }
+
+    if (option_y == "CENTER")
+    {
+        button_y = button_y - normal_button_height / 2;
+    }
+    else if (option_y == "BOTTOM")
+    {
+        button_y = button_y - normal_button_height;
+    }
+
+    if (x >= button_x && x <= button_x + normal_button_width && y >= button_y && y <= button_y + normal_button_height)
+    {
+        return 1;
+    }
+    return 0;
 }

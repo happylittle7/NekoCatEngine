@@ -299,8 +299,53 @@ int main(int32_t argc, char* argv[])
 
         if(now_state == 4)
         {
-            // SDL_DestroyRenderer(renderer);
-            
+            // items data
+            int32_t *status;
+            char **name = calloc(6,sizeof(char*));
+            char **description = calloc(6,sizeof(char*));
+            char **image_path = calloc(6,sizeof(char*));
+
+            // items initialization
+            status = calloc(6,sizeof(int32_t));
+            for(int32_t i = 0;i < 6; i++){
+                status[i] = 0;
+                name[i] = calloc(1024,sizeof(char));
+                description[i] = calloc(1024,sizeof(char));
+                image_path[i] = calloc(512,sizeof(char));
+            }
+
+            // parsing item.nekocat
+            FILE* pItem = fopen("item.nekocat", "r");
+            if(!pItem)
+            {
+                printf("Error: Unable to load item.nekocat\n");
+            }
+            toml_table_t* item_table = toml_parse_file(pItem, errbuf, sizeof(errbuf));
+            if(!item_table)
+            {
+                printf("Error: Unable to parse item.nekocat\n");
+            }
+            for (int i = 0; ; i++) {
+                const char* key = toml_key_in(item_table, i);
+                if (!key) break;
+                status[i] = 1;
+                // printf("key %d: %s\n", i, key);
+                toml_table_t* item = toml_table_in(item_table, key);
+                if (!item) {
+                    printf("Error: Unable to parse item %s\n", key);
+                    continue;
+                }
+                const char* toml_name = toml_string_in(item, "name").u.s;
+                const char* toml_description = toml_string_in(item, "description").u.s;
+                const char* toml_icon_path = toml_string_in(item, "icon_path").u.s;
+                strcpy(name[i], toml_name);
+                strcpy(description[i], toml_description);
+                strcpy(image_path[i], toml_icon_path);
+                now_own_item = i;
+            }
+            now_own_item++;
+            printf("now_own_item = %d\n", now_own_item);
+
             SDL_RenderClear(renderer);
             // backpack_renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
             // SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
@@ -311,7 +356,7 @@ int main(int32_t argc, char* argv[])
                 SDL_Quit();
                 return -1;
             }
-            printf("test 01\n");
+            // printf("test 01\n");
             
             
             // Initialize backpack
@@ -322,7 +367,7 @@ int main(int32_t argc, char* argv[])
             // Initialize backpack_data
             
             backpackDataInit(&backpack_data);
-            printf("test 04\n");
+            // printf("test 04\n");
             // Initialize backpack_path
             backpack_path.background_path = calloc(1024, sizeof(char));
             backpack_path.font_path = calloc(1024, sizeof(char));
@@ -332,7 +377,7 @@ int main(int32_t argc, char* argv[])
             strcpy(backpack_path.font_path, font_path);
             strcpy(backpack_path.black_block_path, "./Assets/image/black_block.png");
             strcpy(backpack_path.white_edge_black_block_path, "./Assets/image/white_edge_black_block.png");
-            printf("test 05\n");
+            // printf("test 05\n");
             // Initialize backpack_items
             backpack_items = calloc(6,sizeof(backpackItem));
             for(int32_t i = 0;i < 6;i++){
@@ -341,59 +386,9 @@ int main(int32_t argc, char* argv[])
                 backpack_items[i].image_path = calloc(512,sizeof(char));
             }
             // Initialize backpack_items
-            int32_t *status;
-            status = calloc(6,sizeof(int32_t));
-            status[0] = 0;
-            status[1] = 1;
-            status[2] = 1;
-            status[3] = 1;
-            status[4] = 0;
-            status[5] = 0;
-            int32_t now_handle = 3;
-            if(now_handle >= 0 && now_handle < 6){
-                if(status[now_handle] == 1)status[now_handle] = 2;
-            }
-            char **name = calloc(6,sizeof(char*));
-            name[0] = NULL;
-            name[1] = "我的橡皮擦";
-            name[2] = "警長巴巴的鉛筆";
-            name[3] = "艾西莫夫的水壺";
-            name[4] = NULL;
-            name[5] = NULL;
-            char **description = calloc(6,sizeof(char*));
-            description[0] = NULL;
-            description[1] = "這是我的橡皮擦,我很喜歡";
-            description[2] = "這是我的橡皮擦,我很喜歡";
-            description[3] = "這是艾西莫夫的未來水壺,遵守機器人三大法則,相信這是common sense吧!";
-            description[4] = NULL;
-            description[5] = NULL;
-            // char *description[6] = {NULL, "我的橡皮擦", "警長巴巴的鉛筆", "艾西莫夫的水壺", NULL, NULL};
-            char **image_path = calloc(6,sizeof(char*));
-            image_path[0] = NULL;
-            image_path[1] = "eraser.png";
-            image_path[2] = "pencil.png";
-            image_path[3] = "waterbuttle.png";
-            image_path[4] = NULL;
-            image_path[5] = NULL;
-            // char *image_path[6] = {NULL, "eraser.png", "pencil.png", "waterbuttle.png", NULL, NULL};
-            printf("test 06\n");
             
-            //IMG_Load("./item.nekocat/eraser.png");
-            //IMG_Load("./item.nekocat/eraser.png");
             int32_t check = -10;
-            // for(int32_t i = 0;i < 6;i++){
-            //     backpack_items[i].status = status[i];
-            //     printf("backpack_items[%d].status = %d\n",i,backpack_items[i].status);
-            // //     printf("test 06-1\n");
-            //     strcpy(backpack_items[i].name, name[i]);
-            // //     printf("test 06-2\n");
-            //     strcpy(backpack_items[i].description, description[i]);
-            // //     printf("test 06-3\n");
-            //     strcpy(backpack_items[i].image_path, image_path[i]);
-            // //     printf("test 06-4\n");
-            // }
-            printf("test 06-5\n");
-            // check = backpackItemInit(&backpack_items, status, name, description, image_path); //此處之後不能IMG_Load
+            
             if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
                 printf("SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError());
                 return -1;
@@ -402,9 +397,9 @@ int main(int32_t argc, char* argv[])
             {
                 printf("SDL_image initialize success!\n");
             }
-            printf("test 08-1\n");
+            // printf("test 08-1\n");
             SDL_Surface *background_surface = IMG_Load("./Assets/background/background_1.png");
-            printf("test 08-2\n");
+            // printf("test 08-2\n");
             if (!background_surface)
             {
                 printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
@@ -414,7 +409,7 @@ int main(int32_t argc, char* argv[])
             SDL_FreeSurface(background_surface);
 
             // backpack_block
-            printf("test 08-5\n");
+            // printf("test 08-5\n");
             SDL_Surface *backpack_block_surface = IMG_Load("./Assets/image/black_button.png");
             if (!backpack_block_surface)
             {
@@ -427,7 +422,7 @@ int main(int32_t argc, char* argv[])
             backpack_resources.backpack_block_texture = SDL_CreateTextureFromSurface(renderer, backpack_block_surface);
             SDL_SetTextureAlphaMod(backpack_resources.backpack_block_texture, 200); // 調整透明度
             SDL_FreeSurface(backpack_block_surface);
-            printf("test 08-6\n");
+            // printf("test 08-6\n");
 
             // white_edge_black_block
             SDL_Surface *white_edge_black_block_surface = IMG_Load("./Assets/image/white_edge_black_block.png");
@@ -442,7 +437,7 @@ int main(int32_t argc, char* argv[])
             backpack_resources.white_edge_black_block_texture = SDL_CreateTextureFromSurface(renderer, white_edge_black_block_surface);
             SDL_SetTextureAlphaMod(backpack_resources.white_edge_black_block_texture, 200); // 調整透明度
             SDL_FreeSurface(white_edge_black_block_surface);
-            printf("test 08-7\n");
+            // printf("test 08-7\n");
 
             // 测试加载图像
             // SDL_Surface *temp_surface = IMG_Load("./item.nekocat/eraser.png");
@@ -453,15 +448,15 @@ int main(int32_t argc, char* argv[])
             // }
             // SDL_FreeSurface(temp_surface);
             
-            printf("test 07\n");
+            // printf("test 07\n");
             
             
             // Backpack main
             // RenderResources backpack_resources;
             // initRenderResources(&backpack_resources);
             
-            printf("test 08\n");
-            printf("test 08-6\n");
+            // printf("test 08\n");
+            // printf("test 08-6\n");
 
             if (backpack_resources.item_texture==NULL)
             {
@@ -481,10 +476,10 @@ int main(int32_t argc, char* argv[])
                 temp = (char *)malloc(sizeof(char) * 100);
                 snprintf(temp, 100, "./Assets/item/%s", image_path[i]);
                 // printf("temp = %s\n", temp);
-                printf("test 08-6-1\n");
+                // printf("test 08-6-1\n");
                 SDL_Surface *item_surface = IMG_Load(temp);
                 //SDL_Surface *item_surface = NULL;
-                printf("test 08-6-2\n");
+                // printf("test 08-6-2\n");
                 if (!item_surface)
                 {
                     printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
@@ -493,10 +488,10 @@ int main(int32_t argc, char* argv[])
                     SDL_Quit();
                     return -1;
                 }
-                printf("test 08-6-3\n");
+                // printf("test 08-6-3\n");
                 
                 SDL_Texture *temp_tex = SDL_CreateTextureFromSurface(renderer, item_surface);
-                printf("test 08-6-4\n");
+                // printf("test 08-6-4\n");
                 if (backpack_resources.item_texture==NULL)
                 {
                     // printf("id = %d, backpack_resources.item_texture is NULL\n",i);
@@ -506,34 +501,18 @@ int main(int32_t argc, char* argv[])
                     // printf("id = %d, backpack_resources.item_texture is not NULL\n",i);
                 }
                 backpack_resources.item_texture[i] = temp_tex;
-                printf("test 08-6-5\n");
+                // printf("test 08-6-5\n");
                 SDL_FreeSurface(item_surface);
             }
-            
-            int32_t result = backpackMain(&backpack_data, status, name, description, image_path, &backpack_path, &backpack_resources, renderer, font, window);
-            // switch(result){
-            //     case -1:
-            //         printf("Failed to initialize backpack!\n");
-            //         break;
-            //     case 0:
-            //         printf("Leave the game\n");
-            //         now_state = 0;
-            //         quit = 1;
-            //         break;
-            //     case 7:
-            //         printf("Backpack closed!\n");
-            //         now_state = 0;
-            //         break;
-            //     case 1 ... 6:
-            //         printf("Item %d used!\n", result);
-            //         now_handle = result - 1;
-            //         now_state = 0;
-            //         break;
-            // }
-            my_RenderPresentForBackpack(renderer, &backpack_resources, now_state, &backpack_data, status, name, description, image_path, font, window);
-            //freeRenderResources(&backpack_resources);
+
+            int32_t result = backpackMain(had_hit_left, &backpack_data, status, name, description, image_path, &backpack_path, &backpack_resources, renderer, font, window);
+
+            my_RenderPresentForBackpack(renderer, &backpack_resources, now_state, &backpack_data, &backpack_path, status, name, description, image_path, font, window);
+            fclose(pItem);
+            now_own_item = -1;
             continue;
         }
+        choose_item = -1;
 
         if (col_in_script != toml_array_nelem(script_list))
         {
