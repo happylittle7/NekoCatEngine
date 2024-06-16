@@ -153,7 +153,9 @@ int main(int32_t argc, char* argv[])
     // RenderResources backpack_resources;
     // initRenderResources(&backpack_resources);
     resources.dialog_box_texture = SDL_CreateTextureFromSurface(renderer, loaded_dialog_box);
-    SetDialogBox(renderer, &resources, dialogBox_start_x, dialogBox_start_y, 640, 130, 255);
+    dialogBox_start_x = -33;
+    dialogBox_start_y = 307;
+    SetDialogBox(renderer, &resources, dialogBox_start_x, dialogBox_start_y, 700, 200, 255);
     
     if (!renderer) 
     {
@@ -657,14 +659,31 @@ int main(int32_t argc, char* argv[])
                         int32_t name_x = 50;
                         int32_t name_y = 300;
                         dialogName_3(renderer,&resources, font, &character_name, name_color, &name_x, &name_y, w_w);
+                        // SDL_Surface *backpack_block_surface = IMG_Load("./Assets/image/black_button.png");
+                        // if (!backpack_block_surface)
+                        // {
+                        //     printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
+                        //     SDL_DestroyRenderer(renderer);
+                        //     SDL_DestroyWindow(window);
+                        //     SDL_Quit();
+                        //     return -1;
+                        // }
+                        // SDL_Texture *name_black_block_texture = SDL_CreateTextureFromSurface(renderer, backpack_block_surface);
+                        // SDL_SetTextureAlphaMod(name_black_block_texture, 200); // 調整透明度
+                        // SDL_FreeSurface(backpack_block_surface);
+
+                        // SDL_RenderCopy(renderer, name_black_block_texture, NULL, &resources.name_Rect);
+                        
                         DisplayTheExpression(renderer, &resources, Character, directory_copy.u.s, command, mood);
                         
                         if (now_state == 0)
                         {
                             //printf("0\n");
+                            font = TTF_OpenFont(font_path, 20);
                             dialogText_3(renderer,&resources, font, &text, textColor, &print_text_x, &print_text_y, w_w);
                             now_state = 1;
                             had_hit_left = 0;
+                            font = TTF_OpenFont(font_path, 24);
                         }
                         else if (now_state == 1 && had_hit_left==1)
                         {

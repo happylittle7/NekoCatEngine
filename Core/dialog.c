@@ -420,7 +420,7 @@ void dialogText_3(SDL_Renderer* renderer,RenderResources* resources, TTF_Font* f
     SDL_Surface* textSurface;
     //SDL_Texture* textTexture;
     char *print_char = (*text);
-    textSurface = TTF_RenderUTF8_Blended_Wrapped(font, print_char, textColor,400);
+    textSurface = TTF_RenderUTF8_Blended_Wrapped(font, print_char, textColor,550);
     resources->text_texture = SDL_CreateTextureFromSurface(renderer, textSurface);
     SDL_SetTextureAlphaMod(resources->text_texture, 255);
     int32_t text_width = textSurface->w;  // 文本寬度
