@@ -44,9 +44,11 @@ typedef struct
     SDL_Texture *white_edge_black_block_texture; // 白邊黑背包格子
     SDL_Rect **backpack_block_renderQuads; // 六個邊框的位置
     SDL_Texture **item_texture; // 物品圖片
+    SDL_Rect **item_renderQuads; // 物品圖片位置
     Button **now_option_button;
     Button *leave_button;
 } RenderResources;
+
 void initButton(SDL_Renderer *renderer, TTF_Font *font, Button *button, SDL_Rect rect, SDL_Color color, const char *text);
 int32_t checkLeaveButton(SDL_Event *e, Button *leave_button);
 int32_t handleButtonEvents(SDL_Event *e, RenderResources *resources, int32_t num_option_buttons);
@@ -56,6 +58,7 @@ void initRenderResources(RenderResources *resources);
 void freeRenderResources(RenderResources *resources);
 void displayText(SDL_Renderer *renderer, RenderResources *resources, TTF_Font *font, char **text, SDL_Color textColor, int32_t *x, int32_t *y, int32_t max_w);
 void displayText_2(SDL_Renderer *renderer, RenderResources *resources, TTF_Font *font, char **text, SDL_Color textColor, int32_t *x, int32_t *y, int32_t max_w);
+void displayText_3(SDL_Renderer* renderer,RenderResources* resources, TTF_Font* font, const char** text, SDL_Color textColor, int32_t* x, int32_t* y, int32_t max_w);
 void SetDialogBox(SDL_Renderer *renderer, RenderResources *resources, int32_t x, int32_t y, int32_t w, int32_t h, uint8_t alpha);
 void SetExpression(SDL_Renderer *renderer, RenderResources *resources, int32_t x, int32_t y, int32_t w, int32_t h, uint8_t alpha);
 void SetCharacterImg(SDL_Renderer *renderer, RenderResources *resources, int32_t x, int32_t y, int32_t w, int32_t h, int32_t idx, uint8_t alpha);
