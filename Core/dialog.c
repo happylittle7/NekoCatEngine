@@ -731,15 +731,21 @@ void Modify_Variable(FILE* pPlayer_sav_file, toml_table_t* Modify_table, char* v
     }
 
     // Step 3: Modify the variable value in the string array
-    for (int i = 0; i < line_count; i++) {
+    for (int i = 0; i < line_count; i++) 
+    {
         char* pos = strstr(lines[i], variable_name);
-        if (pos) {
-            char* equal_sign = strchr(pos, '=');
-            if (equal_sign) {
-                sprintf(equal_sign + 2, "%d\n", new_value); // +2 to skip over "= "
-                break;
+        if (strchr(lines[i],'{')==NULL)
+        {
+            if (pos) 
+            {
+                char* equal_sign = strchr(pos, '=');
+                if (equal_sign) {
+                    sprintf(equal_sign + 2, "%d\n", new_value); // +2 to skip over "= "
+                    break;
+                }
             }
         }
+        
     }
 
     // Step 4: Close and reopen the file to write the modified content

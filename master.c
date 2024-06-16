@@ -83,8 +83,9 @@ int main(int32_t argc, char* argv[])
     SDL_SetWindowFullscreen( window, SDL_WINDOW_FULLSCREEN); // Fullscreen
 
     // open the openning window
+    printf("1\n");
     int32_t option = openningMain(&data, &path, window);
-
+    printf("2\n");
 
     SDL_Surface* loaded_dialog_box = IMG_Load("./Assets/dialog_box.png"); ///這裡的路徑之後會有變化
     if (!loaded_dialog_box) 
@@ -206,10 +207,15 @@ int main(int32_t argc, char* argv[])
         printf("Error parsing player.sav: %s\n", errbuf);
         return 1;
     }
+    //printf("3\n");
     toml_array_t *char_list = toml_array_in(Character, "char_list");
+    //printf("4\n");
     int32_t char_Size = toml_array_nelem(char_list);
+    //printf("5\n");
     toml_table_t *now_script = toml_table_in(Script,"Start");
+    //printf("6\n");
     toml_table_t *Player_Variable = toml_table_in(Player_V,"Variable");
+    //printf("7\n");
     //printf("A\n");
     if (!Player_Variable) 
     {
@@ -217,6 +223,7 @@ int main(int32_t argc, char* argv[])
         return 1;
     }
     //printf("B\n");
+    
     toml_table_t *Player_Items = toml_table_in(Script,"Items");
     toml_array_t *script_list = toml_array_in(now_script, "script");
     ///此處以下為鍵盤互動與顯示，在此處以下，我先不會讓使用者指定背景
@@ -231,12 +238,23 @@ int main(int32_t argc, char* argv[])
     int32_t judge_button = -2;
     int32_t the_option = 0;
     ////音樂處理
+    
     if (!init_music()) 
     {
         printf("Failed to initialize!\n");
         return 1;
     }
     Mix_Music* bgm = NULL;
+    
+    if (option == 2)
+    {
+        //printf("A\n");
+        now_script = toml_table_in(Player_V,"Other");
+        //printf("B\n");
+        script_list = toml_array_in(now_script, "script");
+        //printf("C\n");
+    }
+    
     while (!quit) 
     {
         while (SDL_PollEvent(&e) != 0) 
@@ -272,12 +290,13 @@ int main(int32_t argc, char* argv[])
         }
         if (quit == 1)
             break;
+        printf("%d\n",toml_array_nelem(script_list));
         if (col_in_script != toml_array_nelem(script_list))
         {
             toml_table_t *entry = toml_table_at(script_list, col_in_script);
             if (!entry) continue;
             const char *action = toml_raw_in(entry, "action");
-            //printf("%s\n",action);
+            printf("%s\n",action);
             if (strcmp(action, "\"Dialog\"") == 0)
             {
                 const char *command = toml_raw_in(entry, "command");
@@ -408,15 +427,32 @@ int main(int32_t argc, char* argv[])
             else if (strcmp(action, "\"Jump\"") == 0)
             {
                 const char *label_id = toml_raw_in(entry, "label_id");
+                
                 char *label_id_copy = calloc(1024,sizeof(char));
                 strcpy(label_id_copy,label_id);
                 label_id_copy++;
                 label_id_copy[strlen(label_id_copy)-1] = 0;
+                printf("%s\n",label_id_copy);
+                printf("A\n");
                 toml_array_t* variable_array = toml_array_in(entry, "variable");
+                printf("B\n");
                 toml_array_t* mode_array = toml_array_in(entry, "mode");
+                printf("C\n");
                 toml_array_t* gap_array = toml_array_in(entry, "gap");
-                if (!variable_array)
+                printf("D\n");
+                toml_datum_t col_idx = toml_int_in(entry, "col_idx");
+                if (col_idx.ok==0)
                 {
+                    printf("NO col_idx\n");
+                }
+                else
+                {
+                    printf("Yes col_idx\n");
+                    printf("the_id = %ld\n",col_idx.u.i);
+                }
+                if (variable_array != NULL)
+                {
+                    //printf("E\n");
                     if (IsOverGap(Player_Variable, variable_array,mode_array,gap_array) == 1)
                     {
                         now_script = toml_table_in(Script,label_id_copy);
@@ -428,11 +464,20 @@ int main(int32_t argc, char* argv[])
                         col_in_script++;
                     }
                 }
-                else
+                else if (col_idx.ok==0)
                 {
+                    printf("the_id_here_1 = %ld\n",col_idx.u.i);
                     now_script = toml_table_in(Script,label_id_copy);
                     script_list = toml_array_in(now_script, "script");
                     col_in_script = 0;
+                }
+                else
+                {
+                    printf("the_id_here_2 = %ld\n",col_idx.u.i);
+                    now_script = toml_table_in(Script,label_id_copy);
+                    script_list = toml_array_in(now_script, "script");
+                    col_in_script = (int32_t)col_idx.u.i;
+                    
                 }
             }
             else if (strcmp(action, "\"Background\"") == 0)
@@ -504,18 +549,18 @@ int main(int32_t argc, char* argv[])
             }
             else if (strcmp(action, "\"Sound\"") == 0)
             {
-                printf("Sound action\n");
-                printf("A\n");
+                //printf("Sound action\n");
+                //printf("A\n");
                 const char* sound_id = toml_raw_in(entry, "sound_id");
-                printf("B\n");
+                //printf("B\n");
                 char* sound_id_copy = calloc(1024,sizeof(char));
-                printf("C\n");
-                printf("%s\n",sound_id);
+                //printf("C\n");
+                //printf("%s\n",sound_id);
                 strcpy(sound_id_copy,sound_id);
-                printf("D\n");
+                //printf("D\n");
                 sound_id_copy++;
                 sound_id_copy[strlen(sound_id_copy)-1] = 0;
-                printf("%s\n",sound_id_copy);
+                //printf("%s\n",sound_id_copy);
                 toml_datum_t sound_path_datum = toml_string_in(sound_table, sound_id_copy);
                 char full_path[512] = {0};
                 snprintf(full_path, sizeof(full_path), "./Assets/sound/%s", sound_path_datum.u.s);
@@ -625,7 +670,7 @@ int main(int32_t argc, char* argv[])
                 now_state = 0;
                 had_hit_left = 0;
             }
-            else if (now_state == 5)
+            else if (now_state == 5) //進入下一個此場景
             {
                 now_state = 0;
                 had_hit_left = 0;
