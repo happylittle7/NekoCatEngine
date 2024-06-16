@@ -38,11 +38,19 @@ typedef struct
     SDL_Rect text_renderQuad;
     SDL_Texture* expression_texture;
     SDL_Rect expression_renderQuad;
+    SDL_Texture* name_texture;
+    SDL_Rect name_Rect;
     SDL_Texture** character_IMG_texture;
     SDL_Rect** character_IMG_renderQuads;
     Button** now_option_button;
     Button* leave_button;
+    Button* save_button;
 } RenderResources;
+typedef struct {
+    int32_t number;
+    char** command_list;
+    char** mood_list;
+} SetCharacterInfo;
 void change_ratio();
 int32_t handleButtonEvents(SDL_Event* e, RenderResources* resources) ;
 void initButton(SDL_Renderer* renderer, TTF_Font* font, Button* button, SDL_Rect rect, SDL_Color color, const char* text);
@@ -66,3 +74,6 @@ Mix_Chunk* load_sound(const char* file);
 void initLeaveButton(RenderResources* resources, SDL_Renderer* renderer, const char* text, TTF_Font* font);
 void MakeOption(RenderResources* resources, SDL_Renderer* renderer, const char* optionContent_id, TTF_Font* font, int32_t index, int32_t totalOptions);
 void Modify_Variable(FILE* pPlayer_sav_file, toml_table_t* Modify_table, char* variable_name,const char* plus);
+void initSaveButton(RenderResources* resources, SDL_Renderer* renderer, const char* text, TTF_Font* font);
+int32_t checkSaveButton(SDL_Event* e, Button* save_button);
+void SaveIt(FILE* pPlayer_sav_file, const char* save_Background, const char* save_Music, SetCharacterInfo save_Character, const char* save_Jump, int32_t save_col_idx);

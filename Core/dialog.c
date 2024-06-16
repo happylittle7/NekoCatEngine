@@ -144,60 +144,51 @@ void initRenderResources(RenderResources* resources) {
     resources->background_texture = NULL;
     resources->dialog_box_texture = NULL;
     resources->text_texture = NULL;
+    resources->expression_texture = NULL;
+    resources->name_texture = NULL;
+    resources->leave_button = NULL;
+    resources->save_button = NULL;
+
     resources->character_IMG_texture = (SDL_Texture**)malloc(3 * sizeof(SDL_Texture*));
     resources->character_IMG_renderQuads = (SDL_Rect**)calloc(3, sizeof(SDL_Rect*));
     for (int i = 0; i < 3; ++i) {
         resources->character_IMG_texture[i] = NULL;
-        resources->character_IMG_renderQuads[i] = (SDL_Rect*)malloc(sizeof(SDL_Rect));  // 分配内存
+        resources->character_IMG_renderQuads[i] = (SDL_Rect*)malloc(sizeof(SDL_Rect));
     }
-    resources->expression_texture = NULL;  // 新增
-    resources->leave_button = NULL;  // 新增
-    //resources->now_option_button = NULL;  // 初始化为NULL
-    resources->now_option_button = (Button**)calloc(3, sizeof(Button*));  // 分配三个空间并初始化为NULL
+
+    resources->now_option_button = (Button**)calloc(3, sizeof(Button*));
+    for (int i = 0; i < 3; ++i) {
+        resources->now_option_button[i] = NULL;
+    }
 }
 void freeRenderResources(RenderResources* resources) {
     if (!resources) return;
-    
+
     if (resources->background_texture) {
         SDL_DestroyTexture(resources->background_texture);
         resources->background_texture = NULL;
     }
-    
+
     if (resources->dialog_box_texture) {
         SDL_DestroyTexture(resources->dialog_box_texture);
         resources->dialog_box_texture = NULL;
     }
-    
+
     if (resources->text_texture) {
         SDL_DestroyTexture(resources->text_texture);
         resources->text_texture = NULL;
     }
-    
-    if (resources->character_IMG_texture) {
-        for (int i = 0; i < 3; i++) {
-            if (resources->character_IMG_texture[i]) {
-                SDL_DestroyTexture(resources->character_IMG_texture[i]);
-            }
-        }
-        free(resources->character_IMG_texture);
-        resources->character_IMG_texture = NULL;
-    }
-    
-    if (resources->character_IMG_renderQuads) {
-        for (int i = 0; i < 3; i++) {
-            if (resources->character_IMG_renderQuads[i]) {
-                free(resources->character_IMG_renderQuads[i]);
-            }
-        }
-        free(resources->character_IMG_renderQuads);
-        resources->character_IMG_renderQuads = NULL;
-    }
-    
+
     if (resources->expression_texture) {
         SDL_DestroyTexture(resources->expression_texture);
         resources->expression_texture = NULL;
     }
-    
+
+    if (resources->name_texture) {
+        SDL_DestroyTexture(resources->name_texture);
+        resources->name_texture = NULL;
+    }
+
     if (resources->leave_button) {
         if (resources->leave_button->text_texture) {
             SDL_DestroyTexture(resources->leave_button->text_texture);
@@ -208,9 +199,40 @@ void freeRenderResources(RenderResources* resources) {
         free(resources->leave_button);
         resources->leave_button = NULL;
     }
-    
+
+    if (resources->save_button) {
+        if (resources->save_button->text_texture) {
+            SDL_DestroyTexture(resources->save_button->text_texture);
+        }
+        if (resources->save_button->IMG_texture) {
+            SDL_DestroyTexture(resources->save_button->IMG_texture);
+        }
+        free(resources->save_button);
+        resources->save_button = NULL;
+    }
+
+    if (resources->character_IMG_texture) {
+        for (int i = 0; i < 3; i++) {
+            if (resources->character_IMG_texture[i]) {
+                SDL_DestroyTexture(resources->character_IMG_texture[i]);
+            }
+        }
+        free(resources->character_IMG_texture);
+        resources->character_IMG_texture = NULL;
+    }
+
+    if (resources->character_IMG_renderQuads) {
+        for (int i = 0; i < 3; i++) {
+            if (resources->character_IMG_renderQuads[i]) {
+                free(resources->character_IMG_renderQuads[i]);
+            }
+        }
+        free(resources->character_IMG_renderQuads);
+        resources->character_IMG_renderQuads = NULL;
+    }
+
     if (resources->now_option_button) {
-        for (int i = 0; i < 3; ++i) {  // 假设有3个选项按钮
+        for (int i = 0; i < 3; ++i) {
             if (resources->now_option_button[i]) {
                 if (resources->now_option_button[i]->text_texture) {
                     SDL_DestroyTexture(resources->now_option_button[i]->text_texture);
@@ -241,6 +263,7 @@ void my_RenderPresent(SDL_Renderer* renderer, RenderResources* resources, int32_
     // 渲染背景
     //printf("A\n");
     //printf("%d\n",now_state);
+    SDL_RenderClear(renderer);
     if (resources->background_texture) 
     {
         //printf("background_texture is OK\n");
@@ -299,6 +322,10 @@ void my_RenderPresent(SDL_Renderer* renderer, RenderResources* resources, int32_
     if (resources->leave_button->text_texture) 
     {
         renderButton(renderer, resources->leave_button);
+    }
+    if (resources->save_button) 
+    {
+        renderButton(renderer, resources->save_button);
     }
     
     // 更新屏幕
@@ -673,33 +700,7 @@ Mix_Chunk* load_sound(const char* file)
     }
     return sound;
 }
-void initLeaveButton(RenderResources* resources, SDL_Renderer* renderer, const char* text, TTF_Font* font) {
-    SDL_Color textColor = {0, 0, 0, 255};  // Black color for text
-    SDL_Color bgColor = {255, 255, 255, 255};  // White color for button background
-    SDL_Rect rect = {590*width_ratio, 0*height_ratio, 50*width_ratio, 50*height_ratio};  // Adjusted the size for better button appearance
 
-    resources->leave_button = (Button*)malloc(sizeof(Button));
-
-    // Initialize text texture
-    SDL_Surface* textSurface = TTF_RenderUTF8_Blended_Wrapped(font, text, textColor,400);
-    resources->leave_button->text_texture = SDL_CreateTextureFromSurface(renderer, textSurface);
-    
-    // Get text width and height
-    int32_t text_width = textSurface->w *width_ratio;  // 文本寬度
-    int32_t text_height = textSurface->h *height_ratio; // 文本高度
-    SDL_FreeSurface(textSurface);
-    
-    resources->leave_button->text_rect = (SDL_Rect){rect.x + (rect.w - text_width) / 2, rect.y + (rect.h - text_height) / 2, text_width, text_height};
-
-    // Initialize background rectangle (button background)
-    SDL_Texture* button_bg_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, rect.w, rect.h);
-    SDL_SetRenderTarget(renderer, button_bg_texture);
-    SDL_SetRenderDrawColor(renderer, bgColor.r, bgColor.g, bgColor.b, bgColor.a);
-    SDL_RenderClear(renderer);
-    SDL_SetRenderTarget(renderer, NULL);
-    resources->leave_button->IMG_texture = button_bg_texture;
-    resources->leave_button->IMG_rect = rect;
-}
 void Modify_Variable(FILE* pPlayer_sav_file, toml_table_t* Modify_table, char* variable_name, const char* plus) {
     // Step 1: Find the variable_name and modify its value in Modify_table
     toml_datum_t var_value = toml_int_in(Modify_table, variable_name);
@@ -769,4 +770,153 @@ void Modify_Variable(FILE* pPlayer_sav_file, toml_table_t* Modify_table, char* v
         fprintf(stderr, "Error: Unable to reopen file\n");
         return;
     }
+}
+void initLeaveButton(RenderResources* resources, SDL_Renderer* renderer, const char* text, TTF_Font* font) {
+    SDL_Color textColor = {0, 0, 0, 255};  // Black color for text
+    SDL_Color bgColor = {255, 255, 255, 255};  // White color for button background
+    SDL_Rect rect = {590*width_ratio, 0*height_ratio, 50*width_ratio, 50*height_ratio};  // Adjusted the size for better button appearance
+
+    resources->leave_button = (Button*)malloc(sizeof(Button));
+
+    // Initialize text texture
+    SDL_Surface* textSurface = TTF_RenderUTF8_Blended_Wrapped(font, text, textColor,400);
+    resources->leave_button->text_texture = SDL_CreateTextureFromSurface(renderer, textSurface);
+    
+    // Get text width and height
+    int32_t text_width = textSurface->w *width_ratio;  // 文本寬度
+    int32_t text_height = textSurface->h *height_ratio; // 文本高度
+    SDL_FreeSurface(textSurface);
+    
+    resources->leave_button->text_rect = (SDL_Rect){rect.x + (rect.w - text_width) / 2, rect.y + (rect.h - text_height) / 2, text_width, text_height};
+
+    // Initialize background rectangle (button background)
+    SDL_Texture* button_bg_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, rect.w, rect.h);
+    SDL_SetRenderTarget(renderer, button_bg_texture);
+    SDL_SetRenderDrawColor(renderer, bgColor.r, bgColor.g, bgColor.b, bgColor.a);
+    SDL_RenderClear(renderer);
+    SDL_SetRenderTarget(renderer, NULL);
+    resources->leave_button->IMG_texture = button_bg_texture;
+    resources->leave_button->IMG_rect = rect;
+}
+void initSaveButton(RenderResources* resources, SDL_Renderer* renderer, const char* text, TTF_Font* font) 
+{
+    SDL_Color textColor = {0, 0, 0, 255};  // 黑色文字
+    SDL_Color bgColor = {255, 255, 255, 255};  // 白色背景
+
+    // 设置按钮位置和大小
+    SDL_Rect rect = {590*width_ratio, 100*height_ratio, 50*width_ratio, 50*height_ratio};  // 您可以根据需要调整这些值
+
+    resources->save_button = (Button*)malloc(sizeof(Button));
+
+    // 创建按钮的背景纹理
+    SDL_Texture* buttonBgTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, rect.w, rect.h);
+    SDL_SetRenderTarget(renderer, buttonBgTexture);
+    SDL_SetRenderDrawColor(renderer, bgColor.r, bgColor.g, bgColor.b, bgColor.a);
+    SDL_RenderClear(renderer);
+    SDL_SetRenderTarget(renderer, NULL);
+    resources->save_button->IMG_texture = buttonBgTexture;
+    resources->save_button->IMG_rect = rect;
+
+    // 创建按钮的文字纹理
+    SDL_Surface* textSurface = TTF_RenderUTF8_Blended(font, text, textColor);
+    resources->save_button->text_texture = SDL_CreateTextureFromSurface(renderer, textSurface);
+
+    // 获取文字的宽度和高度
+    int32_t textWidth = textSurface->w*width_ratio;
+    int32_t textHeight = textSurface->h*height_ratio;
+    SDL_FreeSurface(textSurface);
+
+    // 计算文字在按钮中的位置
+    SDL_Rect textRect = {(rect.x + (rect.w - textWidth) / 2), (rect.y + (rect.h - textHeight) / 2), textWidth, textHeight};
+    resources->save_button->text_rect = textRect;
+}
+int32_t checkSaveButton(SDL_Event* e, Button* save_button) 
+{
+    if (e->type == SDL_MOUSEBUTTONDOWN) {
+        if (e->button.button == SDL_BUTTON_LEFT) 
+        {
+            int32_t x = e->button.x;
+            int32_t y = e->button.y;
+            SDL_Rect* rect = &save_button->IMG_rect;
+            if (x >= rect->x && x <= (rect->x + rect->w) &&
+                y >= rect->y && y <= (rect->y + rect->h)) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+void SaveIt(FILE* pPlayer_sav_file, const char* save_Background, const char* save_Music, SetCharacterInfo save_Character, const char* save_Jump, int32_t save_col_idx) {
+    // Step 1: Read the whole file content into a string array
+    char lines[1024][1024];
+    int line_count = 0;
+
+    fseek(pPlayer_sav_file, 0, SEEK_SET);
+    while (fgets(lines[line_count], 1024, pPlayer_sav_file)) {
+        line_count++;
+    }
+
+    // Step 2: Find the start of the [Other] section
+    int32_t other_start_index = -1;
+    for (int32_t i = 0; i < line_count; i++) {
+        if (strstr(lines[i], "[Other]") != NULL) {
+            other_start_index = i;
+            break;
+        }
+    }
+
+    if (other_start_index == -1) {
+        fprintf(stderr, "Error: [Other] section not found\n");
+        return;
+    }
+
+    // Step 3: Modify the [Other] section and its content
+    int32_t current_line = other_start_index + 1;
+    //snprintf(lines[current_line++], sizeof(lines[current_line]), "[Other]\n");
+    snprintf(lines[current_line++], sizeof(lines[current_line]), "script = [\n");
+
+    // Write Background action
+    if (strlen(save_Background) > 0) {
+        snprintf(lines[current_line++], sizeof(lines[current_line]), "    { action = \"Background\", background = \"%s\"},\n", save_Background);
+    }
+
+    // Write Music action
+    if (strlen(save_Music) > 0) {
+        snprintf(lines[current_line++], sizeof(lines[current_line]), "    { action = \"Music\", music_id = \"%s\"},\n", save_Music);
+    }
+
+    // Write SetCharacter action
+    if (save_Character.number > 0) {
+        snprintf(lines[current_line], sizeof(lines[current_line]), "    { action = \"SetCharacter\", number = %d, command_list = [", save_Character.number);
+        for (int i = 0; i < save_Character.number; ++i) {
+            if (i > 0) strcat(lines[current_line], ", ");
+            strcat(lines[current_line], "\"");
+            strcat(lines[current_line], save_Character.command_list[i]);
+            strcat(lines[current_line], "\"");
+        }
+        strcat(lines[current_line], "], mood_list = [");
+        for (int i = 0; i < save_Character.number; ++i) {
+            if (i > 0) strcat(lines[current_line], ", ");
+            strcat(lines[current_line], "\"");
+            strcat(lines[current_line], save_Character.mood_list[i]);
+            strcat(lines[current_line], "\"");
+        }
+        strcat(lines[current_line], "]},\n");
+        current_line++;
+    }
+
+    // Write Jump action
+    if (strlen(save_Jump) > 0) {
+        snprintf(lines[current_line++], sizeof(lines[current_line]), "    { action = \"Jump\", label_id = \"%s\", col_idx = %d},\n", save_Jump, save_col_idx);
+    }
+
+    // Write script array end
+    snprintf(lines[current_line++], sizeof(lines[current_line]), "]\n");
+
+    // Step 4: Write the modified string array back to the file
+    freopen(NULL, "w", pPlayer_sav_file); // Open the file in write mode to clear existing content
+    for (int i = 0; i < current_line; i++) {
+        fputs(lines[i], pPlayer_sav_file);
+    }
+    fflush(pPlayer_sav_file); // Ensure all changes are written to the file
 }

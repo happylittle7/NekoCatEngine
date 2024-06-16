@@ -160,6 +160,7 @@ int main(int32_t argc, char* argv[])
     }
     ///此處以下開劇本檔
     initLeaveButton(&resources,  renderer, "X", font);
+    initSaveButton(&resources, renderer, "Save", font);
     FILE *pCharacter_file;
     FILE *pScript_file;
     FILE *pPlayer_sav_file;
@@ -248,102 +249,98 @@ int main(int32_t argc, char* argv[])
     
     if (option == 2)
     {
-        //printf("A\n");
+        printf("A\n");
         now_script = toml_table_in(Player_V,"Other");
-        //printf("B\n");
+        printf("B\n");
         script_list = toml_array_in(now_script, "script");
-        //printf("C\n");
-    }
-    
-    while (!quit) 
-    {
-        while (SDL_PollEvent(&e) != 0) 
+        if (script_list == NULL)
         {
-            judge_button = handleButtonEvents( &e,  &resources);
-            if (now_state!=3)
+            printf("C\n");
+            now_script = toml_table_in(Script,"Start");
+            script_list = toml_array_in(now_script, "script");
+        }
+        printf("D\n");
+    }
+    char save_Background[1024];
+    char save_Music[1024];
+    SetCharacterInfo save_Character;
+    char save_Jump[1024];
+    int32_t save_col_idx = 0;
+    strcpy(save_Jump,"Start");
+    if (option == 1|| option == 2||option == 3){
+        while (!quit) {
+            while (SDL_PollEvent(&e) != 0) 
             {
-                if (checkLeaveButton(&e,resources.leave_button) == 1)
+                judge_button = handleButtonEvents( &e,  &resources);
+                if (now_state!=3)
                 {
-                    quit = 1;
-                }
-                else if (e.type == SDL_MOUSEBUTTONDOWN) 
-                {
-                    if (e.button.button == SDL_BUTTON_LEFT) 
+                    if (checkLeaveButton(&e,resources.leave_button) == 1)
                     {
-                        had_hit_left = 1;
+                        quit = 1;
+                    }
+                    else if (checkSaveButton(&e,resources.save_button) == 1)
+                    {
+                        printf("here need save\n");
+                        SaveIt(pPlayer_sav_file,save_Background,save_Music,save_Character,save_Jump,save_col_idx);
+                    }
+                    else if (e.type == SDL_MOUSEBUTTONDOWN) 
+                    {
+                        if (e.button.button == SDL_BUTTON_LEFT ) 
+                        {
+                            had_hit_left = 1;
+                        }
+                    }
+                }
+                else
+                {
+                    //printf("the_judge_button = %d\n",judge_button);
+                    if (judge_button==-1)
+                    {
+                        quit = 1;
+                    }
+                    else if (judge_button!=-2)
+                    {
+                        option_hit = 1;
+                        the_option = judge_button;
                     }
                 }
             }
-            else
+            if (quit == 1)
+                break;
+            printf("%d\n",toml_array_nelem(script_list));
+            if (col_in_script != toml_array_nelem(script_list))
             {
-                //printf("the_judge_button = %d\n",judge_button);
-                if (judge_button==-1)
+                save_col_idx = col_in_script;
+                toml_table_t *entry = toml_table_at(script_list, col_in_script);
+                if (!entry) continue;
+                const char *action = toml_raw_in(entry, "action");
+                //printf("%s\n",action);
+                if (strcmp(action, "\"Dialog\"") == 0)
                 {
-                    quit = 1;
-                }
-                else if (judge_button!=-2)
-                {
-                    option_hit = 1;
-                    the_option = judge_button;
-                }
-            }
-        }
-        if (quit == 1)
-            break;
-        printf("%d\n",toml_array_nelem(script_list));
-        if (col_in_script != toml_array_nelem(script_list))
-        {
-            toml_table_t *entry = toml_table_at(script_list, col_in_script);
-            if (!entry) continue;
-            const char *action = toml_raw_in(entry, "action");
-            printf("%s\n",action);
-            if (strcmp(action, "\"Dialog\"") == 0)
-            {
-                const char *command = toml_raw_in(entry, "command");
-                const char *text_copy = toml_raw_in(entry, "text");
-                char* text = calloc(1024,sizeof(char));
-                strcpy(text, text_copy);
-                text++;
-                text[strlen(text)-1] = 0;
-                printf("%s\n",text);
-                if (now_state == 0)
-                {
-                    printf("0\n");
-                    dialogText_3(renderer,&resources, font, &text, textColor, &print_text_x, &print_text_y, w_w);
-                    now_state = 1;
-                    had_hit_left = 0;
-                }
-                else if (now_state == 1 && had_hit_left==1)
-                {
-                    now_state = 2;
-                    had_hit_left = 0;
-                }
-                /*
-                if (text != NULL && pr_text == NULL)
-                {
-                    pr_text = calloc(strlen(text),sizeof(char));
-                    strcpy(pr_text,text);
-                    pr_text++;
-                    pr_text[strlen(pr_text)-1] = 0;
-                }
-                if (*pr_text != 0)
-                {
-                    
+                    const char *command = toml_raw_in(entry, "command");
+                    const char *text_copy = toml_raw_in(entry, "text");
+                    char* text = calloc(1024,sizeof(char));
+                    strcpy(text, text_copy);
+                    text++;
+                    text[strlen(text)-1] = 0;
+                    printf("%s\n",text);
                     if (strcmp(command, "\"no name\"")==0)
                     {
-                        resources.expression_texture = NULL;
-                        if (had_hit_left == 1)
+                        if (now_state == 0)
                         {
-                            dialogText_2(renderer,&resources, font, &pr_text, textColor, &print_text_x, &print_text_y, w_w);
+                            //printf("0\n");
+                            dialogText_3(renderer,&resources, font, &text, textColor, &print_text_x, &print_text_y, w_w);
                             now_state = 1;
                             had_hit_left = 0;
                         }
-                        else
-                            dialogText(renderer,&resources, font, &pr_text, textColor, &print_text_x, &print_text_y, w_w);
+                        else if (now_state == 1 && had_hit_left==1)
+                        {
+                            now_state = 2;
+                            had_hit_left = 0;
+                        }
                     }
                     else
                     {
-                        //printf("1\n");
                         const char *mood = toml_raw_in(entry, "mood");
                         char* command_cpy = calloc(1024,sizeof(char));
                         strcpy(command_cpy,command);
@@ -357,326 +354,398 @@ int main(int32_t argc, char* argv[])
                         //directory++;
                         //directory[strlen(directory)-1] = 0;
                         DisplayTheExpression(renderer, &resources, Character, directory_copy.u.s, command, mood);
-                        if (had_hit_left == 1)
+                        if (now_state == 0)
                         {
-                            dialogText_2(renderer,&resources, font, &pr_text, textColor, &print_text_x, &print_text_y, w_w);
+                            //printf("0\n");
+                            dialogText_3(renderer,&resources, font, &text, textColor, &print_text_x, &print_text_y, w_w);
                             now_state = 1;
                             had_hit_left = 0;
                         }
+                        else if (now_state == 1 && had_hit_left==1)
+                        {
+                            now_state = 2;
+                            had_hit_left = 0;
+                            resources.expression_texture = NULL;
+                        }
+                    }
+                    /*
+                    if (text != NULL && pr_text == NULL)
+                    {
+                        pr_text = calloc(strlen(text),sizeof(char));
+                        strcpy(pr_text,text);
+                        pr_text++;
+                        pr_text[strlen(pr_text)-1] = 0;
+                    }
+                    if (*pr_text != 0)
+                    {
+                        
+                        if (strcmp(command, "\"no name\"")==0)
+                        {
+                            resources.expression_texture = NULL;
+                            if (had_hit_left == 1)
+                            {
+                                dialogText_2(renderer,&resources, font, &pr_text, textColor, &print_text_x, &print_text_y, w_w);
+                                now_state = 1;
+                                had_hit_left = 0;
+                            }
+                            else
+                                dialogText(renderer,&resources, font, &pr_text, textColor, &print_text_x, &print_text_y, w_w);
+                        }
                         else
-                            dialogText(renderer,&resources, font, &pr_text, textColor, &print_text_x, &print_text_y, w_w);
+                        {
+                            //printf("1\n");
+                            const char *mood = toml_raw_in(entry, "mood");
+                            char* command_cpy = calloc(1024,sizeof(char));
+                            strcpy(command_cpy,command);
+                            command_cpy++;
+                            command_cpy[strlen(command_cpy)-1] = 0;
+                            toml_table_t* Character_id_table = toml_table_in(Character,command_cpy);
+                            //printf("2\n");
+                            toml_datum_t directory_copy = toml_string_in(Character_id_table, "directory");
+                            //char* directory = calloc(1024,sizeof(char));
+                            //strcpy(directory,directory_copy);
+                            //directory++;
+                            //directory[strlen(directory)-1] = 0;
+                            DisplayTheExpression(renderer, &resources, Character, directory_copy.u.s, command, mood);
+                            if (had_hit_left == 1)
+                            {
+                                dialogText_2(renderer,&resources, font, &pr_text, textColor, &print_text_x, &print_text_y, w_w);
+                                now_state = 1;
+                                had_hit_left = 0;
+                            }
+                            else
+                                dialogText(renderer,&resources, font, &pr_text, textColor, &print_text_x, &print_text_y, w_w);
+                        }
                     }
-                }
-                else if (now_state == 1 && had_hit_left == 1) //跳入下一段對話的前置作業
-                {
-                    now_state = 2;
-                    pr_text = NULL;
-                    SDL_RenderClear(renderer);
-                    //my_RenderPresent(renderer,&resources,now_state);
-                    clearAndRender( &resources,  resources.background_texture );
-                    my_RenderPresent(renderer,&resources,now_state);
-                    print_text_x = text_start_x;
-                    print_text_y = text_start_y;
-                    had_hit_left = 0;
-                }
-                else
-                {
-                    now_state = 1;
-                }
-                */
-            }
-            else if (strcmp(action, "\"SetCharacter\"")==0)
-            {
-                toml_datum_t character_number = toml_int_in(entry, "number");
-                toml_array_t* command_array = toml_array_in(entry, "command_list");
-                toml_array_t* mood_array = toml_array_in(entry, "mood_list");
-                if (character_number.u.i == 0)
-                {
-                    for (int32_t i=0 ; i<3 ; i++) ///初始化character_IMG_texture不然會出事
+                    else if (now_state == 1 && had_hit_left == 1) //跳入下一段對話的前置作業
                     {
-                        resources.character_IMG_texture[i] = NULL;
+                        now_state = 2;
+                        pr_text = NULL;
+                        SDL_RenderClear(renderer);
+                        //my_RenderPresent(renderer,&resources,now_state);
+                        clearAndRender( &resources,  resources.background_texture );
+                        my_RenderPresent(renderer,&resources,now_state);
+                        print_text_x = text_start_x;
+                        print_text_y = text_start_y;
+                        had_hit_left = 0;
                     }
-                }
-                else
-                {
-                    for (int32_t i=0 ; i<3 ; i++) ///初始化character_IMG_texture不然會出事
+                    else
                     {
-                        resources.character_IMG_texture[i] = NULL;
+                        now_state = 1;
                     }
-                    for (int32_t i = 0 ; i < toml_array_nelem(command_array) ; i++)
+                    */
+                }
+                else if (strcmp(action, "\"SetCharacter\"")==0)
+                {
+                    toml_datum_t character_number = toml_int_in(entry, "number");
+                    toml_array_t* command_array = toml_array_in(entry, "command_list");
+                    toml_array_t* mood_array = toml_array_in(entry, "mood_list");
+                    
+                    if (character_number.u.i == 0)
                     {
-                        //printf("A\n");
-                        const char* Character_id = toml_string_at(command_array, i).u.s;
-                        const char* mood = toml_string_at(mood_array, i).u.s;
-                        //char* Character_id_copy = calloc(1024,sizeof(char));
-                        //printf("%s\n",Character_id);
-                        toml_table_t* Character_id_table = toml_table_in(Character,Character_id);
-                        //printf("B\n");
-                        toml_datum_t directory_copy = toml_string_in(Character_id_table, "directory");
-                        //printf("%s",directory_copy.u.s);
-                        //char* directory = calloc(1024,sizeof(char));
-                        //strcpy(directory,directory_copy);
-                        //directory++;
-                        //directory[strlen(directory)-1] = 0;
-                        //printf("directory = %s\n",directory_copy.u.s);
-                        displayIMG(renderer, &resources, Character, directory_copy.u.s, Character_id, mood, i, toml_array_nelem(command_array)); 
+                        save_Character.number = character_number.u.i;
+                        for (int32_t i=0 ; i<3 ; i++) ///初始化character_IMG_texture不然會出事
+                        {
+                            resources.character_IMG_texture[i] = NULL;
+                        }
                     }
-                }
-                col_in_script++;
-            }
-            else if (strcmp(action, "\"Jump\"") == 0)
-            {
-                const char *label_id = toml_raw_in(entry, "label_id");
-                
-                char *label_id_copy = calloc(1024,sizeof(char));
-                strcpy(label_id_copy,label_id);
-                label_id_copy++;
-                label_id_copy[strlen(label_id_copy)-1] = 0;
-                printf("%s\n",label_id_copy);
-                printf("A\n");
-                toml_array_t* variable_array = toml_array_in(entry, "variable");
-                printf("B\n");
-                toml_array_t* mode_array = toml_array_in(entry, "mode");
-                printf("C\n");
-                toml_array_t* gap_array = toml_array_in(entry, "gap");
-                printf("D\n");
-                toml_datum_t col_idx = toml_int_in(entry, "col_idx");
-                if (col_idx.ok==0)
-                {
-                    printf("NO col_idx\n");
-                }
-                else
-                {
-                    printf("Yes col_idx\n");
-                    printf("the_id = %ld\n",col_idx.u.i);
-                }
-                if (variable_array != NULL)
-                {
-                    //printf("E\n");
-                    if (IsOverGap(Player_Variable, variable_array,mode_array,gap_array) == 1)
+                    else
                     {
+                        save_Character.number = character_number.u.i;
+                        //save_Character.command_list_size = toml_array_nelem(number);
+                        //save_Character.mood_list_size = toml_array_nelem(mood_array);
+                        save_Character.command_list = (char**)malloc(character_number.u.i * sizeof(char*));
+                        save_Character.mood_list = (char**)malloc(character_number.u.i * sizeof(char*));
+                        for (int32_t i=0 ; i<3 ; i++) ///初始化character_IMG_texture不然會出事
+                        {
+                            resources.character_IMG_texture[i] = NULL;
+                        }
+                        for (int32_t i = 0 ; i < toml_array_nelem(command_array) ; i++)
+                        {
+                            //printf("A\n");
+                            const char* Character_id = toml_string_at(command_array, i).u.s;
+                            save_Character.command_list[i] = strdup(Character_id);
+                            
+                            const char* mood = toml_string_at(mood_array, i).u.s;
+                            save_Character.mood_list[i] = strdup(mood);
+                            //char* Character_id_copy = calloc(1024,sizeof(char));
+                            //printf("%s\n",Character_id);
+                            toml_table_t* Character_id_table = toml_table_in(Character,Character_id);
+                            //printf("B\n");
+                            toml_datum_t directory_copy = toml_string_in(Character_id_table, "directory");
+                            //printf("%s",directory_copy.u.s);
+                            //char* directory = calloc(1024,sizeof(char));
+                            //strcpy(directory,directory_copy);
+                            //directory++;
+                            //directory[strlen(directory)-1] = 0;
+                            //printf("directory = %s\n",directory_copy.u.s);
+                            displayIMG(renderer, &resources, Character, directory_copy.u.s, Character_id, mood, i, toml_array_nelem(command_array)); 
+                        }
+                    }
+                    col_in_script++;
+                }
+                else if (strcmp(action, "\"Jump\"") == 0)
+                {
+                    const char *label_id = toml_raw_in(entry, "label_id");
+                    
+                    char *label_id_copy = calloc(1024,sizeof(char));
+                    strcpy(label_id_copy,label_id);
+                    label_id_copy++;
+                    label_id_copy[strlen(label_id_copy)-1] = 0;
+                    strcpy(save_Jump,label_id_copy);
+                    //printf("%s\n",label_id_copy);
+                    //printf("A\n");
+                    toml_array_t* variable_array = toml_array_in(entry, "variable");
+                    //printf("B\n");
+                    toml_array_t* mode_array = toml_array_in(entry, "mode");
+                    //printf("C\n");
+                    toml_array_t* gap_array = toml_array_in(entry, "gap");
+                    //printf("D\n");
+                    toml_datum_t col_idx = toml_int_in(entry, "col_idx");
+                    if (col_idx.ok==0)
+                    {
+                        printf("NO col_idx\n");
+                    }
+                    else
+                    {
+                        printf("Yes col_idx\n");
+                        printf("the_id = %ld\n",col_idx.u.i);
+                    }
+                    if (variable_array != NULL)
+                    {
+                        //printf("E\n");
+                        if (IsOverGap(Player_Variable, variable_array,mode_array,gap_array) == 1)
+                        {
+                            now_script = toml_table_in(Script,label_id_copy);
+                            script_list = toml_array_in(now_script, "script");
+                            col_in_script = 0;
+                        }
+                        else
+                        {
+                            col_in_script++;
+                        }
+                    }
+                    else if (col_idx.ok==0)
+                    {
+                        printf("the_id_here_1 = %ld\n",col_idx.u.i);
                         now_script = toml_table_in(Script,label_id_copy);
                         script_list = toml_array_in(now_script, "script");
                         col_in_script = 0;
                     }
                     else
                     {
-                        col_in_script++;
+                        printf("the_id_here_2 = %ld\n",col_idx.u.i);
+                        now_script = toml_table_in(Script,label_id_copy);
+                        script_list = toml_array_in(now_script, "script");
+                        col_in_script = (int32_t)col_idx.u.i;
+                        
                     }
                 }
-                else if (col_idx.ok==0)
+                else if (strcmp(action, "\"Background\"") == 0)
                 {
-                    printf("the_id_here_1 = %ld\n",col_idx.u.i);
-                    now_script = toml_table_in(Script,label_id_copy);
-                    script_list = toml_array_in(now_script, "script");
-                    col_in_script = 0;
-                }
-                else
-                {
-                    printf("the_id_here_2 = %ld\n",col_idx.u.i);
-                    now_script = toml_table_in(Script,label_id_copy);
-                    script_list = toml_array_in(now_script, "script");
-                    col_in_script = (int32_t)col_idx.u.i;
-                    
-                }
-            }
-            else if (strcmp(action, "\"Background\"") == 0)
-            {
-                //printf("here_4\n");
-                const char *background_v = toml_raw_in(entry, "background");
-                char* background_v_copy = calloc(1024,sizeof(char));
-                strcpy(background_v_copy,background_v);
-                background_v_copy++;
-                background_v_copy[strlen(background_v_copy)-1] = 0;
-                
-                toml_datum_t background_path_datum = toml_string_in(background_table, background_v_copy);
-                if (!background_path_datum.ok) 
-                {
-                    printf("Error: 'background_1' not found in 'background' table\n");
-                }
-                char full_path[512] = {0};
-                snprintf(full_path, sizeof(full_path), "./Assets/background/%s", background_path_datum.u.s);
-                SDL_Surface* background_surface = IMG_Load(full_path);
-                if (!background_surface) 
-                {
-                    printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
-                    return -1;
-                }
-                resources.background_texture = SDL_CreateTextureFromSurface(renderer,background_surface);
-                SDL_FreeSurface(background_surface);
-                now_state = 2;
-            }
-            else if (strcmp(action, "\"Music\"") == 0)
-            {
-                printf("Music action\n");
-                const char* music_id = toml_raw_in(entry, "music_id");
-                char* music_id_copy = calloc(1024,sizeof(char));
-                strcpy(music_id_copy,music_id);
-                music_id_copy++;
-                music_id_copy[strlen(music_id_copy)-1] = 0;
-                toml_datum_t music_path_datum = toml_string_in(music_table, music_id_copy);
-                if (bgm != NULL)
-                {
-                    Mix_HaltMusic();
-                    Mix_FreeMusic(bgm);
-                }
-                if (strcmp(music_path_datum.u.s,"close") != 0)
-                {
+                    //printf("here_4\n");
+                    const char *background_v = toml_raw_in(entry, "background");
+                    printf("%s\n",background_v);
+                    char* background_v_copy = calloc(1024,sizeof(char));
+                    strcpy(background_v_copy,background_v);
+                    background_v_copy++;
+                    background_v_copy[strlen(background_v_copy)-1] = 0;
+                    strcpy(save_Background,background_v_copy);
+                    toml_datum_t background_path_datum = toml_string_in(background_table, background_v_copy);
+                    if (!background_path_datum.ok) 
+                    {
+                        printf("Error: '%s' not found in 'background' table\n",background_v_copy);
+                    }
                     char full_path[512] = {0};
-                    snprintf(full_path, sizeof(full_path), "./Assets/music/%s", music_path_datum.u.s);
                     
-                    bgm = Mix_LoadMUS(full_path);
-                    
-                    if (bgm == NULL) 
+                    snprintf(full_path, sizeof(full_path), "./Assets/background/%s", background_path_datum.u.s);
+                    SDL_Surface* background_surface = IMG_Load(full_path);
+                    if (!background_surface) 
                     {
-                        printf("Failed to load music! SDL_mixer Error: %s\n", Mix_GetError());
-                        break;
+                        printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
+                        return -1;
                     }
-                    
-                    if (Mix_PlayMusic(bgm, -1) == -1) 
+                    resources.background_texture = SDL_CreateTextureFromSurface(renderer,background_surface);
+                    SDL_FreeSurface(background_surface);
+                    now_state = 2;
+                }
+                else if (strcmp(action, "\"Music\"") == 0)
+                {
+                    printf("Music action\n");
+                    const char* music_id = toml_raw_in(entry, "music_id");
+                    char* music_id_copy = calloc(1024,sizeof(char));
+                    strcpy(music_id_copy,music_id);
+                    music_id_copy++;
+                    music_id_copy[strlen(music_id_copy)-1] = 0;
+                    strcpy(save_Music,music_id_copy);
+                    toml_datum_t music_path_datum = toml_string_in(music_table, music_id_copy);
+                    if (bgm != NULL)
                     {
-                        printf("Failed to play music! SDL_mixer Error: %s\n", Mix_GetError());
+                        Mix_HaltMusic();
                         Mix_FreeMusic(bgm);
-                        break;
+                    }
+                    if (strcmp(music_path_datum.u.s,"close") != 0)
+                    {
+                        char full_path[512] = {0};
+                        
+                        snprintf(full_path, sizeof(full_path), "./Assets/music/%s", music_path_datum.u.s);
+                        
+                        bgm = Mix_LoadMUS(full_path);
+                        
+                        if (bgm == NULL) 
+                        {
+                            printf("Failed to load music! SDL_mixer Error: %s\n", Mix_GetError());
+                            break;
+                        }
+                        
+                        if (Mix_PlayMusic(bgm, -1) == -1) 
+                        {
+                            printf("Failed to play music! SDL_mixer Error: %s\n", Mix_GetError());
+                            Mix_FreeMusic(bgm);
+                            break;
+                        }
+                        else
+                        {
+                            printf("music OK!\n");
+                        }
+                    }
+                    now_state = 2;
+                    
+                }
+                else if (strcmp(action, "\"Sound\"") == 0)
+                {
+                    //printf("Sound action\n");
+                    //printf("A\n");
+                    const char* sound_id = toml_raw_in(entry, "sound_id");
+                    //printf("B\n");
+                    char* sound_id_copy = calloc(1024,sizeof(char));
+                    //printf("C\n");
+                    //printf("%s\n",sound_id);
+                    strcpy(sound_id_copy,sound_id);
+                    //printf("D\n");
+                    sound_id_copy++;
+                    sound_id_copy[strlen(sound_id_copy)-1] = 0;
+                    //printf("%s\n",sound_id_copy);
+                    toml_datum_t sound_path_datum = toml_string_in(sound_table, sound_id_copy);
+                    char full_path[512] = {0};
+                    snprintf(full_path, sizeof(full_path), "./Assets/sound/%s", sound_path_datum.u.s);
+                    
+                    Mix_Chunk* sound = load_sound(full_path);
+                    if (sound!=NULL)
+                    {
+                        Mix_PlayChannel(-1, sound, 0);
                     }
                     else
                     {
-                        printf("music OK!\n");
+                        printf("no sound\n");
                     }
+                    
+                    now_state = 2;
                 }
-                now_state = 2;
-                
-            }
-            else if (strcmp(action, "\"Sound\"") == 0)
-            {
-                //printf("Sound action\n");
-                //printf("A\n");
-                const char* sound_id = toml_raw_in(entry, "sound_id");
-                //printf("B\n");
-                char* sound_id_copy = calloc(1024,sizeof(char));
-                //printf("C\n");
-                //printf("%s\n",sound_id);
-                strcpy(sound_id_copy,sound_id);
-                //printf("D\n");
-                sound_id_copy++;
-                sound_id_copy[strlen(sound_id_copy)-1] = 0;
-                //printf("%s\n",sound_id_copy);
-                toml_datum_t sound_path_datum = toml_string_in(sound_table, sound_id_copy);
-                char full_path[512] = {0};
-                snprintf(full_path, sizeof(full_path), "./Assets/sound/%s", sound_path_datum.u.s);
-                
-                Mix_Chunk* sound = load_sound(full_path);
-                if (sound!=NULL)
+                else if (strcmp(action, "\"Option\"") == 0)
                 {
-                    Mix_PlayChannel(-1, sound, 0);
-                }
-                else
-                {
-                    printf("no sound\n");
-                }
-                
-                now_state = 2;
-            }
-            else if (strcmp(action, "\"Option\"") == 0)
-            {
-                now_state = 3;
-                toml_datum_t optionCount = toml_int_in(entry, "optionCount");
-                toml_array_t* optionContent = toml_array_in(entry, "optionContent");
-                //printf("%d\n",toml_array_nelem(optionContent));
-                toml_array_t* optionJump = toml_array_in(entry, "optionJump");
-                printf("%d\n",option_hit);
-                if (option_hit == 0)
-                {
-                    if (optionCount.u.i == 0)
+                    now_state = 3;
+                    toml_datum_t optionCount = toml_int_in(entry, "optionCount");
+                    toml_array_t* optionContent = toml_array_in(entry, "optionContent");
+                    //printf("%d\n",toml_array_nelem(optionContent));
+                    toml_array_t* optionJump = toml_array_in(entry, "optionJump");
+                    printf("%d\n",option_hit);
+                    if (option_hit == 0)
                     {
+                        if (optionCount.u.i == 0)
+                        {
+                            for (int32_t i=0 ; i<3 ; i++) ///初始化character_IMG_texture不然會出事
+                            {
+                                resources.now_option_button[i] = NULL;
+                            }
+                        }
+                        else
+                        {
+                            for (int32_t i=0 ; i<3 ; i++) ///初始化character_IMG_texture不然會出事
+                            {
+                                resources.now_option_button[i] = NULL;
+                            }
+                            for (int32_t i = 0 ; i < toml_array_nelem(optionContent) ; i++)
+                            {
+                                //printf("A\n");
+                                const char* optionContent_id = toml_string_at(optionContent, i).u.s;
+                                MakeOption(&resources, renderer, optionContent_id, font, i, optionCount.u.i); 
+                            }
+                        }
+                    }
+                    else
+                    {
+                        
+                        //judge_button
+                        //printf("the_option = %d\n",the_option);
+                        const char* optionJump_id = toml_string_at(optionJump, the_option).u.s;
+                        //printf("%s\n",optionJump_id);
+                        strcpy(save_Jump,optionJump_id);
+                        now_script = toml_table_in(Script,optionJump_id);
+                        script_list = toml_array_in(now_script, "script");
+                        now_state = 5; //按完按鈕後的clear
+                        option_hit = 0;
+                        col_in_script = 0;
+                        had_hit_left = 0;
                         for (int32_t i=0 ; i<3 ; i++) ///初始化character_IMG_texture不然會出事
                         {
                             resources.now_option_button[i] = NULL;
                         }
-                    }
-                    else
-                    {
-                        for (int32_t i=0 ; i<3 ; i++) ///初始化character_IMG_texture不然會出事
-                        {
-                            resources.now_option_button[i] = NULL;
-                        }
-                        for (int32_t i = 0 ; i < toml_array_nelem(optionContent) ; i++)
-                        {
-                            //printf("A\n");
-                            const char* optionContent_id = toml_string_at(optionContent, i).u.s;
-                            MakeOption(&resources, renderer, optionContent_id, font, i, optionCount.u.i); 
-                        }
+                        //SDL_RenderClear(renderer);
+                        //clearAndRender( &resources,  resources.background_texture );
                     }
                 }
-                else
+                else if(strcmp(action, "\"Modify variable\"") == 0)
+                {
+                    //printf("stay_here_1\n");
+                    const char* variable_name = toml_raw_in(entry, "variable_name");
+                    char* variable_name_copy = calloc(1024,sizeof(char));
+                    strcpy(variable_name_copy,variable_name);
+                    variable_name_copy++;
+                    variable_name_copy[strlen(variable_name_copy)-1] = 0;
+                    toml_datum_t value = toml_string_in(entry, "value");
+                    //toml_table_t* Modify_table = toml_table_in(Player_Variable,"Variable");
+                    //printf("A\n");
+                    //printf("%s\n",value.u.s);
+                    Modify_Variable(pPlayer_sav_file, Player_Variable, variable_name_copy, value.u.s);
+                    col_in_script++;
+                }
+                else if(strcmp(action, "\"Give item\"") == 0)
                 {
                     
-                    //judge_button
-                    //printf("the_option = %d\n",the_option);
-                    const char* optionJump_id = toml_string_at(optionJump, the_option).u.s;
-                    //printf("%s\n",optionJump_id);
-                    now_script = toml_table_in(Script,optionJump_id);
-                    script_list = toml_array_in(now_script, "script");
-                    now_state = 5; //按完按鈕後的clear
-                    option_hit = 0;
-                    col_in_script = 0;
-                    had_hit_left = 0;
-                    for (int32_t i=0 ; i<3 ; i++) ///初始化character_IMG_texture不然會出事
-                    {
-                        resources.now_option_button[i] = NULL;
-                    }
-                    //SDL_RenderClear(renderer);
-                    //clearAndRender( &resources,  resources.background_texture );
+                    //printf("stay_here_2\n");
+                    const char* item_id = toml_raw_in(entry, "item_id");
+                    char* item_id_copy = calloc(1024,sizeof(char));
+                    strcpy(item_id_copy,item_id);
+                    item_id_copy++;
+                    item_id_copy[strlen(item_id_copy)-1] = 0;
+                    toml_datum_t value = toml_string_in(entry, "count");
+                    toml_table_t *Player_Item = toml_table_in(Player_V,"Items");
+                    //toml_table_t* Modify_table = toml_table_in(Player_Variable,"Variable");
+                    //printf("A\n");
+                    //printf("%s\n",value.u.s);
+                    Modify_Variable(pPlayer_sav_file, Player_Item, item_id_copy, value.u.s);
+                    col_in_script++;
                 }
-            }
-            else if(strcmp(action, "\"Modify variable\"") == 0)
-            {
-                //printf("stay_here_1\n");
-                const char* variable_name = toml_raw_in(entry, "variable_name");
-                char* variable_name_copy = calloc(1024,sizeof(char));
-                strcpy(variable_name_copy,variable_name);
-                variable_name_copy++;
-                variable_name_copy[strlen(variable_name_copy)-1] = 0;
-                toml_datum_t value = toml_string_in(entry, "value");
-                //toml_table_t* Modify_table = toml_table_in(Player_Variable,"Variable");
-                //printf("A\n");
-                //printf("%s\n",value.u.s);
-                Modify_Variable(pPlayer_sav_file, Player_Variable, variable_name_copy, value.u.s);
-                col_in_script++;
-            }
-            else if(strcmp(action, "\"Give item\"") == 0)
-            {
-                
-                //printf("stay_here_2\n");
-                const char* item_id = toml_raw_in(entry, "item_id");
-                char* item_id_copy = calloc(1024,sizeof(char));
-                strcpy(item_id_copy,item_id);
-                item_id_copy++;
-                item_id_copy[strlen(item_id_copy)-1] = 0;
-                toml_datum_t value = toml_string_in(entry, "count");
-                toml_table_t *Player_Item = toml_table_in(Player_V,"Items");
-                //toml_table_t* Modify_table = toml_table_in(Player_Variable,"Variable");
-                //printf("A\n");
-                //printf("%s\n",value.u.s);
-                Modify_Variable(pPlayer_sav_file, Player_Item, item_id_copy, value.u.s);
-                col_in_script++;
-            }
-            //else if (strcmp(action, "\"Music\"") == 0)
-            //adjustToFullscreen(&resources, w_w, w_h, fullscreen_width, fullscreen_height);
-            my_RenderPresent(renderer,&resources,now_state);
-            if(now_state == 2) //進入下一個此場景的action
-            {
-                col_in_script++;
-                now_state = 0;
-                had_hit_left = 0;
-            }
-            else if (now_state == 5) //進入下一個此場景
-            {
-                now_state = 0;
-                had_hit_left = 0;
+                //else if (strcmp(action, "\"Music\"") == 0)
+                //adjustToFullscreen(&resources, w_w, w_h, fullscreen_width, fullscreen_height);
+                my_RenderPresent(renderer,&resources,now_state);
+                if(now_state == 2) //進入下一個此場景的action
+                {
+                    col_in_script++;
+                    now_state = 0;
+                    had_hit_left = 0;
+                }
+                else if (now_state == 5) //進入下一個此場景
+                {
+                    now_state = 0;
+                    had_hit_left = 0;
+                }
             }
         }
     }
+    
+    
     //printf("A\n");
     TTF_CloseFont(font);
     freeRenderResources(&resources);
