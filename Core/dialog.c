@@ -816,9 +816,35 @@ void Modify_Variable(FILE* pPlayer_sav_file, toml_table_t* Modify_table, char* v
     }
 }
 void initLeaveButton(RenderResources* resources, SDL_Renderer* renderer, const char* text, TTF_Font* font) {
-    SDL_Color textColor = {255, 255, 255, 255};  // Black color for text
-    SDL_Color bgColor = {0, 0, 0, 200};  // White color for button background
-    SDL_Rect rect = {585*width_ratio, 10*height_ratio, 50*width_ratio, 50*height_ratio};  // Adjusted the size for better button appearance
+    int32_t button_x = 585*width_ratio;
+    int32_t button_y = 10*height_ratio;
+    int32_t button_w = 50*width_ratio;
+    int32_t button_h = 50*height_ratio;
+    int32_t mouse_X, mouse_y;
+    SDL_Color textColor;
+    SDL_Color bgColor;
+    SDL_GetMouseState(&mouse_X, &mouse_y);
+
+    if(mouse_X >= button_x && mouse_X <= (button_x + button_w) && mouse_y >= button_y && mouse_y <= (button_y + button_h)){
+        textColor.r = 0;  // 黑色文字
+        textColor.g = 0;
+        textColor.b = 0;
+        textColor.a = 255;
+        bgColor.r = 255;  // 白色背景
+        bgColor.g = 255;
+        bgColor.b = 255;
+        bgColor.a = 200;
+    }else{
+        textColor.r = 255;  // 白色文字
+        textColor.g = 255;
+        textColor.b = 255;
+        textColor.a = 255;
+        bgColor.r = 0;  // 黑色背景
+        bgColor.g = 0;
+        bgColor.b = 0;
+        bgColor.a = 200;
+    }
+    SDL_Rect rect = {button_x, button_y, button_w, button_h};  // 您可以根据需要调整这些值
 
     resources->leave_button = (Button*)malloc(sizeof(Button));
 
@@ -844,11 +870,37 @@ void initLeaveButton(RenderResources* resources, SDL_Renderer* renderer, const c
 }
 void initSaveButton(RenderResources* resources, SDL_Renderer* renderer, const char* text, TTF_Font* font) 
 {
-    SDL_Color textColor = {255, 255, 255, 255};  // 白色文字
-    SDL_Color bgColor = {0, 0, 0, 200};  // 黑色背景
+    int32_t button_x = 585*width_ratio;
+    int32_t button_y = 110*height_ratio;
+    int32_t button_w = 50*width_ratio;
+    int32_t button_h = 50*height_ratio;
+    int32_t mouse_X, mouse_y;
+    SDL_Color textColor;
+    SDL_Color bgColor;
+    SDL_GetMouseState(&mouse_X, &mouse_y);
+
+    if(mouse_X >= button_x && mouse_X <= (button_x + button_w) && mouse_y >= button_y && mouse_y <= (button_y + button_h)){
+        textColor.r = 0;  // 黑色文字
+        textColor.g = 0;
+        textColor.b = 0;
+        textColor.a = 255;
+        bgColor.r = 255;  // 白色背景
+        bgColor.g = 255;
+        bgColor.b = 255;
+        bgColor.a = 200;
+    }else{
+        textColor.r = 255;  // 白色文字
+        textColor.g = 255;
+        textColor.b = 255;
+        textColor.a = 255;
+        bgColor.r = 0;  // 黑色背景
+        bgColor.g = 0;
+        bgColor.b = 0;
+        bgColor.a = 200;
+    }
 
     // 设置按钮位置和大小
-    SDL_Rect rect = {585*width_ratio, 110*height_ratio, 50*width_ratio, 50*height_ratio};  // 您可以根据需要调整这些值
+    SDL_Rect rect = {button_x, button_y, button_w, button_h};  // 您可以根据需要调整这些值
 
     resources->save_button = (Button*)malloc(sizeof(Button));
 

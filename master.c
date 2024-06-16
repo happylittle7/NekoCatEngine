@@ -184,10 +184,6 @@ int main(int32_t argc, char *argv[])
         textColor.b = 0;
     }
     /// 此處以下開劇本檔
-    initLeaveButton(&resources, renderer, "×", font);
-    font = TTF_OpenFont(font_path, 20);
-    initSaveButton(&resources, renderer, "Save", font);
-    font = TTF_OpenFont(font_path, 24);
     FILE *pCharacter_file;
     FILE *pScript_file;
     FILE *pPlayer_sav_file;
@@ -313,6 +309,10 @@ int main(int32_t argc, char *argv[])
     {
         while (!quit)
         {
+            initLeaveButton(&resources, renderer, "×", font);
+            font = TTF_OpenFont(font_path, 20);
+            initSaveButton(&resources, renderer, "Save", font);
+            font = TTF_OpenFont(font_path, 24);
             had_hit_left = 0;
             while (SDL_PollEvent(&e) != 0)
             {
