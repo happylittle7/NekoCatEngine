@@ -2,6 +2,7 @@
 #include "../Library/cJSON.h"
 #include <curl/curl.h>
 #include <string.h>
+#include <stdlib.h>
 
 char *openai_key;
 CURL *curl;
@@ -76,4 +77,4 @@ int main(){
     return 0;
 }
 */
-char* llm_mode();
+char* llm_mode(FILE* readme_file, FILE* readme2_file, FILE* assets_file, FILE* character_file, FILE* item_file);

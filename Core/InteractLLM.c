@@ -1,5 +1,5 @@
 #include "InteractLLM.h"
-void LLMWriteScript(char* LLM_string, char all_sentence[1024][1024]) 
+void LLMWriteScript(char* LLM_string, char all_sentence[400][512]) 
 {
     char* line = strtok(LLM_string, "\n");
     int32_t i = 0;
@@ -41,35 +41,42 @@ void WriteLLMString(FILE* file, char** my_LLM_string) {
         return;
     }
 
-    // 移动到文件末尾以确定文件大小
-    fseek(file, 0, SEEK_END);
-    long file_size = ftell(file);
-    fseek(file, 0, SEEK_SET);
-
-    // 动态分配内存以存储文件内容
-    *my_LLM_string = (char*)malloc(file_size + 1);  // 加1用于存储null终止符
+    // 初始化
+    size_t buffer_size = 1024;
+    size_t total_size = buffer_size;
+    *my_LLM_string = (char*)malloc(total_size);
     if (*my_LLM_string == NULL) {
         fprintf(stderr, "Memory allocation failed.\n");
         return;
     }
 
-    // 初始化内存
-    (*my_LLM_string)[0] = '\0';
+    (*my_LLM_string)[0] = '\0';  // 初始化为空字符串
+
+    char buffer[buffer_size];
+    size_t length = 0;
 
     // 逐行读取文件内容并添加到my_LLM_string
-    char buffer[1024];
     while (fgets(buffer, sizeof(buffer), file)) {
+        length += strlen(buffer) + 1;  // 加1用于换行符
+        if (length >= total_size) {
+            total_size *= 2;  // 动态增加内存
+            *my_LLM_string = (char*)realloc(*my_LLM_string, total_size);
+            if (*my_LLM_string == NULL) {
+                fprintf(stderr, "Memory reallocation failed.\n");
+                return;
+            }
+        }
         strcat(*my_LLM_string, buffer);
         strcat(*my_LLM_string, "\n");
     }
 
     // 移除最后一个多余的换行符
-    if (strlen(*my_LLM_string) > 0) {
+    if (strlen(*my_LLM_string) > 0 && (*my_LLM_string)[strlen(*my_LLM_string) - 1] == '\n') {
         (*my_LLM_string)[strlen(*my_LLM_string) - 1] = '\0';
     }
 }
 
-char* llm_mode(){
+char* llm_mode(FILE* readme_file, FILE* readme2_file, FILE* assets_file, FILE* character_file, FILE* item_file){
     cJSON* cjson_test = NULL;
     cjson_test = cJSON_CreateObject();
 
@@ -78,7 +85,18 @@ char* llm_mode(){
 
     curl_global_init(CURL_GLOBAL_DEFAULT);
     curl = curl_easy_init();
+    char* readme;
+    char* readme2;
+    char* assets;
+    char* character;
+    char* item;
     
+    WriteLLMString(readme_file, &readme);
+    WriteLLMString(readme2_file, &readme2);
+    WriteLLMString(character_file, &character);
+    WriteLLMString(assets_file, &assets);
+    WriteLLMString(item_file, &item);
+    printf("%s\n",readme);
     if(curl) {
         struct curl_slist *headers = NULL;
         headers = curl_slist_append(headers, "Content-Type: application/json");
@@ -92,32 +110,35 @@ char* llm_mode(){
 
         cJSON* message1 = cJSON_CreateObject();
         cJSON_AddStringToObject(message1, "role", "system");
-        cJSON_AddStringToObject(message1, "content", "以下是一個關於galgame引擎的教學檔案，請根據該檔案還有我題提供的assets.nekocat,item.nekocat,character.nekocat寫一段有趣的劇本");
+        cJSON_AddStringToObject(message1, "content", "以下是一個關於galgame引擎的教學檔案，請根據該檔案還有我題提供的assets.nekocat,item.nekocat,character.nekocat寫一段有趣的劇本，請直接跟我說script檔案內容即可");
         cJSON_AddItemToArray(messages, message1);
 
         cJSON* message2 = cJSON_CreateObject();
         cJSON_AddStringToObject(message2, "role", "user");
-        cJSON_AddStringToObject(message2, "content", "我覺得你長得好醜喔");
+        cJSON_AddStringToObject(message2, "content", readme);
         cJSON_AddItemToArray(messages, message2);
 
         cJSON* message3 = cJSON_CreateObject();
-        cJSON_AddStringToObject(message2, "role", "assistant");
-        cJSON_AddStringToObject(message2, "assistant", "哇，說話這麼直接啊！沒關係啦，每個人有不同的眼光嘛。\n\n1. 對不起啦，我口直心快的，別在意啦。\n2. 哈哈沒關係，我也常常在意自己的外表呢。\n3. 對呀，長相這種東西還真是因人而異呢。\n\n（接下來的回覆需以玩家身份進行）\n");
+        cJSON_AddStringToObject(message3, "role", "user");
+        cJSON_AddStringToObject(message3, "content", readme2);
         cJSON_AddItemToArray(messages, message2);
 
         cJSON* message4 = cJSON_CreateObject();
         cJSON_AddStringToObject(message4, "role", "user");
-        cJSON_AddStringToObject(message4, "content", "對不起啦，我口直心快的，別在意啦。");
+        cJSON_AddStringToObject(message4, "content", character);
         cJSON_AddItemToArray(messages, message4);
 
-        
+        cJSON* message5 = cJSON_CreateObject();
+        cJSON_AddStringToObject(message5, "role", "user");
+        cJSON_AddStringToObject(message5, "content", assets);
+        cJSON_AddItemToArray(messages, message5);
 
-        
+        cJSON* message6 = cJSON_CreateObject();
+        cJSON_AddStringToObject(message6, "role", "user");
+        cJSON_AddStringToObject(message6, "content", item);
+        cJSON_AddItemToArray(messages, message6); 
 
         cJSON_AddItemToObject(data, "messages", messages);
-
-
-
 
         char* post_data = cJSON_Print(data);
 
@@ -138,5 +159,35 @@ char* llm_mode(){
 }
 
 int main(){
-    llm_mode();
+    FILE* system_readme = fopen("Docs/system.md","r");
+    if(system_readme==NULL){
+        printf("ERROR!\n");
+    }
+
+    FILE* readme2 = fopen("Docs/script_actions.md","r");
+    if(readme2==NULL){
+        printf("ERROR!\n");
+    }
+
+    FILE* assets = fopen("assets.nekocat","r");
+    if(assets==NULL){
+        printf("ERROR!\n");
+    }
+
+    FILE* item = fopen("item.nekocat","r");
+    if(item==NULL){
+        printf("ERROR!\n");
+    }
+
+    FILE* character = fopen("character.nekocat","r");
+    if(character==NULL){
+        printf("ERROR!\n");
+    }
+
+    llm_mode(system_readme,readme2,assets,item,character);
+    fclose(system_readme);
+    fclose(readme2);
+    fclose(assets);
+    fclose(item);
+    fclose(character);
 }
