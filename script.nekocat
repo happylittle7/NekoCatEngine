@@ -5,6 +5,7 @@ script = [
     { action = "Give item", item_id = "pen", count = "-1"},
     { action = "Music", music_id = "BGM_1"},
     { action = "Background", background = "background_1"},
+    { action = "Dialog", command = "ohm", mood = "Normal", text = "你好"},
     { action = "SetCharacter", number = 2, command_list = ["ohm","ohmf"], mood_list = ["Normal","sad"]},
     { action = "Sound", sound_id = "22score"},
     { action = "Dialog", command = "ohm", mood = "Normal", text = "早上好中國早上好中國早上好中國早上好中國早上好中國早上好中國我覺得北京天安門很棒棒棒棒棒棒棒棒"},
@@ -20,7 +21,7 @@ script = [
 script = [
     { action = "Sound", sound_id = "sound_1"},
     { action = "Dialog", command = "no name", text = "Hello world!"},
-    { action = "Option", optionCount = 3, optionContent = ["我今天晚餐想吃阿婆壽司","Button2","Button3"], optionJump = ["Ending_1","Ending_2","Ending_3"]}
+    { action = "Option", optionCount = 2, optionContent = ["Button2","Button3"], optionJump = ["Ending_2","Ending_3"]}
 ]
 [Ending_1]
 script = [

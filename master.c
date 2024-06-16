@@ -201,23 +201,23 @@ int main(int32_t argc, char* argv[])
     }
     
     char errbuf[200];
-    printf("3\n");
+    //printf("3\n");
     toml_table_t *Character = toml_parse_file(pCharacter_file, errbuf, sizeof(errbuf));
-    printf("4\n");
+    //printf("4\n");
     toml_table_t *Script = toml_parse_file(pScript_file, errbuf, sizeof(errbuf));
-    printf("A\n");
+    //printf("A\n");
     toml_table_t *Player_V = toml_parse_file(pPlayer_sav_file, errbuf, sizeof(errbuf));
-    printf("B\n");
+    //printf("B\n");
     toml_table_t *background_table = toml_parse_file(pbackground_file, errbuf, sizeof(errbuf));
-    printf("C\n");
+    //printf("C\n");
     toml_table_t *all_music_table = toml_parse_file(pmusic_file, errbuf, sizeof(errbuf));
-    printf("D\n");
+    //printf("D\n");
     background_table = toml_table_in(background_table,"background");
-    printf("E\n");
+    //printf("E\n");
     toml_table_t *music_table = toml_table_in(all_music_table,"Music");
-    printf("F\n");
+    //printf("F\n");
     toml_table_t *sound_table = toml_table_in(all_music_table,"Sound");
-    printf("G\n");
+    //printf("G\n");
     if (!sound_table) 
     {
         printf("Error parsing player.sav: %s\n", errbuf);
@@ -411,7 +411,6 @@ int main(int32_t argc, char* argv[])
                 }
                 now_own_item++;
                 printf("now_own_item = %d\n", now_own_item);
-
                 SDL_RenderClear(renderer);
                 // backpack_renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
                 // SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
@@ -596,7 +595,7 @@ int main(int32_t argc, char* argv[])
                     text++;
                     text[strlen(text)-1] = 0;
                     printf("%s\n",text);
-                    if (strcmp(command, "\"no name\"")==0)
+                    if (strcmp(command, "\"no name\"") == 0)
                     {
                         if (now_state == 0)
                         {
@@ -621,11 +620,20 @@ int main(int32_t argc, char* argv[])
                         toml_table_t* Character_id_table = toml_table_in(Character,command_cpy);
                         //printf("2\n");
                         toml_datum_t directory_copy = toml_string_in(Character_id_table, "directory");
+                        toml_datum_t name_copy = toml_string_in(Character_id_table, "name");
+                        toml_datum_t color_copy = toml_string_in(Character_id_table, "color");
+                        SDL_Color name_color = hexStringToSDL_Color(color_copy.u.s);
+                        char* character_name = calloc(1024,sizeof(char));
+                        strcpy(character_name,name_copy.u.s);
                         //char* directory = calloc(1024,sizeof(char));
                         //strcpy(directory,directory_copy);
                         //directory++;
                         //directory[strlen(directory)-1] = 0;
+                        int32_t name_x = 50;
+                        int32_t name_y = 300;
+                        dialogName_3(renderer,&resources, font, &character_name, name_color, &name_x, &name_y, w_w);
                         DisplayTheExpression(renderer, &resources, Character, directory_copy.u.s, command, mood);
+                        
                         if (now_state == 0)
                         {
                             //printf("0\n");
@@ -638,6 +646,7 @@ int main(int32_t argc, char* argv[])
                             now_state = 2;
                             had_hit_left = 0;
                             resources.expression_texture = NULL;
+                            resources.name_texture = NULL;
                         }
                     }
                     /*

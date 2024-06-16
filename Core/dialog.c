@@ -56,8 +56,8 @@ void MakeOption(RenderResources* resources, SDL_Renderer* renderer, const char* 
     SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
     //printf("D\n");
     // 获取文字的宽度和高度
-    int textWidth = textSurface->w*width_ratio;
-    int textHeight = textSurface->h*height_ratio;
+    int textWidth = (textSurface->w-5)*width_ratio;
+    int textHeight = (textSurface->h-5)*height_ratio;
     SDL_FreeSurface(textSurface);
     //printf("E\n");
     // 计算文字在按钮中的位置
@@ -304,7 +304,11 @@ void my_RenderPresent(SDL_Renderer* renderer, RenderResources* resources, int32_
         //printf("text_texture is OK\n");
         SDL_RenderCopy(renderer, resources->text_texture, NULL, &resources->text_renderQuad);
     }
-
+    if (resources->name_texture) 
+    {
+        //printf("text_texture is OK\n");
+        SDL_RenderCopy(renderer, resources->name_texture, NULL, &resources->name_Rect);
+    }
     // Option模式
     //printf("now state=%d\n",now_state);
     for (int32_t i = 0; i < 3; i++) 
@@ -919,4 +923,58 @@ void SaveIt(FILE* pPlayer_sav_file, const char* save_Background, const char* sav
         fputs(lines[i], pPlayer_sav_file);
     }
     fflush(pPlayer_sav_file); // Ensure all changes are written to the file
+}
+int32_t hexCharToInt(char c) 
+{
+    if (c >= '0' && c <= '9') {
+        return c - '0';
+    } else if (c >= 'A' && c <= 'F') {
+        return c - 'A' + 10;
+    } else if (c >= 'a' && c <= 'f') {
+        return c - 'a' + 10;
+    } else {
+        return -1;
+    }
+}
+
+// 將十六進制字符串轉換為SDL_Color
+SDL_Color hexStringToSDL_Color(const char* hexString) {
+    SDL_Color color = {0, 0, 0, 255}; // 默認顏色為黑色，不透明
+
+    if (hexString[0] == '#' && strlen(hexString) == 7) {
+        color.r = (hexCharToInt(hexString[1]) << 4) | hexCharToInt(hexString[2]);
+        color.g = (hexCharToInt(hexString[3]) << 4) | hexCharToInt(hexString[4]);
+        color.b = (hexCharToInt(hexString[5]) << 4) | hexCharToInt(hexString[6]);
+    } else {
+        fprintf(stderr, "Invalid hex color string: %s\n", hexString);
+    }
+
+    return color;
+}
+void dialogName_3(SDL_Renderer* renderer,RenderResources* resources, TTF_Font* font, char** text, SDL_Color textColor, int32_t* x, int32_t* y, int32_t max_w) //滑鼠點擊後全顯示
+{
+    SDL_Surface* textSurface;
+    //SDL_Texture* textTexture;
+    char *print_char = (*text);
+    textSurface = TTF_RenderUTF8_Blended_Wrapped(font, print_char, textColor,400);
+    resources->name_texture = SDL_CreateTextureFromSurface(renderer, textSurface);
+    SDL_SetTextureAlphaMod(resources->text_texture, 255);
+    int32_t text_width = textSurface->w;  // 文本寬度
+    int32_t text_height = textSurface->h; // 文本高度
+    int32_t now_x = *x;
+    int32_t now_y = *y;
+    /*
+    if (now_x >= max_w)
+    {
+        now_y += text_height;
+        now_x = *x;
+    }
+    */
+    SDL_Rect renderQuad = { now_x*width_ratio, now_y*height_ratio, text_width*width_ratio, text_height*height_ratio };  // 定義渲染區域
+    //resources->text_texture = textTexture;
+    resources->name_Rect = renderQuad;
+    //SDL_RenderCopy(renderer, textTexture, NULL, &renderQuad);  // 執行渲染操作
+    
+    //SDL_DestroyTexture(textTexture);  // 銷毀紋理資源
+    SDL_FreeSurface(textSurface);  // 釋放表面資源
 }

@@ -79,3 +79,6 @@ void Modify_Variable(FILE* pPlayer_sav_file, toml_table_t* Modify_table, char* v
 void initSaveButton(RenderResources* resources, SDL_Renderer* renderer, const char* text, TTF_Font* font);
 int32_t checkSaveButton(SDL_Event* e, Button* save_button);
 void SaveIt(FILE* pPlayer_sav_file, const char* save_Background, const char* save_Music, SetCharacterInfo save_Character, const char* save_Jump, int32_t save_col_idx);
+int32_t hexCharToInt(char c);
+SDL_Color hexStringToSDL_Color(const char* hexString);
+void dialogName_3(SDL_Renderer* renderer,RenderResources* resources, TTF_Font* font, char** text, SDL_Color textColor, int32_t* x, int32_t* y, int32_t max_w);
