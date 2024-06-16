@@ -1,0 +1,14 @@
+[eraser]
+name = "我的橡皮擦"
+description = "這是我的橡皮擦,我很喜歡"
+icon_path = "eraser.png"
+
+[pencil]
+name = "警長巴巴的鉛筆"
+description = "警長巴巴的鉛筆最酷了!"
+icon_path = "pencil.png"
+
+[buttle]
+name = "艾西莫夫的水壺"
+description = "這是艾西莫夫的未來水壺,遵守機器人三大法則,相信這是common sense吧!"
+icon_path = "waterbuttle.png"

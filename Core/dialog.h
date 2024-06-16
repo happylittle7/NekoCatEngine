@@ -22,6 +22,8 @@ static int32_t character_start_x = 50;
 static int32_t character_start_y = 320;
 static float width_ratio;
 static float height_ratio;
+
+#pragma once
 typedef struct 
 {
     SDL_Texture* text_texture;
@@ -29,7 +31,7 @@ typedef struct
     SDL_Texture* IMG_texture;
     SDL_Rect IMG_rect;
 } Button;
-typedef struct 
+typedef struct
 {
     SDL_Texture* background_texture;
     SDL_Texture* dialog_box_texture;
