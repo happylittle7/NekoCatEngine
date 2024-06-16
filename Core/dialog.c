@@ -244,31 +244,28 @@ void my_RenderPresent(SDL_Renderer* renderer, RenderResources* resources, int32_
     if (resources->background_texture) 
     {
         //printf("background_texture is OK\n");
-        if (now_state==2 || now_state==5)
-            SDL_RenderCopy(renderer, resources->background_texture, NULL, NULL);
+        SDL_RenderCopy(renderer, resources->background_texture, NULL, NULL);
     }
     
     // 渲染文字框
     if (resources->dialog_box_texture) 
     {
         //printf("dialog_box_texture is OK\n");
-        if (now_state == 2 || now_state==5)
-            SDL_RenderCopy(renderer, resources->dialog_box_texture, NULL, &resources->dialog_box_renderQuad);
+        SDL_RenderCopy(renderer, resources->dialog_box_texture, NULL, &resources->dialog_box_renderQuad);
     }
     
     // 渲染角色立绘
     if (resources->character_IMG_texture) 
     {
         //printf("character_IMG_texture is OK\n");
-        if (now_state == 2)
-            for (int32_t i=0 ; i<3 ; i++)
+        for (int32_t i=0 ; i<3 ; i++)
+        {
+            if (resources->character_IMG_texture[i]!=NULL)
             {
-                if (resources->character_IMG_texture[i]!=NULL)
-                {
-                    //printf("here\n");
-                    SDL_RenderCopy(renderer, resources->character_IMG_texture[i], NULL, (resources->character_IMG_renderQuads[i])); // 此處尚未完成
-                }
+                //printf("here\n");
+                SDL_RenderCopy(renderer, resources->character_IMG_texture[i], NULL, (resources->character_IMG_renderQuads[i])); // 此處尚未完成
             }
+        }
         
     }
     //printf("B\n");
@@ -276,8 +273,7 @@ void my_RenderPresent(SDL_Renderer* renderer, RenderResources* resources, int32_
     if (resources->expression_texture) 
     {
         //printf("expression_texture is OK\n");
-        if (now_state == 2)
-            SDL_RenderCopy(renderer, resources->expression_texture, NULL, &resources->expression_renderQuad);
+        SDL_RenderCopy(renderer, resources->expression_texture, NULL, &resources->expression_renderQuad);
     }
     // 渲染文字
     if (resources->text_texture) 
@@ -385,6 +381,33 @@ void dialogText_2(SDL_Renderer* renderer,RenderResources* resources, TTF_Font* f
     //SDL_RenderCopy(renderer, textTexture, NULL, &renderQuad);  // 執行渲染操作
     *print_char = 0;
     *text = print_char;
+    //SDL_DestroyTexture(textTexture);  // 銷毀紋理資源
+    SDL_FreeSurface(textSurface);  // 釋放表面資源
+}
+void dialogText_3(SDL_Renderer* renderer,RenderResources* resources, TTF_Font* font, char** text, SDL_Color textColor, int32_t* x, int32_t* y, int32_t max_w) //滑鼠點擊後全顯示
+{
+    SDL_Surface* textSurface;
+    //SDL_Texture* textTexture;
+    char *print_char = (*text);
+    textSurface = TTF_RenderUTF8_Solid(font, print_char, textColor);
+    resources->text_texture = SDL_CreateTextureFromSurface(renderer, textSurface);
+    SDL_SetTextureAlphaMod(resources->text_texture, 255);
+    int32_t text_width = textSurface->w;  // 文本寬度
+    int32_t text_height = textSurface->h; // 文本高度
+    int32_t now_x = *x;
+    int32_t now_y = *y;
+    /*
+    if (now_x >= max_w)
+    {
+        now_y += text_height;
+        now_x = *x;
+    }
+    */
+    SDL_Rect renderQuad = { now_x*width_ratio, now_y*height_ratio, text_width*width_ratio, text_height*height_ratio };  // 定義渲染區域
+    //resources->text_texture = textTexture;
+    resources->text_renderQuad = renderQuad;
+    //SDL_RenderCopy(renderer, textTexture, NULL, &renderQuad);  // 執行渲染操作
+    
     //SDL_DestroyTexture(textTexture);  // 銷毀紋理資源
     SDL_FreeSurface(textSurface);  // 釋放表面資源
 }

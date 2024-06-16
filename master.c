@@ -277,11 +277,29 @@ int main(int32_t argc, char* argv[])
             toml_table_t *entry = toml_table_at(script_list, col_in_script);
             if (!entry) continue;
             const char *action = toml_raw_in(entry, "action");
-            printf("%s\n",action);
+            //printf("%s\n",action);
             if (strcmp(action, "\"Dialog\"") == 0)
             {
                 const char *command = toml_raw_in(entry, "command");
-                const char *text = toml_raw_in(entry, "text");
+                const char *text_copy = toml_raw_in(entry, "text");
+                char* text = calloc(1024,sizeof(char));
+                strcpy(text, text_copy);
+                text++;
+                text[strlen(text)-1] = 0;
+                printf("%s\n",text);
+                if (now_state == 0)
+                {
+                    printf("0\n");
+                    dialogText_3(renderer,&resources, font, &text, textColor, &print_text_x, &print_text_y, w_w);
+                    now_state = 1;
+                    had_hit_left = 0;
+                }
+                else if (now_state == 1 && had_hit_left==1)
+                {
+                    now_state = 2;
+                    had_hit_left = 0;
+                }
+                /*
                 if (text != NULL && pr_text == NULL)
                 {
                     pr_text = calloc(strlen(text),sizeof(char));
@@ -346,6 +364,7 @@ int main(int32_t argc, char* argv[])
                 {
                     now_state = 1;
                 }
+                */
             }
             else if (strcmp(action, "\"SetCharacter\"")==0)
             {
