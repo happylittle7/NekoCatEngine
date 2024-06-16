@@ -651,12 +651,39 @@ int32_t IsOverGap(toml_table_t *Player_Variable, toml_array_t* variable_array, t
         }
         
         // 获取模式和比较值
-        int mode = toml_int_at(mode_array, i).u.i;
+        char* mode = toml_string_at(mode_array, i).u.s;
         int64_t gap = toml_int_at(gap_array, i).u.i;
         
         //printf("%ld %ld\n",var_value.u.i,gap);
         //printf("D\n");
         // 根据模式进行比较
+        if (strcmp(mode,">")==0)
+        {
+            if (var_value.u.i <= gap) 
+            {
+                return 0;
+            }
+        }
+        else if (strcmp(mode,"=")==0)
+        {
+            if (var_value.u.i != gap) 
+            {
+                return 0;
+            }
+        }
+        else if (strcmp(mode,"<")==0)
+        {
+            if (var_value.u.i >= gap) 
+            {
+                return 0;
+            }
+        }
+        else
+        {
+            fprintf(stderr, "Invalid mode value %s\n", mode);
+            return 0;
+        }
+        /*
         switch (mode) {
             case 1: // 大于
                 if (var_value.u.i <= gap) {
@@ -677,8 +704,10 @@ int32_t IsOverGap(toml_table_t *Player_Variable, toml_array_t* variable_array, t
                 fprintf(stderr, "Invalid mode value %d\n", mode);
                 return 0;
         }
+        */
     }
     //printf("E\n");
+    printf("now is OK Yes Is 1\n");
     return 1;
 }
 int32_t init_music() 

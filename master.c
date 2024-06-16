@@ -792,8 +792,8 @@ int main(int32_t argc, char* argv[])
                 }
                 else if (strcmp(action, "\"Jump\"") == 0)
                 {
+                    printf("IN the Jump\n");
                     const char *label_id = toml_raw_in(entry, "label_id");
-                    
                     char *label_id_copy = calloc(1024,sizeof(char));
                     strcpy(label_id_copy,label_id);
                     label_id_copy++;
@@ -819,7 +819,7 @@ int main(int32_t argc, char* argv[])
                     }
                     if (variable_array != NULL)
                     {
-                        //printf("E\n");
+                        printf("now_here is %d\n",IsOverGap(Player_Variable, variable_array,mode_array,gap_array));
                         if (IsOverGap(Player_Variable, variable_array,mode_array,gap_array) == 1)
                         {
                             now_script = toml_table_in(Script,label_id_copy);
