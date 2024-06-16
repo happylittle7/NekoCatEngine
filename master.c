@@ -296,6 +296,20 @@ int main(int32_t argc, char* argv[])
         }
         printf("D\n");
     }
+    if (option == 3)
+    {
+        //printf("A\n");
+        now_script = toml_table_in(Player_V,"Other");
+        //printf("B\n");
+        script_list = toml_array_in(now_script, "script");
+        if (script_list == NULL)
+        {
+            //printf("C\n");
+            now_script = toml_table_in(Script,"Start");
+            script_list = toml_array_in(now_script, "script");
+        }
+        //printf("D\n");
+    }
     
     char save_Background[1024] = {0};
     char save_Music[1024] = {0};
@@ -308,7 +322,7 @@ int main(int32_t argc, char* argv[])
     int32_t save_col_idx = 0;
     strcpy(save_Jump,"Start");
     
-    if (option == 1|| option == 2||option == 3){
+    if (option == 1|| option == 2 || option == 3){
         while (!quit) {
             had_hit_left = 0;
             while (SDL_PollEvent(&e) != 0) 

@@ -5,7 +5,9 @@
 
 
 char *openai_key;
-
+CURL *curl;
+char all_sentence[1024][1024] = {0};
+/*
 int main(){
     cJSON* cjson_test = NULL;
     cjson_test = cJSON_CreateObject();
@@ -74,3 +76,4 @@ int main(){
 
     return 0;
 }
+*/
