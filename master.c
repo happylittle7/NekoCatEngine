@@ -136,27 +136,27 @@ int main(int32_t argc, char* argv[])
     pCharacter_file = fopen("./character.nekocat/charcter.toml", "r");
     if (!pCharacter_file) 
     {
-        printf("Error!\n");
+        printf("Error: can't open character.toml\n");
     }
-    pScript_file = fopen("script.toml", "r");
+    pScript_file = fopen("script.nekocat", "r");
     if (!pScript_file) 
     {
-        printf("Error!\n");
+        printf("Error: can't open script.nekocat\n");
     }
     pPlayer_sav_file = fopen("player.sav", "r");
     if (!pPlayer_sav_file) 
     {
-        printf("Error!\n");
+        printf("Error: can't open player.sav\n");
     }
     pbackground_file = fopen("./assets.nekocat/background.toml", "r");
     if (!pbackground_file) 
     {
-        printf("Error!\n");
+        printf("Error: can't open background.toml\n");
     }
     pmusic_file = fopen("./assets.nekocat/music.toml", "r");
     if (!pmusic_file) 
     {
-        printf("Error!\n");
+        printf("Error: can't open music.toml\n");
     }
     
     char errbuf[200];
@@ -397,13 +397,13 @@ int main(int32_t argc, char* argv[])
             // printf("test 08-7\n");
 
             // 测试加载图像
-            SDL_Surface *temp_surface = IMG_Load("./item.nekocat/eraser.png");
-            if (!temp_surface) {
-                printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
-                IMG_Quit();
-                return -1;
-            }
-            SDL_FreeSurface(temp_surface);
+            // SDL_Surface *temp_surface = IMG_Load("./item.nekocat/eraser.png");
+            // if (!temp_surface) {
+            //     printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
+            //     IMG_Quit();
+            //     return -1;
+            // }
+            // SDL_FreeSurface(temp_surface);
             
             // printf("test 07\n");
             
@@ -430,7 +430,7 @@ int main(int32_t argc, char* argv[])
                 }
                 char *temp;
                 temp = (char *)malloc(sizeof(char) * 100);
-                snprintf(temp, 100, "./item.nekocat/%s", image_path[i]);
+                snprintf(temp, 100, "./Assets/item/%s", image_path[i]);
                 // printf("temp = %s\n", temp);
                 // printf("test 08-6-1\n");
                 SDL_Surface *item_surface = IMG_Load(temp);
