@@ -24,13 +24,13 @@ script = [
 ]
 [Ending_1]
 script = [
-    { action = "Dialog", command = "no name", text = "Hello world!"},
+    { action = "Dialog", command = "no name", text = "Ending_1"},
 ]
 [Ending_2]
 script = [
-    { action = "Dialog", command = "no name", text = "Hello world!"},
+    { action = "Dialog", command = "no name", text = "Ending_2"},
 ]
 [Ending_3]
 script = [
-    { action = "Dialog", command = "no name", text = "Hello world!"},
+    { action = "Dialog", command = "no name", text = "Ending_3"},
 ]
