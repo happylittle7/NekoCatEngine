@@ -493,8 +493,8 @@ void displayIMG(SDL_Renderer* renderer, RenderResources *resources, toml_table_t
         free(Character_id_cpy);
         return;
     }
-    toml_array_t *sprites_png_list = toml_array_in(now_character, "sprites_png_list");
-    if (!sprites_png_list) {
+    toml_array_t *sprites_image_list = toml_array_in(now_character, "sprites_image_list");
+    if (!sprites_image_list) {
         fprintf(stderr, "Error: Sprites PNG list not found in character for command '%s'\n", Character_id_cpy);
         free(Character_id_cpy);
         return;
@@ -503,7 +503,7 @@ void displayIMG(SDL_Renderer* renderer, RenderResources *resources, toml_table_t
     for (int32_t i = 0; i < emoSize; i++) {
         const char* now_emo = toml_string_at(sprites_list, i).u.s;
         if (strcmp(now_emo, mood) == 0) {
-            const char* now_emo_path = toml_string_at(sprites_png_list, i).u.s;
+            const char* now_emo_path = toml_string_at(sprites_image_list, i).u.s;
             char full_path[512];
             snprintf(full_path, sizeof(full_path), "./Assets/%s/character/%s", directory, now_emo_path);
             ///now_emo_path要加上./character.nekocat/image/
@@ -568,25 +568,26 @@ void DisplayTheExpression(SDL_Renderer* renderer, RenderResources *resources, to
         return;
     }
     
-    toml_array_t *sprites_list = toml_array_in(now_character, "sprites_list");
-    if (!sprites_list) 
+    toml_array_t *expressions_list = toml_array_in(now_character, "expressions_list");
+    if (!expressions_list) 
     {
-        fprintf(stderr, "Error: Sprites list not found in character for command '%s'\n", command_cpy);
+        fprintf(stderr, "Error: expressions_list not found in character for command '%s'\n", command_cpy);
         return;
     }
-    toml_array_t *sprites_png_list = toml_array_in(now_character, "sprites_png_list");
-    if (!sprites_png_list) 
+    toml_array_t *expressions_image_list = toml_array_in(now_character, "expressions_image_list");
+    if (!expressions_image_list) 
     {
-        fprintf(stderr, "Error: Sprites list not found in character for command '%s'\n", command_cpy);
+        fprintf(stderr, "Error: expressions_list found in character for command '%s'\n", command_cpy);
         return;
     }
-    int32_t emoSize = toml_array_nelem(sprites_list);
+    int32_t emoSize = toml_array_nelem(expressions_list);
     for (int32_t i = 0; i < emoSize; i++) 
     {
-        const char* now_emo = toml_string_at(sprites_list, i).u.s;
+        const char* now_emo = toml_string_at(expressions_list, i).u.s;
         char* mood_copy = calloc(1024,sizeof(char));
         strcpy(mood_copy,now_emo);
         char* the_mood = calloc(1024,sizeof(char));
+        printf("the_mood = %s",the_mood);
         strcpy(the_mood,mood);
         //printf("before the_mood = %s\n",the_mood);
         the_mood++;
@@ -596,7 +597,7 @@ void DisplayTheExpression(SDL_Renderer* renderer, RenderResources *resources, to
         if (strcmp(mood_copy, the_mood) == 0) 
         {
             ///此處要加 character.nekocat 的路徑
-            const char* now_emo_path = toml_string_at(sprites_png_list, i).u.s;
+            const char* now_emo_path = toml_string_at(expressions_image_list, i).u.s;
             //printf("path = %s\n",now_emo_path);
             char full_path[512];
             snprintf(full_path, sizeof(full_path), "./Assets/%s/%s", directory,now_emo_path);

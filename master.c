@@ -258,7 +258,7 @@ int main(int32_t argc, char* argv[])
     }
     //printf("B\n");
     
-    toml_table_t *Player_Items = toml_table_in(Script,"Items");
+    toml_table_t *Player_Items = toml_table_in(Script,"Item");
     printf("G\n");
     toml_array_t *script_list = toml_array_in(now_script, "script");
     printf("F\n");
@@ -608,12 +608,13 @@ int main(int32_t argc, char* argv[])
                 {
                     const char *command = toml_raw_in(entry, "command");
                     const char *text_copy = toml_raw_in(entry, "text");
+                    const char *mood = toml_raw_in(entry, "mood");
                     char* text = calloc(1024,sizeof(char));
                     strcpy(text, text_copy);
                     text++;
                     text[strlen(text)-1] = 0;
                     printf("%s\n",text);
-                    if (strcmp(command, "\"no name\"") == 0)
+                    if (strcmp(command, "\"no name\"") == 0 || mood==NULL)
                     {
                         if (now_state == 0)
                         {
@@ -630,7 +631,7 @@ int main(int32_t argc, char* argv[])
                     }
                     else
                     {
-                        const char *mood = toml_raw_in(entry, "mood");
+                        
                         char* command_cpy = calloc(1024,sizeof(char));
                         strcpy(command_cpy,command);
                         command_cpy++;
