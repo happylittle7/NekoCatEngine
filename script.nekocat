@@ -15,7 +15,7 @@ script = [
     { action = "SetCharacter", number = 0},
     { action = "Sound", sound_id = "sound_1"},
     { action = "Dialog", command = "no name", text = "I love you!"},
-    { action = "Jump", label_id = "script_2", variable = ["HP","ohmLove"], mode = [1,1], gap = [50,100]},
+    { action = "Jump", label_id = "script_2", variable = ["HP","ohmLove"], mode = [">",">"], gap = [50,100]},
 ]
 [script_2]
 script = [

@@ -1,14 +1,14 @@
 [Variable]
-HP = 1100
-ohmLove = 999
+HP = 49
+ohmLove = 49
 
 [Items]
-pen = -2
+pen = -46
 computer = 1
 [Other]
 script = [
     { action = "Background", background = "background_1"},
     { action = "Music", music_id = "BGM_1"},
     { action = "SetCharacter", number = 2, command_list = ["ohm", "ohmf"], mood_list = ["Normal", "sad"]},
-    { action = "Jump", label_id = "Start", col_idx = 8},
+    { action = "Jump", label_id = "Start", col_idx = 11},
 ]
