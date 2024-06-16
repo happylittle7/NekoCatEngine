@@ -303,7 +303,7 @@ void my_RenderPresentForBackpack(SDL_Renderer *renderer, backpackResources *reso
                     SDL_Quit();
                     return;
                 }
-                block_x = block_x + block_w * 0.1;
+                block_x = block_x + block_w * 0.03;
                 block_y = block_y + block_h * 0.1;
                 block_w = block_w * 0.8;
 
@@ -467,8 +467,9 @@ void freeBackpackResources(backpackResources* resources)
 void multipleLineDialogText(SDL_Renderer* renderer, backpackResources *resources, TTF_Font* font, char** text, SDL_Color textColor, int32_t* x, int32_t* y, int32_t max_w){
     SDL_Surface* textSurface;
     //SDL_Texture* textTexture;
+    printf("text = %s\n", (*text));
     char *print_char = (*text);
-    textSurface = TTF_RenderUTF8_Blended_Wrapped(font, print_char, textColor,200);
+    textSurface = TTF_RenderUTF8_Blended_Wrapped(font, print_char, textColor,625);
     resources->text_texture = SDL_CreateTextureFromSurface(renderer, textSurface);
     SDL_SetTextureAlphaMod(resources->text_texture, 255);
     int32_t text_width = textSurface->w;  // 文本寬度
@@ -482,9 +483,16 @@ void multipleLineDialogText(SDL_Renderer* renderer, backpackResources *resources
         now_x = *x;
     }
     */
-    SDL_Rect renderQuad = { now_x*width_ratio, now_y*height_ratio, text_width*width_ratio, text_height*height_ratio };  // 定義渲染區域
+    printf("width = %d, height = %d\n", text_width, text_height);
+    SDL_Rect renderQuad = { now_x, now_y, text_width, text_height };  // 定義渲染區域
+    // SDL_Rect renderQuad = { now_x*width_ratio, now_y*height_ratio, text_width*width_ratio, text_height*height_ratio };  // 定義渲染區域
     //resources->text_texture = textTexture;
-    resources->text_renderQuad = renderQuad;
+    resources->text_renderQuad.x = renderQuad.x;
+    resources->text_renderQuad.y = renderQuad.y;
+    resources->text_renderQuad.w = renderQuad.w;
+    resources->text_renderQuad.h = renderQuad.h;
+    //printf("x = %d, y = %d\n", renderQuad.x, renderQuad.y);
+    printf("x = %d, y = %d\n", renderQuad.x, renderQuad.y);
     //SDL_RenderCopy(renderer, textTexture, NULL, &renderQuad);  // 執行渲染操作
     
     //SDL_DestroyTexture(textTexture);  // 銷毀紋理資源

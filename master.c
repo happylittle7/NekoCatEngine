@@ -245,6 +245,7 @@ int main(int32_t argc, char* argv[])
     Mix_Music* bgm = NULL;
     while (!quit) 
     {
+        had_hit_left = 0;
         while (SDL_PollEvent(&e) != 0) 
         {
             judge_button = handleButtonEvents( &e,  &resources);
