@@ -3,7 +3,6 @@
 #include <curl/curl.h>
 #include <string.h>
 
-
 char *openai_key;
 CURL *curl;
 char all_sentence[1024][1024] = {0};
@@ -77,3 +76,4 @@ int main(){
     return 0;
 }
 */
+char* llm_mode();
