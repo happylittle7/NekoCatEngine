@@ -5,7 +5,7 @@ icon_path = "eraser.png"
 
 [pencil]
 name = "警長巴巴的鉛筆"
-description = "這是我的橡皮擦,我很喜歡"
+description = "這是我的鉛筆,我很喜歡"
 icon_path = "pencil.png"
 
 [waterbuttle]
