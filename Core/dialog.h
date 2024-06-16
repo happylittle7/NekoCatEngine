@@ -61,6 +61,7 @@ void DisplayTheExpression(SDL_Renderer* renderer, RenderResources *resources, to
 void my_RenderPresent(SDL_Renderer* renderer, RenderResources* resources, int32_t now_state);
 int32_t IsOverGap(toml_table_t *Player_Variable, toml_array_t* variable_array, toml_array_t* mode_array, toml_array_t* gap_array);
 int32_t init_music();
+Mix_Chunk* load_sound(const char* file);
 void initLeaveButton(RenderResources* resources, SDL_Renderer* renderer, const char* text, TTF_Font* font);
 void MakeOption(RenderResources* resources, SDL_Renderer* renderer, const char* optionContent_id, TTF_Font* font, int32_t index, int32_t totalOptions);
-//void adjustToFullscreen(RenderResources* resources, int32_t window_width, int32_t window_height, int32_t fullscreen_width, int32_t fullscreen_height);
+void Modify_Variable(FILE* pPlayer_sav_file, toml_table_t* Modify_table, char* variable_name,const char* plus);

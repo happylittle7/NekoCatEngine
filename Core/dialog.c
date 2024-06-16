@@ -61,7 +61,7 @@ void MakeOption(RenderResources* resources, SDL_Renderer* renderer, const char* 
     SDL_FreeSurface(textSurface);
     //printf("E\n");
     // 计算文字在按钮中的位置
-    SDL_Rect textRect = {buttonX + (buttonWidth - textWidth) / 2, buttonY + (buttonHeight - textHeight) / 2, textWidth, textHeight};
+    SDL_Rect textRect = {(buttonX + (buttonWidth - textWidth) / 2)*width_ratio, (buttonY + (buttonHeight - textHeight) / 2)*height_ratio, textWidth*width_ratio, textHeight*height_ratio};
     //printf("F\n");
     // 设置按钮对象的属性
     resources->now_option_button[index]->text_texture = textTexture;
@@ -287,12 +287,12 @@ void my_RenderPresent(SDL_Renderer* renderer, RenderResources* resources, int32_
     }
 
     // Option模式
-    printf("now state=%d\n",now_state);
+    //printf("now state=%d\n",now_state);
     for (int32_t i = 0; i < 3; i++) 
     {
         if (now_state == 3)
         {
-            printf("here_now_state = %d\n",now_state);
+            //printf("here_now_state = %d\n",now_state);
             if (resources->now_option_button[i]!=NULL) 
             {
                 renderButton(renderer, resources->now_option_button[i]);
@@ -641,6 +641,14 @@ int32_t init_music()
 
     return 1;
 }
+Mix_Chunk* load_sound(const char* file) 
+{
+    Mix_Chunk* sound = Mix_LoadWAV(file);
+    if (sound == NULL) {
+        printf("Failed to load sound effect! SDL_mixer Error: %s\n", Mix_GetError());
+    }
+    return sound;
+}
 void initLeaveButton(RenderResources* resources, SDL_Renderer* renderer, const char* text, TTF_Font* font) {
     SDL_Color textColor = {0, 0, 0, 255};  // Black color for text
     SDL_Color bgColor = {255, 255, 255, 255};  // White color for button background
@@ -667,4 +675,68 @@ void initLeaveButton(RenderResources* resources, SDL_Renderer* renderer, const c
     SDL_SetRenderTarget(renderer, NULL);
     resources->leave_button->IMG_texture = button_bg_texture;
     resources->leave_button->IMG_rect = rect;
+}
+void Modify_Variable(FILE* pPlayer_sav_file, toml_table_t* Modify_table, char* variable_name, const char* plus) {
+    // Step 1: Find the variable_name and modify its value in Modify_table
+    toml_datum_t var_value = toml_int_in(Modify_table, variable_name);
+    if (!var_value.ok) {
+        fprintf(stderr, "Error: Variable %s not found\n", variable_name);
+        return;
+    }
+
+    int32_t current_value = var_value.u.i;
+    int32_t new_value;
+
+    // Determine if plus is a signed change or direct assignment
+    if (plus[0] == '+' || plus[0] == '-') {
+        new_value = current_value + atoi(plus);
+    } else {
+        new_value = atoi(plus);
+    }
+
+    char new_value_str[32];
+    sprintf(new_value_str, "%d", new_value);
+
+    // Step 2: Read file content into a string array
+    char lines[1024][1024];
+    int line_count = 0;
+
+    fseek(pPlayer_sav_file, 0, SEEK_SET);
+    while (fgets(lines[line_count], 1024, pPlayer_sav_file)) {
+        line_count++;
+    }
+
+    // Step 3: Modify the variable value in the string array
+    for (int i = 0; i < line_count; i++) {
+        char* pos = strstr(lines[i], variable_name);
+        if (pos) {
+            char* equal_sign = strchr(pos, '=');
+            if (equal_sign) {
+                sprintf(equal_sign + 2, "%d\n", new_value); // +2 to skip over "= "
+                break;
+            }
+        }
+    }
+
+    // Step 4: Close and reopen the file to write the modified content
+    fclose(pPlayer_sav_file);
+    pPlayer_sav_file = fopen("player.sav", "w");
+    if (!pPlayer_sav_file) {
+        fprintf(stderr, "Error: Unable to open file for writing\n");
+        return;
+    }
+
+    for (int i = 0; i < line_count; i++) {
+        fputs(lines[i], pPlayer_sav_file);
+    }
+
+    fflush(pPlayer_sav_file); // Ensure all changes are written to the file
+    fclose(pPlayer_sav_file);
+
+    // Reopen the file for reading and writing
+    pPlayer_sav_file = fopen("player.sav", "r+");
+    if (!pPlayer_sav_file) {
+        fprintf(stderr, "Error: Unable to reopen file\n");
+        return;
+    }
 }
