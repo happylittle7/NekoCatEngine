@@ -146,6 +146,7 @@ void initRenderResources(RenderResources* resources) {
     resources->text_texture = NULL;
     resources->expression_texture = NULL;
     resources->name_texture = NULL;
+    resources->name_box_texture = NULL;
     resources->leave_button = NULL;
     resources->save_button = NULL;
 
@@ -178,7 +179,7 @@ void freeRenderResources(RenderResources* resources) {
         SDL_DestroyTexture(resources->text_texture);
         resources->text_texture = NULL;
     }
-
+    
     if (resources->expression_texture) {
         SDL_DestroyTexture(resources->expression_texture);
         resources->expression_texture = NULL;
@@ -189,6 +190,10 @@ void freeRenderResources(RenderResources* resources) {
         resources->name_texture = NULL;
     }
 
+    if (resources->name_box_texture) {
+        SDL_DestroyTexture(resources->name_box_texture);
+        resources->name_box_texture = NULL;
+    }
     if (resources->leave_button) {
         if (resources->leave_button->text_texture) {
             SDL_DestroyTexture(resources->leave_button->text_texture);
@@ -299,6 +304,10 @@ void my_RenderPresent(SDL_Renderer* renderer, RenderResources* resources, int32_
         SDL_RenderCopy(renderer, resources->expression_texture, NULL, &resources->expression_renderQuad);
     }
     // 渲染文字
+    if(resources->name_box_texture)
+    {
+        SDL_RenderCopy(renderer, resources->name_box_texture, NULL, &resources->name_Rect);
+    }
     if (resources->text_texture) 
     {
         //printf("text_texture is OK\n");
@@ -309,6 +318,7 @@ void my_RenderPresent(SDL_Renderer* renderer, RenderResources* resources, int32_
         //printf("text_texture is OK\n");
         SDL_RenderCopy(renderer, resources->name_texture, NULL, &resources->name_Rect);
     }
+
     // Option模式
     //printf("now state=%d\n",now_state);
     for (int32_t i = 0; i < 3; i++) 
@@ -806,9 +816,9 @@ void Modify_Variable(FILE* pPlayer_sav_file, toml_table_t* Modify_table, char* v
     }
 }
 void initLeaveButton(RenderResources* resources, SDL_Renderer* renderer, const char* text, TTF_Font* font) {
-    SDL_Color textColor = {0, 0, 0, 255};  // Black color for text
-    SDL_Color bgColor = {255, 255, 255, 255};  // White color for button background
-    SDL_Rect rect = {590*width_ratio, 0*height_ratio, 50*width_ratio, 50*height_ratio};  // Adjusted the size for better button appearance
+    SDL_Color textColor = {255, 255, 255, 255};  // Black color for text
+    SDL_Color bgColor = {0, 0, 0, 200};  // White color for button background
+    SDL_Rect rect = {585*width_ratio, 10*height_ratio, 50*width_ratio, 50*height_ratio};  // Adjusted the size for better button appearance
 
     resources->leave_button = (Button*)malloc(sizeof(Button));
 
@@ -821,7 +831,7 @@ void initLeaveButton(RenderResources* resources, SDL_Renderer* renderer, const c
     int32_t text_height = textSurface->h *height_ratio; // 文本高度
     SDL_FreeSurface(textSurface);
     
-    resources->leave_button->text_rect = (SDL_Rect){rect.x + (rect.w - text_width) / 2, rect.y + (rect.h - text_height) / 2, text_width, text_height};
+    resources->leave_button->text_rect = (SDL_Rect){rect.x + (rect.w - text_width) / 2, rect.y + (rect.h - text_height) / 2, text_width, text_height * 1.2};
 
     // Initialize background rectangle (button background)
     SDL_Texture* button_bg_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, rect.w, rect.h);
@@ -834,11 +844,11 @@ void initLeaveButton(RenderResources* resources, SDL_Renderer* renderer, const c
 }
 void initSaveButton(RenderResources* resources, SDL_Renderer* renderer, const char* text, TTF_Font* font) 
 {
-    SDL_Color textColor = {0, 0, 0, 255};  // 黑色文字
-    SDL_Color bgColor = {255, 255, 255, 255};  // 白色背景
+    SDL_Color textColor = {255, 255, 255, 255};  // 白色文字
+    SDL_Color bgColor = {0, 0, 0, 200};  // 黑色背景
 
     // 设置按钮位置和大小
-    SDL_Rect rect = {590*width_ratio, 100*height_ratio, 50*width_ratio, 50*height_ratio};  // 您可以根据需要调整这些值
+    SDL_Rect rect = {585*width_ratio, 110*height_ratio, 50*width_ratio, 50*height_ratio};  // 您可以根据需要调整这些值
 
     resources->save_button = (Button*)malloc(sizeof(Button));
 
@@ -861,7 +871,7 @@ void initSaveButton(RenderResources* resources, SDL_Renderer* renderer, const ch
     SDL_FreeSurface(textSurface);
 
     // 计算文字在按钮中的位置
-    SDL_Rect textRect = {(rect.x + (rect.w - textWidth) / 2), (rect.y + (rect.h - textHeight) / 2), textWidth, textHeight};
+    SDL_Rect textRect = {(rect.x + (rect.w - textWidth) / 2), (rect.y + (rect.h - textHeight) / 2), textWidth, textHeight * 1.1};
     resources->save_button->text_rect = textRect;
 }
 int32_t checkSaveButton(SDL_Event* e, Button* save_button) 

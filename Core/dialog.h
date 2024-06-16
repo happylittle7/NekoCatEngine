@@ -41,6 +41,7 @@ typedef struct
     SDL_Texture* expression_texture;
     SDL_Rect expression_renderQuad;
     SDL_Texture* name_texture;
+    SDL_Texture* name_box_texture;
     SDL_Rect name_Rect;
     SDL_Texture** character_IMG_texture;
     SDL_Rect** character_IMG_renderQuads;
