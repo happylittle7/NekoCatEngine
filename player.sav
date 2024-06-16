@@ -1,5 +1,7 @@
 [Variable]
-HP = 1200
+HP = 1156
 ohmLove = 999
 
 [Items]
+pen = -23
+computer = 1
