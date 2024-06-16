@@ -11,9 +11,8 @@
 和文字渲染位置無關，更改文字渲染位置，問題依然存在
 和文字框渲染無關，註解文字框渲染程式，問題碼依然存在
 */
-#include "Core/openning.h"
-#include "Core/dialog.h"
-#include "Core/backpack.h"
+#include "./Core/dialog.h"
+#include "./Core/backpack.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,6 +25,7 @@
 #define WHITE 255, 255, 255
 #define BLACK 0, 0, 0
 static int32_t quit = 0;
+// #include "final_header"
 
 static int32_t text_start_x = 50;
 static int32_t text_start_y = 370;
@@ -63,32 +63,7 @@ int main(int32_t argc, char* argv[])
     SDL_Init(SDL_INIT_VIDEO);  // 初始化 SDL2
     TTF_Init();  // 初始化 SDL_ttf
     IMG_Init(IMG_INIT_PNG);
-    char* font_path = "./Assets/font/Cubic_11_1.100_R.ttf";
-
-     // Initialize data and path
-    openningData data;
-    openningPath path;
-    openningDataInit(&data); // Initialize pre-defined data
-    strcpy(data.title, "貓貓のengine哈哈屁眼party");
-    strcpy(path.backgroundPath, "./Assets/image/start_background.png");
-    strcpy(path.fontPath, font_path);
-    strcpy(path.blackButtonPath, "./Assets/image/black_button.png");
-    strcpy(path.whiteButtonPath, "./Assets/image/white_button.png");
-
-    // Create window
-    SDL_Window* window = SDL_CreateWindow("Openning", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_RESIZABLE);
-    if (!window) 
-    {
-        printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
-        return -1;
-    }
-    SDL_SetWindowFullscreen( window, SDL_WINDOW_FULLSCREEN); // Fullscreen
-
-    // open the openning window
-    int32_t option = openningMain(&data, &path, window);
-
-
-    SDL_Surface* loaded_dialog_box = IMG_Load("./Assets/dialog_box.png"); ///這裡的路徑之後會有變化
+    SDL_Surface* loaded_dialog_box = IMG_Load("./assets.nekocat/dialog_box.png"); ///這裡的路徑之後會有變化
     if (!loaded_dialog_box) 
     {
         printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
@@ -96,43 +71,31 @@ int main(int32_t argc, char* argv[])
     }
     int32_t w_w = 640;
     int32_t w_h = 480;
-    //int32_t fullscreen_width = 700;
-    //int32_t fullscreen_height = 700;
-    //width_ratio = (float)fullscreen_width/(float)w_w;
-    //height_ratio = (float)fullscreen_height/(float)w_h;
-    
-    
-    //printf("%f %f\n",width_ratio,height_ratio);
-    //SDL_Window* window = SDL_CreateWindow("Hello SDL2", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, w_w, w_h, SDL_WINDOW_SHOWN);
-    
-    
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND); // 设置混合模式
-    
-    //SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
-    /*
-    SDL_DisplayMode dm;
-    if (SDL_GetCurrentDisplayMode(0, &dm) != 0) 
+    SDL_Window* window = SDL_CreateWindow("Hello SDL2", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, w_w, w_h, SDL_WINDOW_SHOWN);
+    if (!window) 
     {
-        SDL_Log("SDL_GetCurrentDisplayMode failed: %s", SDL_GetError());
+        printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
         return 1;
     }
-    */
-    int32_t fullscreen_width;
-    int32_t fullscreen_height;
-    SDL_GetWindowSize(window, &fullscreen_width, &fullscreen_height);
-    
-    
-    change_ratio(fullscreen_width,w_w,fullscreen_height,w_h);
-    
+ 
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    SDL_Renderer *backpack_renderer = NULL;
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND); // 设置混合模式
     RenderResources resources;
+    RenderResources backpack_resources;
     initRenderResources(&resources);
-    backpackResources backpack_resources;
-    initBackpackResources(&backpack_resources);
-    // RenderResources backpack_resources;
-    // initRenderResources(&backpack_resources);
+    initRenderResources(&backpack_resources);
+    //resources.background_texture = SDL_CreateTextureFromSurface(renderer, background_surface);
     resources.dialog_box_texture = SDL_CreateTextureFromSurface(renderer, loaded_dialog_box);
+    //SDL_Texture* backgroundTexture = SDL_CreateTextureFromSurface(renderer, background_surface);
+    //SDL_Texture* dialog_box_texture = SDL_CreateTextureFromSurface(renderer, loaded_dialog_box);
+    //SDL_Texture* my_ohm_Normal_texture = SDL_CreateTextureFromSurface(renderer, my_ohm_Normal);
     SetDialogBox(renderer, &resources, dialogBox_start_x, dialogBox_start_y, 640, 130, 255);
+    //resources.background_texture = backgroundTexture;
+    //resources.dialog_box_texture = dialog_box_texture;
+
+    //printf("dialog_box : w=%d h=%d\n",loaded_dialog_box->w,loaded_dialog_box->h);
+    //printf("backgrond : w=%d h=%d\n",background_surface->w,background_surface->h);
     
     if (!renderer) 
     {
@@ -141,6 +104,7 @@ int main(int32_t argc, char* argv[])
         SDL_Quit();
         return 1;
     }
+    char *font_path = "./Assets/Font/Cubic_11_1.100_R.ttf"; ///這裡的路徑之後會有變化
     TTF_Font* font = TTF_OpenFont(font_path, 24); ///這裡的路徑之後會有變化
     if (!font) 
     {
@@ -164,65 +128,55 @@ int main(int32_t argc, char* argv[])
         textColor.b = 0;
     }
     ///此處以下開劇本檔
-    initLeaveButton(&resources,  renderer, "×", font);
     FILE *pCharacter_file;
     FILE *pScript_file;
     FILE *pPlayer_sav_file;
     FILE *pbackground_file;
     FILE *pmusic_file;
-    pCharacter_file = fopen("./character.nekocat", "r");
+    pCharacter_file = fopen("./character.nekocat/charcter.toml", "r");
     if (!pCharacter_file) 
     {
-        printf("Unable to load character!\n");
+        printf("Error: can't open character.toml\n");
     }
     pScript_file = fopen("script.nekocat", "r");
     if (!pScript_file) 
     {
-        printf("Unable to laod script!\n");
+        printf("Error: can't open script.nekocat\n");
     }
-    pPlayer_sav_file = fopen("player.sav", "r+");
+    pPlayer_sav_file = fopen("player.sav", "r");
     if (!pPlayer_sav_file) 
     {
-        printf("Error!\n");
+        printf("Error: can't open player.sav\n");
     }
-    pbackground_file = fopen("./assets.nekocat", "r");
+    pbackground_file = fopen("./assets.nekocat/background.toml", "r");
     if (!pbackground_file) 
     {
-        printf("Error!\n");
+        printf("Error: can't open background.toml\n");
     }
-    pmusic_file = fopen("./assets.nekocat", "r");
+    pmusic_file = fopen("./assets.nekocat/music.toml", "r");
     if (!pmusic_file) 
     {
-        printf("Error!\n");
+        printf("Error: can't open music.toml\n");
     }
     
     char errbuf[200];
     toml_table_t *Character = toml_parse_file(pCharacter_file, errbuf, sizeof(errbuf));
     toml_table_t *Script = toml_parse_file(pScript_file, errbuf, sizeof(errbuf));
-    //printf("A\n");
     toml_table_t *Player_V = toml_parse_file(pPlayer_sav_file, errbuf, sizeof(errbuf));
-    //printf("B\n");
     toml_table_t *background_table = toml_parse_file(pbackground_file, errbuf, sizeof(errbuf));
-    toml_table_t *all_music_table = toml_parse_file(pmusic_file, errbuf, sizeof(errbuf));
+    toml_table_t *music_table = toml_parse_file(pmusic_file, errbuf, sizeof(errbuf));
     background_table = toml_table_in(background_table,"background");
-    toml_table_t *music_table = toml_table_in(all_music_table,"Music");
-    toml_table_t *sound_table = toml_table_in(all_music_table,"Sound");
-    if (!sound_table) 
-    {
-        printf("Error parsing player.sav: %s\n", errbuf);
-        return 1;
-    }
+    music_table = toml_table_in(music_table,"sound");
     toml_array_t *char_list = toml_array_in(Character, "char_list");
     int32_t char_Size = toml_array_nelem(char_list);
     toml_table_t *now_script = toml_table_in(Script,"Start");
     toml_table_t *Player_Variable = toml_table_in(Player_V,"Variable");
-    //printf("A\n");
+    
     if (!Player_Variable) 
     {
         printf("Error parsing player.sav: %s\n", errbuf);
         return 1;
     }
-    //printf("B\n");
     toml_table_t *Player_Items = toml_table_in(Script,"Items");
     toml_array_t *script_list = toml_array_in(now_script, "script");
     ///此處以下為鍵盤互動與顯示，在此處以下，我先不會讓使用者指定背景
@@ -230,12 +184,13 @@ int main(int32_t argc, char* argv[])
     int32_t col_in_script = 0;
     char *pr_text = NULL;
     SDL_Event e;
+    //SDL_RenderClear(renderer);
+    //SDL_RenderCopy(renderer, backgroundTexture, NULL, NULL);  // 渲染背景
+    //renderTexture(dialog_box_texture, renderer, dialogBox_start_x, dialogBox_start_y, 640, 130, 255);
     int32_t print_text_x = text_start_x;
     int32_t print_text_y = text_start_y;
     int32_t had_hit_left = 0;
-    int32_t option_hit = 0;
-    int32_t judge_button = -2;
-    int32_t the_option = 0;
+    int32_t now_handle = 3;
     ////音樂處理
     if (!init_music()) 
     {
@@ -243,60 +198,58 @@ int main(int32_t argc, char* argv[])
         return 1;
     }
     Mix_Music* bgm = NULL;
+    //my_RenderPresent(renderer,&resources,2);
+    // background
+
+
+
+    // printf("test 09\n");
     while (!quit) 
     {
+        //if (run_flog)
         while (SDL_PollEvent(&e) != 0) 
         {
-            judge_button = handleButtonEvents( &e,  &resources);
-            if (now_state!=3)
-            {
-                if (checkLeaveButton(&e,resources.leave_button) == 1)
-                {
+            switch(e.type){
+                case SDL_QUIT:
                     quit = 1;
-                }
-                else if (e.type == SDL_MOUSEBUTTONDOWN) 
-                {
-                    if (e.button.button == SDL_BUTTON_LEFT) 
+                    break;
+                case SDL_KEYDOWN:
+                    // printf("test 02\n");
+                    switch (e.key.keysym.sym)
                     {
+                        case SDLK_e:
+                            // printf("test 03\n");
+                            if(now_state != 4){
+                                now_state = 4;
+                            }
+                            else if(now_state == 4){
+                                SDL_RenderClear(renderer);
+                                clearAndRender( &resources,  resources.background_texture );
+                                now_state = 0;
+                                had_hit_left = 0;
+                            }
+                            // printf("now_state = %d\n",now_state);
+                            break;
+                        default:
+                            break;
+                    }
+                    // printf("now_state = %d\n",now_state);
+                    break;
+                case SDL_MOUSEBUTTONDOWN:
+                    if(e.button.button == SDL_BUTTON_LEFT){
                         had_hit_left = 1;
                     }
-                }
-                else if (e.type == SDL_KEYDOWN) 
-                {
-                    if (e.key.keysym.sym == SDLK_e) 
-                    {
-                        
-                        if(now_state != 4){
-                            now_state = 4;
-                        }
-                        else if(now_state == 4){
-                            SDL_RenderClear(renderer);
-                            clearAndRender( &resources,  resources.background_texture );
-                            now_state = 0;
-                            had_hit_left = 0;
-                        }
-                        // printf("now_state = %d\n",now_state);
-                    }
-                }
-            }
-            else
-            {
-                //printf("the_judge_button = %d\n",judge_button);
-                if (judge_button==-1)
-                {
-                    quit = 1;
-                }
-                else if (judge_button!=-2)
-                {
-                    option_hit = 1;
-                    the_option = judge_button;
-                }
+                    break;
+                default:
+                    break;
             }
         }
         if (quit == 1)
             break;
+        //for (int32_t i = 0; i < toml_array_nelem(script_list); i++) 
+        //printf("%d %d\n",had_hit_left,now_state);
+        //printf("%d %d\n",col_in_script,toml_array_nelem(script_list));
         printf("now_state = %d\n",now_state);
-
         if(now_state == 4)
         {
             // SDL_DestroyRenderer(renderer);
@@ -311,7 +264,7 @@ int main(int32_t argc, char* argv[])
                 SDL_Quit();
                 return -1;
             }
-            printf("test 01\n");
+            // printf("test 01\n");
             
             
             // Initialize backpack
@@ -322,7 +275,7 @@ int main(int32_t argc, char* argv[])
             // Initialize backpack_data
             
             backpackDataInit(&backpack_data);
-            printf("test 04\n");
+            // printf("test 04\n");
             // Initialize backpack_path
             backpack_path.background_path = calloc(1024, sizeof(char));
             backpack_path.font_path = calloc(1024, sizeof(char));
@@ -332,7 +285,7 @@ int main(int32_t argc, char* argv[])
             strcpy(backpack_path.font_path, font_path);
             strcpy(backpack_path.black_block_path, "./Assets/image/black_block.png");
             strcpy(backpack_path.white_edge_black_block_path, "./Assets/image/white_edge_black_block.png");
-            printf("test 05\n");
+            // printf("test 05\n");
             // Initialize backpack_items
             backpack_items = calloc(6,sizeof(backpackItem));
             for(int32_t i = 0;i < 6;i++){
@@ -349,7 +302,6 @@ int main(int32_t argc, char* argv[])
             status[3] = 1;
             status[4] = 0;
             status[5] = 0;
-            int32_t now_handle = 3;
             if(now_handle >= 0 && now_handle < 6){
                 if(status[now_handle] == 1)status[now_handle] = 2;
             }
@@ -376,7 +328,7 @@ int main(int32_t argc, char* argv[])
             image_path[4] = NULL;
             image_path[5] = NULL;
             // char *image_path[6] = {NULL, "eraser.png", "pencil.png", "waterbuttle.png", NULL, NULL};
-            printf("test 06\n");
+            // printf("test 06\n");
             
             //IMG_Load("./item.nekocat/eraser.png");
             //IMG_Load("./item.nekocat/eraser.png");
@@ -392,7 +344,7 @@ int main(int32_t argc, char* argv[])
             //     strcpy(backpack_items[i].image_path, image_path[i]);
             // //     printf("test 06-4\n");
             // }
-            printf("test 06-5\n");
+            // printf("test 06-5\n");
             // check = backpackItemInit(&backpack_items, status, name, description, image_path); //此處之後不能IMG_Load
             if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
                 printf("SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError());
@@ -402,9 +354,9 @@ int main(int32_t argc, char* argv[])
             {
                 printf("SDL_image initialize success!\n");
             }
-            printf("test 08-1\n");
-            SDL_Surface *background_surface = IMG_Load("./Assets/background/background_1.png");
-            printf("test 08-2\n");
+            // printf("test 08-1\n");
+            SDL_Surface *background_surface = IMG_Load("./Assets/background/background_01.png");
+            // printf("test 08-2\n");
             if (!background_surface)
             {
                 printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
@@ -414,12 +366,12 @@ int main(int32_t argc, char* argv[])
             SDL_FreeSurface(background_surface);
 
             // backpack_block
-            printf("test 08-5\n");
-            SDL_Surface *backpack_block_surface = IMG_Load("./Assets/image/black_button.png");
+            // printf("test 08-5\n");
+            SDL_Surface *backpack_block_surface = IMG_Load("./Assets/image/black_block.png");
             if (!backpack_block_surface)
             {
                 printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
-                SDL_DestroyRenderer(renderer);
+                SDL_DestroyRenderer(backpack_renderer);
                 SDL_DestroyWindow(window);
                 SDL_Quit();
                 return -1;
@@ -427,14 +379,14 @@ int main(int32_t argc, char* argv[])
             backpack_resources.backpack_block_texture = SDL_CreateTextureFromSurface(renderer, backpack_block_surface);
             SDL_SetTextureAlphaMod(backpack_resources.backpack_block_texture, 200); // 調整透明度
             SDL_FreeSurface(backpack_block_surface);
-            printf("test 08-6\n");
+            // printf("test 08-6\n");
 
             // white_edge_black_block
             SDL_Surface *white_edge_black_block_surface = IMG_Load("./Assets/image/white_edge_black_block.png");
             if (!white_edge_black_block_surface)
             {
                 printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
-                SDL_DestroyRenderer(renderer);
+                SDL_DestroyRenderer(backpack_renderer);
                 SDL_DestroyWindow(window);
                 SDL_Quit();
                 return -1;
@@ -442,7 +394,7 @@ int main(int32_t argc, char* argv[])
             backpack_resources.white_edge_black_block_texture = SDL_CreateTextureFromSurface(renderer, white_edge_black_block_surface);
             SDL_SetTextureAlphaMod(backpack_resources.white_edge_black_block_texture, 200); // 調整透明度
             SDL_FreeSurface(white_edge_black_block_surface);
-            printf("test 08-7\n");
+            // printf("test 08-7\n");
 
             // 测试加载图像
             // SDL_Surface *temp_surface = IMG_Load("./item.nekocat/eraser.png");
@@ -453,23 +405,22 @@ int main(int32_t argc, char* argv[])
             // }
             // SDL_FreeSurface(temp_surface);
             
-            printf("test 07\n");
+            // printf("test 07\n");
             
             
             // Backpack main
             // RenderResources backpack_resources;
             // initRenderResources(&backpack_resources);
             
-            printf("test 08\n");
-            printf("test 08-6\n");
-
+            // printf("test 08\n");
+            // printf("test 08-6\n");
             if (backpack_resources.item_texture==NULL)
             {
-                backpack_resources.item_texture = (SDL_Texture**)malloc(6 * sizeof(SDL_Texture*));
+                resources.item_texture = (SDL_Texture**)malloc(6 * sizeof(SDL_Texture*));
                 for (int i = 0; i < 6; ++i) 
                 {
-                    backpack_resources.item_texture[i] = NULL;  // 分配内存 
-                    backpack_resources.item_renderQuads[i] = (SDL_Rect*)malloc(sizeof(SDL_Rect));  // 分配内存
+                    resources.item_texture[i] = NULL;  // 分配内存 
+                    resources.item_renderQuads[i] = (SDL_Rect*)malloc(sizeof(SDL_Rect));  // 分配内存
                 }
             }
             for(int32_t i = 0; i < 6; i++){
@@ -481,22 +432,22 @@ int main(int32_t argc, char* argv[])
                 temp = (char *)malloc(sizeof(char) * 100);
                 snprintf(temp, 100, "./Assets/item/%s", image_path[i]);
                 // printf("temp = %s\n", temp);
-                printf("test 08-6-1\n");
+                // printf("test 08-6-1\n");
                 SDL_Surface *item_surface = IMG_Load(temp);
                 //SDL_Surface *item_surface = NULL;
-                printf("test 08-6-2\n");
+                // printf("test 08-6-2\n");
                 if (!item_surface)
                 {
                     printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
-                    SDL_DestroyRenderer(renderer);
+                    SDL_DestroyRenderer(backpack_renderer);
                     SDL_DestroyWindow(window);
                     SDL_Quit();
                     return -1;
                 }
-                printf("test 08-6-3\n");
+                // printf("test 08-6-3\n");
                 
                 SDL_Texture *temp_tex = SDL_CreateTextureFromSurface(renderer, item_surface);
-                printf("test 08-6-4\n");
+                // printf("test 08-6-4\n");
                 if (backpack_resources.item_texture==NULL)
                 {
                     // printf("id = %d, backpack_resources.item_texture is NULL\n",i);
@@ -506,7 +457,7 @@ int main(int32_t argc, char* argv[])
                     // printf("id = %d, backpack_resources.item_texture is not NULL\n",i);
                 }
                 backpack_resources.item_texture[i] = temp_tex;
-                printf("test 08-6-5\n");
+                // printf("test 08-6-5\n");
                 SDL_FreeSurface(item_surface);
             }
             
@@ -534,32 +485,44 @@ int main(int32_t argc, char* argv[])
             //freeRenderResources(&backpack_resources);
             continue;
         }
-
-        if (col_in_script != toml_array_nelem(script_list))
+        if (col_in_script != toml_array_nelem(script_list) && now_state != 4)
         {
+            //printf("the quit = %d\n",quit);
+            //SDL_RenderClear(renderer);
+            
+            //SDL_RenderCopy(renderer, my_ohm_Normal_texture, NULL, NULL);  // 渲染背景
+            //printf("%d\n",toml_array_nelem(script_list));
             toml_table_t *entry = toml_table_at(script_list, col_in_script);
             if (!entry) continue;
             const char *action = toml_raw_in(entry, "action");
-            //printf("%s\n",action);
+            
             if (strcmp(action, "\"Dialog\"") == 0)
             {
+                
+                //printf("A\n");
                 const char *command = toml_raw_in(entry, "command");
                 const char *text_copy = toml_raw_in(entry, "text");
-                char* text = calloc(1024,sizeof(char));
-                strcpy(text, text_copy);
+                char* text = (char*)malloc(strlen(text_copy)+1);
+                strcpy(text,text_copy);
                 text++;
                 text[strlen(text)-1] = 0;
-                printf("%s\n",text);
                 if (now_state == 0)
                 {
-                    printf("0\n");
-                    dialogText_3(renderer,&resources, font, &text, textColor, &print_text_x, &print_text_y, w_w);
+                    displayText_3(renderer,&resources, font, &text, textColor, &print_text_x, &print_text_y, w_w);
                     now_state = 1;
-                    had_hit_left = 0;
                 }
-                else if (now_state == 1 && had_hit_left==1)
+                else if (now_state==1 && had_hit_left == 1)
                 {
                     now_state = 2;
+                    //pr_text = NULL;
+                    //freeRenderResources(&resources);
+                    //initRenderResources(&resources);
+                    //SetDialogBox(renderer, dialog_box_texture, &resources, dialogBox_start_x, dialogBox_start_y, 640, 130, 255);
+                    //resources.background_texture = backgroundTexture;
+                    //resources.dialog_box_texture = dialog_box_texture;
+                    //clearAndRender( &resources,  resources.background_texture );
+                    //print_text_x = text_start_x;
+                    //print_text_y = text_start_y;
                     had_hit_left = 0;
                 }
                 /*
@@ -572,43 +535,44 @@ int main(int32_t argc, char* argv[])
                 }
                 if (*pr_text != 0)
                 {
-                    
                     if (strcmp(command, "\"no name\"")==0)
                     {
-                        resources.expression_texture = NULL;
                         if (had_hit_left == 1)
                         {
-                            dialogText_2(renderer,&resources, font, &pr_text, textColor, &print_text_x, &print_text_y, w_w);
+                            displayText_2(renderer,&resources, font, &pr_text, textColor, &print_text_x, &print_text_y, w_w);
+                            
                             now_state = 1;
                             had_hit_left = 0;
                         }
+                        else if (now_state == 6)
+                        {
+                            *pr_text = 0;
+                            now_state = 1;
+                        }
                         else
-                            dialogText(renderer,&resources, font, &pr_text, textColor, &print_text_x, &print_text_y, w_w);
+                            displayText(renderer,&resources, font, &pr_text, textColor, &print_text_x, &print_text_y, w_w);
+                        //SDL_RenderClear(renderer);
+                        //SDL_Delay(2000);
                     }
                     else
                     {
                         //printf("1\n");
                         const char *mood = toml_raw_in(entry, "mood");
-                        char* command_cpy = calloc(1024,sizeof(char));
-                        strcpy(command_cpy,command);
-                        command_cpy++;
-                        command_cpy[strlen(command_cpy)-1] = 0;
-                        toml_table_t* Character_id_table = toml_table_in(Character,command_cpy);
-                        //printf("2\n");
-                        toml_datum_t directory_copy = toml_string_in(Character_id_table, "directory");
-                        //char* directory = calloc(1024,sizeof(char));
-                        //strcpy(directory,directory_copy);
-                        //directory++;
-                        //directory[strlen(directory)-1] = 0;
-                        DisplayTheExpression(renderer, &resources, Character, directory_copy.u.s, command, mood);
+                        DisplayTheExpression(renderer, &resources, Character, command, mood);
+                        //SDL_RenderCopy(renderer, my_ohm_Normal_texture, NULL, NULL);  // 渲染背景
                         if (had_hit_left == 1)
                         {
-                            dialogText_2(renderer,&resources, font, &pr_text, textColor, &print_text_x, &print_text_y, w_w);
+                            displayText_2(renderer,&resources, font, &pr_text, textColor, &print_text_x, &print_text_y, w_w);
                             now_state = 1;
                             had_hit_left = 0;
                         }
+                        else if (now_state == 6)
+                        {
+                            *pr_text = 0;
+                            now_state = 1;                     
+                        }
                         else
-                            dialogText(renderer,&resources, font, &pr_text, textColor, &print_text_x, &print_text_y, w_w);
+                            displayText(renderer,&resources, font, &pr_text, textColor, &print_text_x, &print_text_y, w_w);
                     }
                 }
                 else if (now_state == 1 && had_hit_left == 1) //跳入下一段對話的前置作業
@@ -616,11 +580,21 @@ int main(int32_t argc, char* argv[])
                     now_state = 2;
                     pr_text = NULL;
                     SDL_RenderClear(renderer);
-                    //my_RenderPresent(renderer,&resources,now_state);
+                    //freeRenderResources(&resources);
+                    //initRenderResources(&resources);
+                    //SetDialogBox(renderer, dialog_box_texture, &resources, dialogBox_start_x, dialogBox_start_y, 640, 130, 255);
+                    //resources.background_texture = backgroundTexture;
+                    //resources.dialog_box_texture = dialog_box_texture;
                     clearAndRender( &resources,  resources.background_texture );
-                    my_RenderPresent(renderer,&resources,now_state);
                     print_text_x = text_start_x;
                     print_text_y = text_start_y;
+                    had_hit_left = 0;
+                }
+                else if (now_state == 6)
+                {
+                    displayText_3(renderer,&resources, font, &text, textColor, &print_text_x, &print_text_y, w_w);
+                    my_RenderPresent(renderer,&resources,now_state);
+                    now_state = 1;
                     had_hit_left = 0;
                 }
                 else
@@ -628,17 +602,28 @@ int main(int32_t argc, char* argv[])
                     now_state = 1;
                 }
                 */
+                //printf("B\n");
             }
             else if (strcmp(action, "\"SetCharacter\"")==0)
             {
                 toml_datum_t character_number = toml_int_in(entry, "number");
                 toml_array_t* command_array = toml_array_in(entry, "command_list");
                 toml_array_t* mood_array = toml_array_in(entry, "mood_list");
+                if (resources.character_IMG_texture == NULL)
+                {
+                    printf("character_IMG_texture is NULL\n");
+                    //resources.character_IMG_renderQuads = calloc(3,sizeof(SDL_Rect*));
+                }
+                else
+                {
+                    printf("character_IMG_texture is not NULL\n");
+                }
                 if (character_number.u.i == 0)
                 {
                     for (int32_t i=0 ; i<3 ; i++) ///初始化character_IMG_texture不然會出事
                     {
                         resources.character_IMG_texture[i] = NULL;
+                        //resources.character_IMG_renderQuads[i] = NULL;
                     }
                 }
                 else
@@ -646,30 +631,28 @@ int main(int32_t argc, char* argv[])
                     for (int32_t i=0 ; i<3 ; i++) ///初始化character_IMG_texture不然會出事
                     {
                         resources.character_IMG_texture[i] = NULL;
+                        //resources.character_IMG_renderQuads[i] = NULL;
                     }
                     for (int32_t i = 0 ; i < toml_array_nelem(command_array) ; i++)
                     {
-                        //printf("A\n");
                         const char* Character_id = toml_string_at(command_array, i).u.s;
                         const char* mood = toml_string_at(mood_array, i).u.s;
-                        //char* Character_id_copy = calloc(1024,sizeof(char));
                         //printf("%s\n",Character_id);
-                        toml_table_t* Character_id_table = toml_table_in(Character,Character_id);
-                        //printf("B\n");
-                        toml_datum_t directory_copy = toml_string_in(Character_id_table, "directory");
-                        //printf("%s",directory_copy.u.s);
-                        //char* directory = calloc(1024,sizeof(char));
-                        //strcpy(directory,directory_copy);
-                        //directory++;
-                        //directory[strlen(directory)-1] = 0;
-                        //printf("directory = %s\n",directory_copy.u.s);
-                        displayIMG(renderer, &resources, Character, directory_copy.u.s, Character_id, mood, i, toml_array_nelem(command_array)); 
+                        //printf("%s\n",mood);
+                        displayIMG(renderer, &resources, Character, Character_id, mood, i, toml_array_nelem(command_array)); 
                     }
                 }
                 col_in_script++;
             }
+            else if (strcmp(action, "\"Option\"")==0) 
+            {
+                //{ action = "Option", optionCount = 3, optionContent = ["Button1","Button2","Button3"], optionJump = ["label_id_1","label_id_2","label_id_3"]}
+
+                col_in_script = 0;
+            }
             else if (strcmp(action, "\"Jump\"") == 0)
             {
+                //printf("C\n");
                 const char *label_id = toml_raw_in(entry, "label_id");
                 char *label_id_copy = calloc(1024,sizeof(char));
                 strcpy(label_id_copy,label_id);
@@ -682,13 +665,20 @@ int main(int32_t argc, char* argv[])
                 {
                     if (IsOverGap(Player_Variable, variable_array,mode_array,gap_array) == 1)
                     {
+                        //printf("1\n");
+                        //printf("%s\n",label_id_copy);
                         now_script = toml_table_in(Script,label_id_copy);
+                        //printf("1\n");
                         script_list = toml_array_in(now_script, "script");
+                        //printf("1\n");
                         col_in_script = 0;
+                        //printf("1\n");
+                        //had_hit_left = 0;
                     }
                     else
                     {
                         col_in_script++;
+                        //had_hit_left = 0;
                     }
                 }
                 else
@@ -697,23 +687,28 @@ int main(int32_t argc, char* argv[])
                     script_list = toml_array_in(now_script, "script");
                     col_in_script = 0;
                 }
+                //clearAndRender( renderer,  backgroundTexture,  dialog_box_texture, dialogBox_start_x, dialogBox_start_y); //將字跡清除
+                //printf("D\n");
             }
             else if (strcmp(action, "\"Background\"") == 0)
             {
-                //printf("here_4\n");
                 const char *background_v = toml_raw_in(entry, "background");
                 char* background_v_copy = calloc(1024,sizeof(char));
                 strcpy(background_v_copy,background_v);
                 background_v_copy++;
                 background_v_copy[strlen(background_v_copy)-1] = 0;
                 
+                ///////////此處尚未完成
+                //printf("%s\n",background_v_copy);
                 toml_datum_t background_path_datum = toml_string_in(background_table, background_v_copy);
                 if (!background_path_datum.ok) 
                 {
                     printf("Error: 'background_1' not found in 'background' table\n");
                 }
+                ///這裡的路徑之後會有變化
                 char full_path[512] = {0};
                 snprintf(full_path, sizeof(full_path), "./Assets/background/%s", background_path_datum.u.s);
+
                 SDL_Surface* background_surface = IMG_Load(full_path);
                 if (!background_surface) 
                 {
@@ -726,7 +721,6 @@ int main(int32_t argc, char* argv[])
             }
             else if (strcmp(action, "\"Music\"") == 0)
             {
-                printf("Music action\n");
                 const char* music_id = toml_raw_in(entry, "music_id");
                 char* music_id_copy = calloc(1024,sizeof(char));
                 strcpy(music_id_copy,music_id);
@@ -741,170 +735,66 @@ int main(int32_t argc, char* argv[])
                 if (strcmp(music_path_datum.u.s,"close") != 0)
                 {
                     char full_path[512] = {0};
-                    snprintf(full_path, sizeof(full_path), "./Assets/music/%s", music_path_datum.u.s);
-                    
+                    snprintf(full_path, sizeof(full_path), "./Assets/sound/%s", music_path_datum.u.s);
                     bgm = Mix_LoadMUS(full_path);
-                    
                     if (bgm == NULL) 
                     {
                         printf("Failed to load music! SDL_mixer Error: %s\n", Mix_GetError());
                         break;
                     }
-                    
                     if (Mix_PlayMusic(bgm, -1) == -1) 
                     {
                         printf("Failed to play music! SDL_mixer Error: %s\n", Mix_GetError());
                         Mix_FreeMusic(bgm);
                         break;
                     }
-                    else
-                    {
-                        printf("music OK!\n");
-                    }
                 }
                 now_state = 2;
-                
             }
-            else if (strcmp(action, "\"Sound\"") == 0)
-            {
-                printf("Sound action\n");
-                printf("A\n");
-                const char* sound_id = toml_raw_in(entry, "sound_id");
-                printf("B\n");
-                char* sound_id_copy = calloc(1024,sizeof(char));
-                printf("C\n");
-                printf("%s\n",sound_id);
-                strcpy(sound_id_copy,sound_id);
-                printf("D\n");
-                sound_id_copy++;
-                sound_id_copy[strlen(sound_id_copy)-1] = 0;
-                printf("%s\n",sound_id_copy);
-                toml_datum_t sound_path_datum = toml_string_in(sound_table, sound_id_copy);
-                char full_path[512] = {0};
-                snprintf(full_path, sizeof(full_path), "./Assets/sound/%s", sound_path_datum.u.s);
-                
-                Mix_Chunk* sound = load_sound(full_path);
-                if (sound!=NULL)
-                {
-                    Mix_PlayChannel(-1, sound, 0);
-                }
-                else
-                {
-                    printf("no sound\n");
-                }
-                
-                now_state = 2;
-            }
-            else if (strcmp(action, "\"Option\"") == 0)
-            {
-                now_state = 3;
-                toml_datum_t optionCount = toml_int_in(entry, "optionCount");
-                toml_array_t* optionContent = toml_array_in(entry, "optionContent");
-                //printf("%d\n",toml_array_nelem(optionContent));
-                toml_array_t* optionJump = toml_array_in(entry, "optionJump");
-                printf("%d\n",option_hit);
-                if (option_hit == 0)
-                {
-                    if (optionCount.u.i == 0)
-                    {
-                        for (int32_t i=0 ; i<3 ; i++) ///初始化character_IMG_texture不然會出事
-                        {
-                            resources.now_option_button[i] = NULL;
-                        }
-                    }
-                    else
-                    {
-                        for (int32_t i=0 ; i<3 ; i++) ///初始化character_IMG_texture不然會出事
-                        {
-                            resources.now_option_button[i] = NULL;
-                        }
-                        for (int32_t i = 0 ; i < toml_array_nelem(optionContent) ; i++)
-                        {
-                            //printf("A\n");
-                            const char* optionContent_id = toml_string_at(optionContent, i).u.s;
-                            MakeOption(&resources, renderer, optionContent_id, font, i, optionCount.u.i); 
-                        }
-                    }
-                }
-                else
-                {
-                    
-                    //judge_button
-                    //printf("the_option = %d\n",the_option);
-                    const char* optionJump_id = toml_string_at(optionJump, the_option).u.s;
-                    //printf("%s\n",optionJump_id);
-                    now_script = toml_table_in(Script,optionJump_id);
-                    script_list = toml_array_in(now_script, "script");
-                    now_state = 5; //按完按鈕後的clear
-                    option_hit = 0;
-                    col_in_script = 0;
-                    had_hit_left = 0;
-                    for (int32_t i=0 ; i<3 ; i++) ///初始化character_IMG_texture不然會出事
-                    {
-                        resources.now_option_button[i] = NULL;
-                    }
-                    //SDL_RenderClear(renderer);
-                    //clearAndRender( &resources,  resources.background_texture );
-                }
-            }
-            else if(strcmp(action, "\"Modify variable\"") == 0)
-            {
-                //printf("stay_here_1\n");
-                const char* variable_name = toml_raw_in(entry, "variable_name");
-                char* variable_name_copy = calloc(1024,sizeof(char));
-                strcpy(variable_name_copy,variable_name);
-                variable_name_copy++;
-                variable_name_copy[strlen(variable_name_copy)-1] = 0;
-                toml_datum_t value = toml_string_in(entry, "value");
-                //toml_table_t* Modify_table = toml_table_in(Player_Variable,"Variable");
-                //printf("A\n");
-                //printf("%s\n",value.u.s);
-                Modify_Variable(pPlayer_sav_file, Player_Variable, variable_name_copy, value.u.s);
-                col_in_script++;
-            }
-            else if(strcmp(action, "\"Give item\"") == 0)
-            {
-                
-                //printf("stay_here_2\n");
-                const char* item_id = toml_raw_in(entry, "item_id");
-                char* item_id_copy = calloc(1024,sizeof(char));
-                strcpy(item_id_copy,item_id);
-                item_id_copy++;
-                item_id_copy[strlen(item_id_copy)-1] = 0;
-                toml_datum_t value = toml_string_in(entry, "count");
-                toml_table_t *Player_Item = toml_table_in(Player_V,"Items");
-                //toml_table_t* Modify_table = toml_table_in(Player_Variable,"Variable");
-                //printf("A\n");
-                //printf("%s\n",value.u.s);
-                Modify_Variable(pPlayer_sav_file, Player_Item, item_id_copy, value.u.s);
-                col_in_script++;
-            }
-            //else if (strcmp(action, "\"Music\"") == 0)
-            //adjustToFullscreen(&resources, w_w, w_h, fullscreen_width, fullscreen_height);
+            // printf("now_state = %d\n",now_state);
+            
+            //printf("here\n");
             my_RenderPresent(renderer,&resources,now_state);
             if(now_state == 2) //進入下一個此場景的action
             {
+                SDL_RenderClear(renderer);
                 col_in_script++;
                 now_state = 0;
                 had_hit_left = 0;
+                //clearAndRender( renderer,  backgroundTexture,  dialog_box_texture, dialogBox_start_x, dialogBox_start_y);
             }
-            else if (now_state == 5)
-            {
-                now_state = 0;
-                had_hit_left = 0;
-            }
+
+            
         }
     }
-    //printf("A\n");
     TTF_CloseFont(font);
+    //SDL_DestroyTexture(backgroundTexture);
+    //printf("A\n");
     freeRenderResources(&resources);
+    //printf("B\n");
     SDL_DestroyRenderer(renderer);  //這行因為未知原因若不註解掉會有機率錯，但走到這行程式必定結束，資源必定會釋放，所以我註解掉了
+    /*
+    if (renderer)
+    {
+        printf("renderer NO problem!\n");
+        SDL_DestroyRenderer(renderer);
+    }
+    else
+    {
+        printf("renderer has problem!\n");
+    }
+    */
+    //printf("C\n");
     SDL_DestroyWindow(window);
+    //printf("D\n");
     IMG_Quit();
+    //printf("E\n");
     TTF_Quit();
+    //printf("F\n");
     SDL_Quit();
     Mix_FreeMusic(bgm);
     Mix_CloseAudio();
+    //printf("G\n");
     fclose(pCharacter_file);
     fclose(pScript_file);
     fclose(pPlayer_sav_file);
