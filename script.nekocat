@@ -7,7 +7,7 @@ script = [
     { action = "Background", background = "background_1"},
     { action = "SetCharacter", number = 2, command_list = ["ohm","ohmf"], mood_list = ["Normal","sad"]},
     { action = "Sound", sound_id = "22score"},
-    { action = "Dialog", command = "ohm", mood = "Normal", text = "早上好中國"},
+    { action = "Dialog", command = "ohm", mood = "Normal", text = "早上好中國早上好中國早上好中國早上好中國早上好中國早上好中國我覺得北京天安門很棒棒棒棒棒棒棒棒"},
     { action = "SetCharacter", number = 3, command_list = ["ohm","ohmf","ohmf"], mood_list = ["sad","Normal","happy"]},
     { action = "Sound", sound_id = "22score"},
     { action = "Dialog", command = "ohmf", mood = "sad", text = "現在是22分"},
