@@ -297,12 +297,14 @@ int main(int32_t argc, char* argv[])
         printf("D\n");
     }
     
-    char save_Background[1024];
-    char save_Music[1024];
-    
+    char save_Background[1024] = {0};
+    char save_Music[1024] = {0};
     SetCharacterInfo save_Character;
+    //save_Character.number = 0;
+    //save_Character.command_list = NULL;
+    //save_Character.mood_list = NULL;
     printf("4\n");
-    char save_Jump[1024];
+    char save_Jump[1024] = {0};
     int32_t save_col_idx = 0;
     strcpy(save_Jump,"Start");
     
@@ -641,7 +643,11 @@ int main(int32_t argc, char* argv[])
                         toml_datum_t directory_copy = toml_string_in(Character_id_table, "directory");
                         toml_datum_t name_copy = toml_string_in(Character_id_table, "name");
                         toml_datum_t color_copy = toml_string_in(Character_id_table, "color");
-                        SDL_Color name_color = hexStringToSDL_Color(color_copy.u.s);
+                        SDL_Color name_color = {0, 0, 0, 255};
+                        if (color_copy.ok != 0)
+                        {
+                            name_color = hexStringToSDL_Color(color_copy.u.s);
+                        }
                         char* character_name = calloc(1024,sizeof(char));
                         strcpy(character_name,name_copy.u.s);
                         //char* directory = calloc(1024,sizeof(char));
@@ -850,6 +856,7 @@ int main(int32_t argc, char* argv[])
                     strcpy(background_v_copy,background_v);
                     background_v_copy++;
                     background_v_copy[strlen(background_v_copy)-1] = 0;
+                    
                     strcpy(save_Background,background_v_copy);
                     toml_datum_t background_path_datum = toml_string_in(background_table, background_v_copy);
                     if (!background_path_datum.ok) 
@@ -884,7 +891,7 @@ int main(int32_t argc, char* argv[])
                         Mix_HaltMusic();
                         Mix_FreeMusic(bgm);
                     }
-                    if (strcmp(music_path_datum.u.s,"close") != 0)
+                    if (strcmp(music_id_copy,"close") != 0)
                     {
                         char full_path[512] = {0};
                         
