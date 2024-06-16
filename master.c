@@ -70,7 +70,25 @@ int main(int32_t argc, char* argv[])
     openningData data;
     openningPath path;
     openningDataInit(&data); // Initialize pre-defined data
-    strcpy(data.title, "貓貓のengine哈哈屁眼party");
+
+    FILE *system_config;
+    char errbuf2[200];
+    system_config = fopen("system.conf", "r");
+    if (!system_config)
+    {
+        printf("Cannot open system.config\n");
+    }
+    printf("A\n");
+    toml_table_t *BIG_system = toml_parse_file(system_config, errbuf2, sizeof(errbuf2));
+    printf("B\n");
+    toml_table_t *system = toml_table_in(BIG_system,"Global");
+    printf("C\n");
+    toml_datum_t temp_data = toml_string_in(system,"gamename");
+    printf("D\n");
+
+    //strcpy(data.title, "貓貓のengine哈哈屁眼party");
+    strcpy(data.title, temp_data.u.s);
+    printf("%s\n",data.title);
     strcpy(path.backgroundPath, "./Assets/image/start_background.png");
     strcpy(path.fontPath, font_path);
     strcpy(path.blackButtonPath, "./Assets/image/black_button.png");
@@ -1022,6 +1040,11 @@ int main(int32_t argc, char* argv[])
                     now_state = 0;
                     had_hit_left = 0;
                 }
+            }
+            else
+            {
+                //TODO: Ending
+                quit = 1;
             }
         }
     }
