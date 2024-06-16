@@ -225,8 +225,7 @@ int main(int32_t argc, char* argv[])
                             else if(now_state == 4){
                                 SDL_RenderClear(renderer);
                                 clearAndRender( &resources,  resources.background_texture );
-                                
-                                now_state = 6;
+                                now_state = 0;
                                 had_hit_left = 0;
                             }
                             // printf("now_state = %d\n",now_state);
@@ -486,7 +485,6 @@ int main(int32_t argc, char* argv[])
             //freeRenderResources(&backpack_resources);
             continue;
         }
-        
         if (col_in_script != toml_array_nelem(script_list) && now_state != 4)
         {
             //printf("the quit = %d\n",quit);
@@ -497,11 +495,37 @@ int main(int32_t argc, char* argv[])
             toml_table_t *entry = toml_table_at(script_list, col_in_script);
             if (!entry) continue;
             const char *action = toml_raw_in(entry, "action");
+            
             if (strcmp(action, "\"Dialog\"") == 0)
             {
+                
                 //printf("A\n");
                 const char *command = toml_raw_in(entry, "command");
-                const char *text = toml_raw_in(entry, "text");
+                const char *text_copy = toml_raw_in(entry, "text");
+                char* text = (char*)malloc(strlen(text_copy)+1);
+                strcpy(text,text_copy);
+                text++;
+                text[strlen(text)-1] = 0;
+                if (now_state == 0)
+                {
+                    displayText_3(renderer,&resources, font, &text, textColor, &print_text_x, &print_text_y, w_w);
+                    now_state = 1;
+                }
+                else if (now_state==1 && had_hit_left == 1)
+                {
+                    now_state = 2;
+                    //pr_text = NULL;
+                    //freeRenderResources(&resources);
+                    //initRenderResources(&resources);
+                    //SetDialogBox(renderer, dialog_box_texture, &resources, dialogBox_start_x, dialogBox_start_y, 640, 130, 255);
+                    //resources.background_texture = backgroundTexture;
+                    //resources.dialog_box_texture = dialog_box_texture;
+                    //clearAndRender( &resources,  resources.background_texture );
+                    //print_text_x = text_start_x;
+                    //print_text_y = text_start_y;
+                    had_hit_left = 0;
+                }
+                /*
                 if (text != NULL && pr_text == NULL)
                 {
                     pr_text = calloc(strlen(text),sizeof(char));
@@ -577,6 +601,7 @@ int main(int32_t argc, char* argv[])
                 {
                     now_state = 1;
                 }
+                */
                 //printf("B\n");
             }
             else if (strcmp(action, "\"SetCharacter\"")==0)
@@ -732,6 +757,7 @@ int main(int32_t argc, char* argv[])
             my_RenderPresent(renderer,&resources,now_state);
             if(now_state == 2) //進入下一個此場景的action
             {
+                SDL_RenderClear(renderer);
                 col_in_script++;
                 now_state = 0;
                 had_hit_left = 0;
