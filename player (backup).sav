@@ -1,0 +1,25 @@
+#此區塊儲存所有變數
+[Variable]
+crazy = 1
+Vlove-letter = 1
+V12-trust = 0
+no-left-live-mouth = 1
+keep-hand = 0
+
+
+#目前玩家擁有的道具清單
+[Items]
+my-head = 1
+my-hand = 2
+my-feet = 2
+my-eyeball = 2
+love-letter = 0
+12-trust = 0
+
+#玩家目前執行到的進度
+[Other]
+script = [
+    { action = "Background", background = "Outside"},
+    { action = "Music", music_id = "bgm1"},
+    { action = "Jump", label_id = "common1", col_idx = 27},
+]

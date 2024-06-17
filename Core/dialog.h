@@ -41,12 +41,15 @@ typedef struct
     SDL_Texture* expression_texture;
     SDL_Rect expression_renderQuad;
     SDL_Texture* name_texture;
+    SDL_Texture* name_box_texture;
     SDL_Rect name_Rect;
     SDL_Texture** character_IMG_texture;
     SDL_Rect** character_IMG_renderQuads;
     Button** now_option_button;
-    Button* leave_button;
-    Button* save_button;
+    Button* leave_button; // 黑色的
+    // Button* leave_button_2; // 白色的
+    Button* save_button; // 黑色的
+    // Button* save_button_2; // 白色的
 } RenderResources;
 typedef struct {
     int32_t number;
@@ -74,9 +77,11 @@ int32_t IsOverGap(toml_table_t *Player_Variable, toml_array_t* variable_array, t
 int32_t init_music();
 Mix_Chunk* load_sound(const char* file);
 void initLeaveButton(RenderResources* resources, SDL_Renderer* renderer, const char* text, TTF_Font* font);
+// void initLeaveButton_2(RenderResources* resources, SDL_Renderer* renderer, const char* text, TTF_Font* font);
 void MakeOption(RenderResources* resources, SDL_Renderer* renderer, const char* optionContent_id, TTF_Font* font, int32_t index, int32_t totalOptions);
 void Modify_Variable(FILE* pPlayer_sav_file, toml_table_t* Modify_table, char* variable_name,const char* plus);
 void initSaveButton(RenderResources* resources, SDL_Renderer* renderer, const char* text, TTF_Font* font);
+// void initSaveButton_2(RenderResources* resources, SDL_Renderer* renderer, const char* text, TTF_Font* font);
 int32_t checkSaveButton(SDL_Event* e, Button* save_button);
 void SaveIt(FILE* pPlayer_sav_file, const char* save_Background, const char* save_Music, SetCharacterInfo save_Character, const char* save_Jump, int32_t save_col_idx);
 int32_t hexCharToInt(char c);

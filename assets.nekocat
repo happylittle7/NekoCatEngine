@@ -1,10 +1,13 @@
 [background]
-background_1 = "background_1.png"
-anime = "sunset-window-lofi-aesthetic-desktop-wallpaper-preview.jpg"
-
-[Music]
-BGM_1 = "BGM_1.mp3"
+Start1 = "Start1.png"
+Broken-City = "Broken-City.png"
+Outside = "Outside.png"
+Outside2 = "Outside2.png"
+Outside-Night = "Outside-Night.png"
+Monster = "Monster.png"
 
 [Sound]
-sound_1 = "sound_1.mp3"
-22score = "22fen.mp3"
+door = "door.mp3"
+
+[Music]
+bgm1 = "bgm1.mp3"

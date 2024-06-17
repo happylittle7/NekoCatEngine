@@ -1,32 +1,72 @@
-char_list = ["ohm","ohmf","ohmm"]
+char_list = ["ohm","lunei","12","big-robber"]
 
 [ohm]
 name = "歐姆巴"
+description = "殺伐果斷 利己主義 帶著點傲嬌的反差"
+color = "#F5D80A"
 directory = "ohm"
 
-sprites_list = ["Normal","happy","sad"]
-sprites_image_list = ["ohm_Normal.png","ohm_happy.png","ohm_sad.png"]
+expressions_list = ["normal"]
+expressions_image_list = ["ohm_normal_head.png"]
 
-expressions_list = ["Normal","happy","sad"]
-expressions_image_list = ["ohm_Normal.png","ohm_happy.png","ohm_sad.png"]
-
-[ohmf]
-name = "歐姆爸"
+[lunei]
+name = "嚕捏"
+description = "能力是不死 可以初期狀態應該是有點偏溫和 玩家的行動可以去改變他的性格 使他往殘暴的方向去走 或是溫和的人類性格"
 color = "#F5D80A"
-directory = "ohmf"
+directory = "lunei"
 
-sprites_list = ["Normal","happy","sad"]
-sprites_image_list = ["ohmf_Normal.png","ohmf_happy.png","ohmf_sad.png"]
+sprites_list = ["happy","sad","panic","normal"]
+sprites_image_list = ["lunei_happy.png","lunei_sad.png","lunei_panic.png","lunei_normal.png"]
 
-expressions_list = ["Normal","happy","sad"]
-expressions_image_list = ["ohmf_Normal.png","ohmf_happy.png","ohmf_sad.png"]
-[ohmm]
-name = "歐姆媽"
+expressions_list = ["normal"]
+expressions_image_list = ["lunei_normal_head.png"]
+
+[12]
+name = "十二"
+description = "人類女孩 二貨屬性 搞笑擔當(? 或許作品裡不需要搞笑 但我不太想都沉浸在很鬱悶的氛圍 我想寫甜甜的互動劇情"
 color = "#F5D80A"
-directory = "ohmm"
+directory = "12"
 
-sprites_list = ["Normal","happy","sad"]
-sprites_image_list = ["ohmm_Normal.png","ohmm_happy.png","ohmm_sad.png"]
+sprites_list = ["happy","sad","normal","weak"]
+sprites_image_list = ["12_happy.png","12_sad.png","12_normal.png","12_weak.png"]
 
-expressions_list = ["Normal","happy","sad"]
-expressions_image_list = ["ohmm_Normal.png","ohmm_happy.png","ohmm_sad.png"]
+expressions_list = ["normal"]
+expressions_image_list = ["12_normal_head.png"]
+
+[robber1]
+name = "土匪1"
+description = "沒啥用 單純的雜魚"
+directory = "robber"
+color = "#FFFFFF"
+
+
+sprites_list = ["normal"]
+sprites_image_list = ["robber_normal.png"]
+
+expressions_list = ["normal"]
+expressions_image_list = ["robber_normal_head.png"]
+
+[robber2]
+name = "土匪2"
+description = "沒啥用 單純的雜魚"
+directory = "robber"
+color = "#FFFFFF"
+
+sprites_list = ["normal"]
+sprites_image_list = ["robber_normal.png"]
+
+expressions_list = ["normal"]
+expressions_image_list = ["robber_normal_head.png"]
+
+[big-robber]
+name = "大隻佬"
+description = "沒啥用 單純大隻一點的雜魚"
+directory = "big-robber"
+color = "#FFFFFF"
+
+sprites_list = ["normal"]
+sprites_image_list = ["big-robber_normal.png"]
+
+expressions_list = ["normal"]
+expressions_image_list = ["big-robber_normal_head.png"]
+
