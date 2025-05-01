@@ -108,7 +108,7 @@ icon_path = "flashlight.jpg"
 #此區塊儲存所有變數
 [Variable]
 HP = 1200
-ohmLove = ㄅㄢ
+ohmLove = 100
 
 #目前玩家擁有的道具清單
 [Items]
