@@ -1,6 +1,16 @@
 # NekoCat Engine 系統架構說明
 NekoCat Engine 是一款採用SDL2框架由C寫成的視覺小說引擎，只要輕鬆幾行指令，就可以快速建立專業高級的視覺小說遊戲！
 
+## 建置與執行
+需要 SDL2 以及 SDL2_image、SDL2_ttf、SDL2_mixer 的開發套件。以 Ubuntu / Debian 為例：
+```bash
+sudo apt install build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev
+make
+./main
+```
+`make` 會在原始碼有變動時重新編譯，編譯失敗會直接顯示錯誤（不會再默默執行舊的執行檔）。
+遊戲進度存在 `player.sav`，想從頭開始可以用 `git checkout -- player.sav` 還原。
+
 ## 系統架構
 ```
 .
