@@ -141,7 +141,8 @@ int32_t backpackMain(int32_t hit, backpackData *data, int32_t *status, char **na
     // set backpack_block_renderQuads
     SDL_GetWindowSize(window, &window_width, &window_height);
     for(int32_t i = 0; i < 6; i++){
-        resources->backpack_block_renderQuads[i] = (SDL_Rect *)malloc(sizeof(SDL_Rect));
+        if (!resources->backpack_block_renderQuads[i]) // runs every frame; allocate only once
+            resources->backpack_block_renderQuads[i] = (SDL_Rect *)malloc(sizeof(SDL_Rect));
         resources->backpack_block_renderQuads[i]->x = data->backpack_xy[i][0] * (double)window_width;
         resources->backpack_block_renderQuads[i]->y = data->backpack_xy[i][1] * (double)window_height;
         resources->backpack_block_renderQuads[i]->w = data->backpack_normal_block_width * (double)window_width;
@@ -153,7 +154,8 @@ int32_t backpackMain(int32_t hit, backpackData *data, int32_t *status, char **na
 
     // set item_renderQuads
     for(int32_t i = 0; i < 6; i++){
-        resources->item_renderQuads[i] = (SDL_Rect *)malloc(sizeof(SDL_Rect));
+        if (!resources->item_renderQuads[i]) // runs every frame; allocate only once
+            resources->item_renderQuads[i] = (SDL_Rect *)malloc(sizeof(SDL_Rect));
         resources->item_renderQuads[i]->x = data->backpack_xy[i][0] * (double)window_width + data->backpack_normal_block_width * (double)window_width * 0.1;
         resources->item_renderQuads[i]->y = data->backpack_xy[i][1] * (double)window_height + data->backpack_normal_block_height * (double)window_height * 0.1;
         resources->item_renderQuads[i]->w = data->backpack_normal_block_width * (double)window_width * 0.8;
@@ -470,6 +472,10 @@ void multipleLineDialogText(SDL_Renderer* renderer, backpackResources *resources
     printf("text = %s\n", (*text));
     char *print_char = (*text);
     textSurface = TTF_RenderUTF8_Blended_Wrapped(font, print_char, textColor,625);
+    if (resources->text_texture)
+    {
+        SDL_DestroyTexture(resources->text_texture);
+    }
     resources->text_texture = SDL_CreateTextureFromSurface(renderer, textSurface);
     SDL_SetTextureAlphaMod(resources->text_texture, 255);
     int32_t text_width = textSurface->w;  // 文本寬度

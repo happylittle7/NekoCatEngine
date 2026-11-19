@@ -58,6 +58,26 @@ typedef struct
 } RenderResources;
 */
 
+// Re-parse player.sav after it has been modified. The previous tree is freed
+// unless it is `keep` (the first parse, which a loaded game may still be
+// running its script from). On a parse error the old tree is kept.
+static toml_table_t *reloadPlayerSave(FILE *pPlayer_sav_file, toml_table_t *old, toml_table_t *keep)
+{
+    char errbuf[200];
+    rewind(pPlayer_sav_file);
+    toml_table_t *fresh = toml_parse_file(pPlayer_sav_file, errbuf, sizeof(errbuf));
+    if (!fresh)
+    {
+        printf("Error parsing player.sav: %s\n", errbuf);
+        return old;
+    }
+    if (old && old != keep)
+    {
+        toml_free(old);
+    }
+    return fresh;
+}
+
 int main(int32_t argc, char *argv[])
 {
     SDL_Init(SDL_INIT_VIDEO); // 初始化 SDL2
@@ -86,7 +106,11 @@ int main(int32_t argc, char *argv[])
     printf("D\n");
 
     // strcpy(data.title, "貓貓のengine哈哈屁眼party");
-    strcpy(data.title, temp_data.u.s);
+    if (temp_data.ok)
+    {
+        snprintf(data.title, sizeof(data.title), "%s", temp_data.u.s);
+        free(temp_data.u.s);
+    }
     printf("%s\n", data.title);
     strcpy(path.backgroundPath, "./Assets/image/start_background.png");
     strcpy(path.fontPath, font_path);
@@ -192,11 +216,12 @@ int main(int32_t argc, char *argv[])
     initLeaveButton(&resources, renderer, "×", font);
     // initLeaveButton_2(&resources, renderer, "×", font);
     printf("after INtia\n");
-    font = TTF_OpenFont(font_path, 20);
-    initSaveButton(&resources, renderer, "Save", font);
+    // 20pt font for the Save button and character lines; `font` stays 24pt.
+    // (Re-opening fonts here and on every character line leaked a font each time.)
+    TTF_Font *dialog_font = TTF_OpenFont(font_path, 20);
+    initSaveButton(&resources, renderer, "Save", dialog_font);
     printf("here\n");
     // initSaveButton_2(&resources, renderer, "Save", font);
-    font = TTF_OpenFont(font_path, 24);
     pCharacter_file = fopen("./character.nekocat", "r");
     if (!pCharacter_file)
     {
@@ -230,11 +255,15 @@ int main(int32_t argc, char *argv[])
     toml_table_t *Script = toml_parse_file(pScript_file, errbuf, sizeof(errbuf));
     // printf("A\n");
     toml_table_t *Player_V = toml_parse_file(pPlayer_sav_file, errbuf, sizeof(errbuf));
+    // A loaded game runs the [Other] script straight out of this first parse,
+    // so it has to stay alive until the end; later re-parses replace Player_V.
+    toml_table_t *Player_V_initial = Player_V;
     // printf("B\n");
     toml_table_t *background_table = toml_parse_file(pbackground_file, errbuf, sizeof(errbuf));
     // printf("C\n");
     toml_table_t *all_music_table = toml_parse_file(pmusic_file, errbuf, sizeof(errbuf));
     // printf("D\n");
+    toml_table_t *all_background_table = background_table;
     background_table = toml_table_in(background_table, "background");
     // printf("E\n");
     toml_table_t *music_table = toml_table_in(all_music_table, "Music");
@@ -305,7 +334,7 @@ int main(int32_t argc, char *argv[])
 
     char save_Background[1024] = {0};
     char save_Music[1024] = {0};
-    SetCharacterInfo save_Character;
+    SetCharacterInfo save_Character = {0};
     // save_Character.number = 0;
     // save_Character.command_list = NULL;
     // save_Character.mood_list = NULL;
@@ -417,31 +446,40 @@ int main(int32_t argc, char *argv[])
                 {
                     printf("Error: Unable to load item.nekocat\n");
                 }
-                toml_table_t *item_table = toml_parse_file(pItem, errbuf, sizeof(errbuf));
+                toml_table_t *item_table = pItem ? toml_parse_file(pItem, errbuf, sizeof(errbuf)) : NULL;
                 if (!item_table)
                 {
                     printf("Error: Unable to parse item.nekocat\n");
                 }
-                for (int i = 0;; i++)
+                for (int i = 0; item_table && i < 6; i++) // the backpack has 6 slots
                 {
                     const char *key = toml_key_in(item_table, i);
                     if (!key)
                         break;
-                    status[i] = 1;
-                    // printf("key %d: %s\n", i, key);
                     toml_table_t *item = toml_table_in(item_table, key);
                     if (!item)
                     {
                         printf("Error: Unable to parse item %s\n", key);
                         continue;
                     }
-                    const char *toml_name = toml_string_in(item, "name").u.s;
-                    const char *toml_description = toml_string_in(item, "description").u.s;
-                    const char *toml_icon_path = toml_string_in(item, "icon_path").u.s;
-                    strcpy(name[i], toml_name);
-                    strcpy(description[i], toml_description);
-                    strcpy(image_path[i], toml_icon_path);
-                    now_own_item = i;
+                    toml_datum_t toml_name = toml_string_in(item, "name");
+                    toml_datum_t toml_description = toml_string_in(item, "description");
+                    toml_datum_t toml_icon_path = toml_string_in(item, "icon_path");
+                    if (toml_name.ok && toml_description.ok && toml_icon_path.ok)
+                    {
+                        status[i] = 1;
+                        snprintf(name[i], 1024, "%s", toml_name.u.s);
+                        snprintf(description[i], 1024, "%s", toml_description.u.s);
+                        snprintf(image_path[i], 512, "%s", toml_icon_path.u.s);
+                        now_own_item = i;
+                    }
+                    else
+                    {
+                        printf("Error: item %s needs name, description and icon_path\n", key);
+                    }
+                    free(toml_name.u.s);
+                    free(toml_description.u.s);
+                    free(toml_icon_path.u.s);
                 }
                 now_own_item++;
                 printf("now_own_item = %d\n", now_own_item);
@@ -505,6 +543,10 @@ int main(int32_t argc, char *argv[])
                     printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
                     return -1;
                 }
+                if (backpack_resources.background_texture)
+                {
+                    SDL_DestroyTexture(backpack_resources.background_texture);
+                }
                 backpack_resources.background_texture = SDL_CreateTextureFromSurface(renderer, background_surface);
                 SDL_FreeSurface(background_surface);
 
@@ -518,6 +560,10 @@ int main(int32_t argc, char *argv[])
                     SDL_DestroyWindow(window);
                     SDL_Quit();
                     return -1;
+                }
+                if (backpack_resources.backpack_block_texture)
+                {
+                    SDL_DestroyTexture(backpack_resources.backpack_block_texture);
                 }
                 backpack_resources.backpack_block_texture = SDL_CreateTextureFromSurface(renderer, backpack_block_surface);
                 SDL_SetTextureAlphaMod(backpack_resources.backpack_block_texture, 200); // 調整透明度
@@ -533,6 +579,10 @@ int main(int32_t argc, char *argv[])
                     SDL_DestroyWindow(window);
                     SDL_Quit();
                     return -1;
+                }
+                if (backpack_resources.white_edge_black_block_texture)
+                {
+                    SDL_DestroyTexture(backpack_resources.white_edge_black_block_texture);
                 }
                 backpack_resources.white_edge_black_block_texture = SDL_CreateTextureFromSurface(renderer, white_edge_black_block_surface);
                 SDL_SetTextureAlphaMod(backpack_resources.white_edge_black_block_texture, 200); // 調整透明度
@@ -573,9 +623,8 @@ int main(int32_t argc, char *argv[])
                     {
                         continue;
                     }
-                    char *temp;
-                    temp = (char *)malloc(sizeof(char) * 100);
-                    snprintf(temp, 100, "./Assets/item/%s", image_path[i]);
+                    char temp[600];
+                    snprintf(temp, sizeof(temp), "./Assets/item/%s", image_path[i]);
                     // printf("temp = %s\n", temp);
                     // printf("test 08-6-1\n");
                     SDL_Surface *item_surface = IMG_Load(temp);
@@ -601,6 +650,10 @@ int main(int32_t argc, char *argv[])
                     {
                         // printf("id = %d, backpack_resources.item_texture is not NULL\n",i);
                     }
+                    if (backpack_resources.item_texture[i])
+                    {
+                        SDL_DestroyTexture(backpack_resources.item_texture[i]);
+                    }
                     backpack_resources.item_texture[i] = temp_tex;
                     // printf("test 08-6-5\n");
                     SDL_FreeSurface(item_surface);
@@ -609,7 +662,30 @@ int main(int32_t argc, char *argv[])
                 int32_t result = backpackMain(had_hit_left, &backpack_data, status, name, description, image_path, &backpack_path, &backpack_resources, renderer, font, window);
 
                 my_RenderPresentForBackpack(renderer, &backpack_resources, now_state, &backpack_data, &backpack_path, status, name, description, image_path, font, window);
-                fclose(pItem);
+                if (pItem)
+                {
+                    fclose(pItem);
+                }
+                // everything above is rebuilt on every frame, so release it again
+                toml_free(item_table);
+                for (int32_t i = 0; i < 6; i++)
+                {
+                    free(name[i]);
+                    free(description[i]);
+                    free(image_path[i]);
+                    free(backpack_items[i].name);
+                    free(backpack_items[i].description);
+                    free(backpack_items[i].image_path);
+                }
+                free(name);
+                free(description);
+                free(image_path);
+                free(status);
+                free(backpack_items);
+                free(backpack_path.background_path);
+                free(backpack_path.font_path);
+                free(backpack_path.black_block_path);
+                free(backpack_path.white_edge_black_block_path);
                 now_own_item = -1;
                 continue;
             }
@@ -622,8 +698,6 @@ int main(int32_t argc, char *argv[])
             
             if (col_in_script != toml_array_nelem(script_list))
             {
-                fseek(pPlayer_sav_file,0,SEEK_SET);
-                Player_V = toml_parse_file(pPlayer_sav_file, errbuf, sizeof(errbuf));
                 save_col_idx = col_in_script;
                 toml_table_t *entry = toml_table_at(script_list, col_in_script);
                 if(entry==NULL)
@@ -645,14 +719,15 @@ int main(int32_t argc, char *argv[])
                     const char *command = toml_raw_in(entry, "command");
                     const char *text_copy = toml_raw_in(entry, "text");
                     const char *mood = toml_raw_in(entry, "mood");
-                    char *text = calloc(1024, sizeof(char));
-                    strcpy(text, text_copy);
-                    text++;
-                    text[strlen(text) - 1] = 0;
+                    // text_copy is the raw TOML string including quotes; strip them
+                    char *text_buffer = calloc(strlen(text_copy) + 1, sizeof(char));
+                    strcpy(text_buffer, text_copy + 1);
+                    text_buffer[strlen(text_buffer) > 0 ? strlen(text_buffer) - 1 : 0] = 0;
+                    char *text = text_buffer;
                     printf("%s\n", text);
                     if (strcmp(command, "\"no name\"") == 0 || mood == NULL)
                     {
-                        resources.name_box_texture = NULL;
+                        destroyTexture(&resources.name_box_texture);
                         if (now_state == 0)
                         {
                             // printf("0\n");
@@ -669,10 +744,9 @@ int main(int32_t argc, char *argv[])
                     else
                     {
 
-                        char *command_cpy = calloc(1024, sizeof(char));
-                        strcpy(command_cpy, command);
-                        command_cpy++;
-                        command_cpy[strlen(command_cpy) - 1] = 0;
+                        char command_cpy[1024] = {0};
+                        snprintf(command_cpy, sizeof(command_cpy), "%s", command + 1);
+                        command_cpy[strlen(command_cpy) > 0 ? strlen(command_cpy) - 1 : 0] = 0;
                         toml_table_t *Character_id_table = toml_table_in(Character, command_cpy);
                         // printf("2\n");
                         toml_datum_t directory_copy = toml_string_in(Character_id_table, "directory");
@@ -684,7 +758,10 @@ int main(int32_t argc, char *argv[])
                             name_color = hexStringToSDL_Color(color_copy.u.s);
                         }
                         char *character_name = calloc(1024, sizeof(char));
-                        strcpy(character_name, name_copy.u.s);
+                        if (name_copy.ok)
+                        {
+                            snprintf(character_name, 1024, "%s", name_copy.u.s);
+                        }
                         // char* directory = calloc(1024,sizeof(char));
                         // strcpy(directory,directory_copy);
                         // directory++;
@@ -727,20 +804,23 @@ int main(int32_t argc, char *argv[])
                         if (now_state == 0)
                         {
                             // printf("0\n");
-                            font = TTF_OpenFont(font_path, 20);
-                            dialogText_3(renderer, &resources, font, &text, textColor, &print_text_x, &print_text_y, w_w);
+                            dialogText_3(renderer, &resources, dialog_font, &text, textColor, &print_text_x, &print_text_y, w_w);
                             now_state = 1;
                             had_hit_left = 0;
-                            font = TTF_OpenFont(font_path, 24);
                         }
                         else if (now_state == 1 && had_hit_left == 1)
                         {
                             now_state = 2;
                             had_hit_left = 0;
-                            resources.expression_texture = NULL;
-                            resources.name_texture = NULL;
+                            destroyTexture(&resources.expression_texture);
+                            destroyTexture(&resources.name_texture);
                         }
+                        free(character_name);
+                        free(directory_copy.u.s);
+                        free(name_copy.u.s);
+                        free(color_copy.u.s);
                     }
+                    free(text_buffer);
                     /*
                     if (text != NULL && pr_text == NULL)
                     {
@@ -814,33 +894,45 @@ int main(int32_t argc, char *argv[])
                     toml_array_t *command_array = toml_array_in(entry, "command_list");
                     toml_array_t *mood_array = toml_array_in(entry, "mood_list");
 
+                    freeSetCharacterInfo(&save_Character);
+                    clearCharacterImages(&resources);
                     if (character_number.u.i == 0)
                     {
-                        save_Character.number = character_number.u.i;
-                        for (int32_t i = 0; i < 3; i++) /// 初始化character_IMG_texture不然會出事
-                        {
-                            resources.character_IMG_texture[i] = NULL;
-                        }
+                        save_Character.number = 0;
                     }
                     else
                     {
                         save_Character.number = character_number.u.i;
                         // save_Character.command_list_size = toml_array_nelem(number);
                         // save_Character.mood_list_size = toml_array_nelem(mood_array);
-                        save_Character.command_list = (char **)malloc(character_number.u.i * sizeof(char *));
-                        save_Character.mood_list = (char **)malloc(character_number.u.i * sizeof(char *));
-                        for (int32_t i = 0; i < 3; i++) /// 初始化character_IMG_texture不然會出事
+                        int32_t shown = toml_array_nelem(command_array);
+                        if (shown > 3)
                         {
-                            resources.character_IMG_texture[i] = NULL;
+                            shown = 3; // the renderer has room for 3 characters
                         }
-                        for (int32_t i = 0; i < toml_array_nelem(command_array); i++)
+                        if (shown > toml_array_nelem(mood_array))
                         {
-                            // printf("A\n");
-                            const char *Character_id = toml_string_at(command_array, i).u.s;
-                            save_Character.command_list[i] = strdup(Character_id);
-
-                            const char *mood = toml_string_at(mood_array, i).u.s;
-                            save_Character.mood_list[i] = strdup(mood);
+                            shown = toml_array_nelem(mood_array);
+                        }
+                        save_Character.number = shown;
+                        save_Character.command_list = (char **)calloc(shown > 0 ? shown : 1, sizeof(char *));
+                        save_Character.mood_list = (char **)calloc(shown > 0 ? shown : 1, sizeof(char *));
+                        for (int32_t i = 0; i < shown; i++)
+                        {
+                            toml_datum_t character_datum = toml_string_at(command_array, i);
+                            toml_datum_t mood_datum = toml_string_at(mood_array, i);
+                            if (!character_datum.ok || !mood_datum.ok)
+                            {
+                                free(character_datum.u.s);
+                                free(mood_datum.u.s);
+                                save_Character.number = i;
+                                break;
+                            }
+                            // save_Character owns these strings now
+                            save_Character.command_list[i] = character_datum.u.s;
+                            save_Character.mood_list[i] = mood_datum.u.s;
+                            const char *Character_id = character_datum.u.s;
+                            const char *mood = mood_datum.u.s;
                             // char* Character_id_copy = calloc(1024,sizeof(char));
                             // printf("%s\n",Character_id);
                             toml_table_t *Character_id_table = toml_table_in(Character, Character_id);
@@ -852,7 +944,8 @@ int main(int32_t argc, char *argv[])
                             // directory++;
                             // directory[strlen(directory)-1] = 0;
                             // printf("directory = %s\n",directory_copy.u.s);
-                            displayIMG(renderer, &resources, Character, directory_copy.u.s, Character_id, mood, i, toml_array_nelem(command_array));
+                            displayIMG(renderer, &resources, Character, directory_copy.u.s, Character_id, mood, i, shown);
+                            free(directory_copy.u.s);
                         }
                     }
                     col_in_script++;
@@ -861,8 +954,9 @@ int main(int32_t argc, char *argv[])
                 {
                     printf("IN the Jump\n");
                     const char *label_id = toml_raw_in(entry, "label_id");
-                    char *label_id_copy = calloc(1024, sizeof(char));
-                    strcpy(label_id_copy, label_id);
+                    char label_id_copy_buf[1024] = {0}; // was calloc()ed and leaked on every use
+                    char *label_id_copy = label_id_copy_buf;
+                    snprintf(label_id_copy, sizeof(label_id_copy_buf), "%s", label_id);
                     label_id_copy++;
                     label_id_copy[strlen(label_id_copy) - 1] = 0;
                     strcpy(save_Jump, label_id_copy);
@@ -936,8 +1030,9 @@ int main(int32_t argc, char *argv[])
                     // printf("here_4\n");
                     const char *background_v = toml_raw_in(entry, "background");
                     printf("%s\n", background_v);
-                    char *background_v_copy = calloc(1024, sizeof(char));
-                    strcpy(background_v_copy, background_v);
+                    char background_v_copy_buf[1024] = {0}; // was calloc()ed and leaked on every use
+                    char *background_v_copy = background_v_copy_buf;
+                    snprintf(background_v_copy, sizeof(background_v_copy_buf), "%s", background_v);
                     background_v_copy++;
                     background_v_copy[strlen(background_v_copy) - 1] = 0;
 
@@ -949,27 +1044,32 @@ int main(int32_t argc, char *argv[])
                     }
                     char full_path[512] = {0};
 
-                    snprintf(full_path, sizeof(full_path), "./Assets/background/%s", background_path_datum.u.s);
+                    snprintf(full_path, sizeof(full_path), "./Assets/background/%s", background_path_datum.ok ? background_path_datum.u.s : "");
+                    free(background_path_datum.u.s);
                     SDL_Surface *background_surface = IMG_Load(full_path);
                     if (!background_surface)
                     {
+                        // keep the current background instead of quitting the game
                         printf("Unable to load image! SDL_image Error: %s\n", IMG_GetError());
-                        return -1;
                     }
-                    if (resources.background_texture)
+                    else
                     {
-                        SDL_DestroyTexture(resources.background_texture);
+                        if (resources.background_texture)
+                        {
+                            SDL_DestroyTexture(resources.background_texture);
+                        }
+                        resources.background_texture = SDL_CreateTextureFromSurface(renderer, background_surface);
+                        SDL_FreeSurface(background_surface);
                     }
-                    resources.background_texture = SDL_CreateTextureFromSurface(renderer, background_surface);
-                    SDL_FreeSurface(background_surface);
                     now_state = 2;
                 }
                 else if (strcmp(action, "\"Music\"") == 0)
                 {
                     printf("Music action\n");
                     const char *music_id = toml_raw_in(entry, "music_id");
-                    char *music_id_copy = calloc(1024, sizeof(char));
-                    strcpy(music_id_copy, music_id);
+                    char music_id_copy_buf[1024] = {0}; // was calloc()ed and leaked on every use
+                    char *music_id_copy = music_id_copy_buf;
+                    snprintf(music_id_copy, sizeof(music_id_copy_buf), "%s", music_id);
                     music_id_copy++;
                     music_id_copy[strlen(music_id_copy) - 1] = 0;
                     strcpy(save_Music, music_id_copy);
@@ -978,32 +1078,33 @@ int main(int32_t argc, char *argv[])
                     {
                         Mix_HaltMusic();
                         Mix_FreeMusic(bgm);
+                        bgm = NULL; // was left dangling and freed again later
                     }
                     if (strcmp(music_id_copy, "close") != 0)
                     {
                         char full_path[512] = {0};
 
-                        snprintf(full_path, sizeof(full_path), "./Assets/music/%s", music_path_datum.u.s);
+                        snprintf(full_path, sizeof(full_path), "./Assets/music/%s", music_path_datum.ok ? music_path_datum.u.s : "");
 
                         bgm = Mix_LoadMUS(full_path);
 
+                        // a missing or broken music file used to `break` out of the game loop and end the game
                         if (bgm == NULL)
                         {
                             printf("Failed to load music! SDL_mixer Error: %s\n", Mix_GetError());
-                            break;
                         }
-
-                        if (Mix_PlayMusic(bgm, -1) == -1)
+                        else if (Mix_PlayMusic(bgm, -1) == -1)
                         {
                             printf("Failed to play music! SDL_mixer Error: %s\n", Mix_GetError());
                             Mix_FreeMusic(bgm);
-                            break;
+                            bgm = NULL;
                         }
                         else
                         {
                             printf("music OK!\n");
                         }
                     }
+                    free(music_path_datum.u.s);
                     now_state = 2;
                 }
                 else if (strcmp(action, "\"Sound\"") == 0)
@@ -1012,17 +1113,19 @@ int main(int32_t argc, char *argv[])
                     // printf("A\n");
                     const char *sound_id = toml_raw_in(entry, "sound_id");
                     // printf("B\n");
-                    char *sound_id_copy = calloc(1024, sizeof(char));
+                    char sound_id_copy_buf[1024] = {0}; // was calloc()ed and leaked on every use
+                    char *sound_id_copy = sound_id_copy_buf;
                     // printf("C\n");
                     // printf("%s\n",sound_id);
-                    strcpy(sound_id_copy, sound_id);
+                    snprintf(sound_id_copy, sizeof(sound_id_copy_buf), "%s", sound_id);
                     // printf("D\n");
                     sound_id_copy++;
                     sound_id_copy[strlen(sound_id_copy) - 1] = 0;
                     // printf("%s\n",sound_id_copy);
                     toml_datum_t sound_path_datum = toml_string_in(sound_table, sound_id_copy);
                     char full_path[512] = {0};
-                    snprintf(full_path, sizeof(full_path), "./Assets/sound/%s", sound_path_datum.u.s);
+                    snprintf(full_path, sizeof(full_path), "./Assets/sound/%s", sound_path_datum.ok ? sound_path_datum.u.s : "");
+                    free(sound_path_datum.u.s);
 
                     Mix_Chunk *sound = load_sound(full_path);
                     if (sound != NULL)
@@ -1048,22 +1151,24 @@ int main(int32_t argc, char *argv[])
                     {
                         if (optionCount.u.i == 0)
                         {
-                            for (int32_t i = 0; i < 3; i++) /// 初始化character_IMG_texture不然會出事
-                            {
-                                resources.now_option_button[i] = NULL;
-                            }
+                            clearOptionButtons(&resources);
                         }
-                        else
+                        else if (resources.now_option_button[0] == NULL)
                         {
-                            for (int32_t i = 0; i < 3; i++) /// 初始化character_IMG_texture不然會出事
+                            // this runs every frame while the choice is on screen: build the buttons only once
+                            int32_t option_total = toml_array_nelem(optionContent);
+                            if (option_total > 3)
                             {
-                                resources.now_option_button[i] = NULL;
+                                option_total = 3; // handleButtonEvents only knows 3 buttons
                             }
-                            for (int32_t i = 0; i < toml_array_nelem(optionContent); i++)
+                            for (int32_t i = 0; i < option_total; i++)
                             {
-                                // printf("A\n");
-                                const char *optionContent_id = toml_string_at(optionContent, i).u.s;
-                                MakeOption(&resources, renderer, optionContent_id, font, i, optionCount.u.i);
+                                toml_datum_t optionContent_id = toml_string_at(optionContent, i);
+                                if (optionContent_id.ok)
+                                {
+                                    MakeOption(&resources, renderer, optionContent_id.u.s, font, i, optionCount.u.i);
+                                    free(optionContent_id.u.s);
+                                }
                             }
                         }
                     }
@@ -1072,7 +1177,13 @@ int main(int32_t argc, char *argv[])
 
                         // judge_button
                         // printf("the_option = %d\n",the_option);
-                        const char *optionJump_id = toml_string_at(optionJump, the_option).u.s;
+                        toml_datum_t optionJump_datum = toml_string_at(optionJump, the_option);
+                        char optionJump_id[1024] = {0};
+                        if (optionJump_datum.ok)
+                        {
+                            snprintf(optionJump_id, sizeof(optionJump_id), "%s", optionJump_datum.u.s);
+                            free(optionJump_datum.u.s);
+                        }
                         // printf("%s\n",optionJump_id);
                         strcpy(save_Jump, optionJump_id);
                         now_script = toml_table_in(Script, optionJump_id);
@@ -1081,10 +1192,7 @@ int main(int32_t argc, char *argv[])
                         option_hit = 0;
                         col_in_script = 0;
                         had_hit_left = 0;
-                        for (int32_t i = 0; i < 3; i++) /// 初始化character_IMG_texture不然會出事
-                        {
-                            resources.now_option_button[i] = NULL;
-                        }
+                        clearOptionButtons(&resources);
                         // SDL_RenderClear(renderer);
                         // clearAndRender( &resources,  resources.background_texture );
                     }
@@ -1092,46 +1200,41 @@ int main(int32_t argc, char *argv[])
                 else if (strcmp(action, "\"Modify variable\"") == 0)
                 {
                     // printf("stay_here_1\n");
-                    const char *variable_name = toml_raw_in(entry, "variable_name");
-                    char *variable_name_copy = calloc(1024, sizeof(char));
-                    strcpy(variable_name_copy, variable_name);
-                    variable_name_copy++;
-                    variable_name_copy[strlen(variable_name_copy) - 1] = 0;
+                    toml_datum_t variable_name = toml_string_in(entry, "variable_name");
                     toml_datum_t value = toml_string_in(entry, "value");
-                    // toml_table_t* Modify_table = toml_table_in(Player_Variable,"Variable");
-                    // printf("A\n");
-                    // printf("%s\n",value.u.s);
-                    Modify_Variable(pPlayer_sav_file, Player_Variable, variable_name_copy, value.u.s);
+                    if (variable_name.ok && value.ok)
+                    {
+                        Modify_Variable(pPlayer_sav_file, "Variable", Player_Variable, variable_name.u.s, value.u.s);
+                        Player_V = reloadPlayerSave(pPlayer_sav_file, Player_V, Player_V_initial);
+                        Player_Variable = toml_table_in(Player_V, "Variable");
+                    }
+                    else
+                    {
+                        printf("Modify variable: missing variable_name or value\n");
+                    }
+                    free(variable_name.u.s);
+                    free(value.u.s);
                     col_in_script++;
                 }
                 else if (strcmp(action, "\"Give item\"") == 0)
                 {
 
                     // printf("stay_here_2\n");
-                    const char *item_id = toml_raw_in(entry, "item_id");
-                    char *item_id_copy = calloc(1024, sizeof(char));
-                    strcpy(item_id_copy, item_id);
-                    item_id_copy++;
-                    item_id_copy[strlen(item_id_copy) - 1] = 0;
+                    toml_datum_t item_id = toml_string_in(entry, "item_id");
                     toml_datum_t value = toml_string_in(entry, "count");
-                    if (value.ok == 0)
-                    {
-                        printf("value not OK\n");
-                    }
-                    //Player_V = toml_parse_file(pPlayer_sav_file, errbuf, sizeof(errbuf));
-                    if (Player_V == NULL)
-                    {
-                        printf("Player_V is NULL\n");
-                    }
                     toml_table_t *Player_Item = toml_table_in(Player_V, "Items");
-                    if (Player_Item == NULL)
+                    if (item_id.ok && value.ok && Player_Item)
                     {
-                        printf("Player_Item is NULL\n");
+                        Modify_Variable(pPlayer_sav_file, "Items", Player_Item, item_id.u.s, value.u.s);
+                        Player_V = reloadPlayerSave(pPlayer_sav_file, Player_V, Player_V_initial);
+                        Player_Variable = toml_table_in(Player_V, "Variable");
                     }
-                    // toml_table_t* Modify_table = toml_table_in(Player_Variable,"Variable");
-                    // printf("A\n");
-                    // printf("%s\n",value.u.s);
-                    Modify_Variable(pPlayer_sav_file, Player_Item, item_id_copy, value.u.s);
+                    else
+                    {
+                        printf("Give item: missing item_id, count or [Items] in player.sav\n");
+                    }
+                    free(item_id.u.s);
+                    free(value.u.s);
                     col_in_script++;
                 }
                 // else if (strcmp(action, "\"Music\"") == 0)
@@ -1159,16 +1262,32 @@ int main(int32_t argc, char *argv[])
 
     // printf("A\n");
     TTF_CloseFont(font);
+    TTF_CloseFont(dialog_font);
+    freeSetCharacterInfo(&save_Character);
     freeRenderResources(&resources);
+    freeBackpackResources(&backpack_resources);
     SDL_DestroyRenderer(renderer); // 這行因為未知原因若不註解掉會有機率錯，但走到這行程式必定結束，資源必定會釋放，所以我註解掉了
     SDL_DestroyWindow(window);
+    Mix_FreeMusic(bgm);
+    Mix_CloseAudio();
     IMG_Quit();
     TTF_Quit();
     SDL_Quit();
-    Mix_FreeMusic(bgm);
-    Mix_CloseAudio();
+    if (Player_V != Player_V_initial)
+    {
+        toml_free(Player_V);
+    }
+    toml_free(Player_V_initial);
+    toml_free(Character);
+    toml_free(Script);
+    toml_free(all_background_table);
+    toml_free(all_music_table);
+    toml_free(BIG_system);
     fclose(pCharacter_file);
     fclose(pScript_file);
-    //fclose(pPlayer_sav_file);
+    fclose(pPlayer_sav_file);
+    fclose(pbackground_file);
+    fclose(pmusic_file);
+    fclose(system_config);
     return 0;
 }
