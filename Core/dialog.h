@@ -56,7 +56,7 @@ typedef struct {
     char** command_list;
     char** mood_list;
 } SetCharacterInfo;
-void change_ratio();
+void change_ratio(int32_t a, int32_t b, int32_t c, int32_t d);
 int32_t handleButtonEvents(SDL_Event* e, RenderResources* resources) ;
 void initButton(SDL_Renderer* renderer, TTF_Font* font, Button* button, SDL_Rect rect, SDL_Color color, const char* text);
 int32_t checkLeaveButton(SDL_Event* e, Button* leave_button);
@@ -71,6 +71,10 @@ void SetExpression(SDL_Renderer* renderer, RenderResources *resources, int32_t x
 void SetCharacterImg(SDL_Renderer* renderer, RenderResources *resources, int32_t x, int32_t y, int32_t w, int32_t h, int32_t idx, uint8_t alpha);
 void displayIMG(SDL_Renderer* renderer, RenderResources *resources, toml_table_t *Character, char* directory, const char* Character_id, const char* mood, int32_t idx, int32_t number);
 void clearAndRender(RenderResources *resources, SDL_Texture *backgroundTexture );
+void destroyTexture(SDL_Texture** texture);
+void clearCharacterImages(RenderResources* resources);
+void clearOptionButtons(RenderResources* resources);
+void freeSetCharacterInfo(SetCharacterInfo* info);
 void DisplayTheExpression(SDL_Renderer* renderer, RenderResources *resources, toml_table_t *Character, char* directory, const char* command, const char* mood);
 void my_RenderPresent(SDL_Renderer* renderer, RenderResources* resources, int32_t now_state);
 int32_t IsOverGap(toml_table_t *Player_Variable, toml_array_t* variable_array, toml_array_t* mode_array, toml_array_t* gap_array);
@@ -79,7 +83,7 @@ Mix_Chunk* load_sound(const char* file);
 void initLeaveButton(RenderResources* resources, SDL_Renderer* renderer, const char* text, TTF_Font* font);
 // void initLeaveButton_2(RenderResources* resources, SDL_Renderer* renderer, const char* text, TTF_Font* font);
 void MakeOption(RenderResources* resources, SDL_Renderer* renderer, const char* optionContent_id, TTF_Font* font, int32_t index, int32_t totalOptions);
-void Modify_Variable(FILE* pPlayer_sav_file, toml_table_t* Modify_table, char* variable_name,const char* plus);
+void Modify_Variable(FILE* pPlayer_sav_file, const char* section, toml_table_t* Modify_table, const char* variable_name, const char* plus);
 void initSaveButton(RenderResources* resources, SDL_Renderer* renderer, const char* text, TTF_Font* font);
 // void initSaveButton_2(RenderResources* resources, SDL_Renderer* renderer, const char* text, TTF_Font* font);
 int32_t checkSaveButton(SDL_Event* e, Button* save_button);

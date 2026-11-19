@@ -165,6 +165,7 @@ int32_t openningMain(openningData *data, openningPath *path, SDL_Window *window)
         // 渲染標題字
         SDL_Color titleTextColor;
         chooseTextColor(title_text_color, &titleTextColor);
+        TTF_CloseFont(title_font); // SDL_ttf ignores NULL
         title_font = TTF_OpenFont(path->fontPath, 35 * window_width * window_height / (2.2 * 640.0 * 480.0));
         displayTextWithShadow(renderer, title_font, data->title, titleTextColor, title_x, title_y, 5, "CENTER", "TOP");
 
@@ -173,6 +174,7 @@ int32_t openningMain(openningData *data, openningPath *path, SDL_Window *window)
 
         // start button
         SDL_Color startTextColor;
+        TTF_CloseFont(title_font); // SDL_ttf ignores NULL
         title_font = TTF_OpenFont(path->fontPath, 30 * window_width * window_height / (3 * 640.0 * 480.0));
         if (judgeButtonPressed(mouse_x, mouse_y, start_button_x, start_button_y, normal_button_width, normal_button_height, "CENTER", "CENTER"))
         {
@@ -197,6 +199,7 @@ int32_t openningMain(openningData *data, openningPath *path, SDL_Window *window)
 
         // aboutus button
         SDL_Color aboutusTextColor;
+        TTF_CloseFont(title_font); // SDL_ttf ignores NULL
         title_font = TTF_OpenFont(path->fontPath, 30 * window_width * window_height / (3 * 640.0 * 480.0));
         if (judgeButtonPressed(mouse_x, mouse_y, aboutus_button_x, aboutus_button_y, normal_button_width, normal_button_height, "CENTER", "CENTER"))
         {
@@ -220,6 +223,7 @@ int32_t openningMain(openningData *data, openningPath *path, SDL_Window *window)
 
         // llm mode button
         SDL_Color llmTextColor;
+        TTF_CloseFont(title_font); // SDL_ttf ignores NULL
         title_font = TTF_OpenFont(path->fontPath, 30 * window_width * window_height / (3 * 640.0 * 480.0));
         if (judgeButtonPressed(mouse_x, mouse_y, llm_mode_button_x, llm_mode_button_y, normal_button_width, normal_button_height, "CENTER", "CENTER"))
         {
@@ -243,6 +247,7 @@ int32_t openningMain(openningData *data, openningPath *path, SDL_Window *window)
 
         // exit button
         SDL_Color exitTextColor;
+        TTF_CloseFont(title_font); // SDL_ttf ignores NULL
         title_font = TTF_OpenFont(path->fontPath, 35 * window_width * window_height / (3 * 640.0 * 480.0));
         if (judgeButtonPressed(mouse_x, mouse_y, exit_button_x, exit_button_y, exit_button_width, exit_button_height, "CENTER", "CENTER"))
         {
@@ -267,14 +272,13 @@ int32_t openningMain(openningData *data, openningPath *path, SDL_Window *window)
         // 更新畫面
         SDL_RenderPresent(renderer);
         TTF_CloseFont(title_font);
+        title_font = NULL;
     }
 
     SDL_DestroyTexture(backgroundTexture);
-    SDL_DestroyRenderer(renderer);
-    if (option==1)
-    {
-        SDL_RenderClear(renderer);
-    }
+    SDL_DestroyTexture(blackbuttonTexture);
+    SDL_DestroyTexture(whitebuttonTexture);
+    SDL_DestroyRenderer(renderer); // the renderer must not be used after this
     return option;
 }
 

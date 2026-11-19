@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_mixer.h>
@@ -30,8 +31,10 @@ void MakeOption(RenderResources* resources, SDL_Renderer* renderer, const char* 
 
     // 分配每个按钮的内存
     if (resources->now_option_button[index] == NULL) {
-        resources->now_option_button[index] = (Button*)malloc(sizeof(Button));
+        resources->now_option_button[index] = (Button*)calloc(1, sizeof(Button));
     }
+    destroyTexture(&resources->now_option_button[index]->IMG_texture);
+    destroyTexture(&resources->now_option_button[index]->text_texture);
 
     // 定义按钮的宽度和高度
     int buttonWidth = 400;
@@ -45,15 +48,15 @@ void MakeOption(RenderResources* resources, SDL_Renderer* renderer, const char* 
     SDL_Rect buttonRect = {buttonX*width_ratio, buttonY*height_ratio, buttonWidth*width_ratio, buttonHeight*height_ratio};
 
     // 创建按钮的背景纹理
-    SDL_Texture* buttonBgTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, buttonWidth, buttonHeight);
-    SDL_SetRenderTarget(renderer, buttonBgTexture);
+    resources->now_option_button[index]->IMG_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, buttonWidth, buttonHeight);
+    SDL_SetRenderTarget(renderer, resources->now_option_button[index]->IMG_texture);
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // 白色背景
     SDL_RenderClear(renderer);
     SDL_SetRenderTarget(renderer, NULL);
     //printf("C\n");
     // 创建按钮的文字纹理
     SDL_Surface* textSurface = TTF_RenderUTF8_Blended_Wrapped(font, optionContent_id, (SDL_Color){0, 0, 0, 255},400); // 黑色文字
-    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+    resources->now_option_button[index]->text_texture = SDL_CreateTextureFromSurface(renderer, textSurface);
     //printf("D\n");
     // 获取文字的宽度和高度
     int textWidth = (textSurface->w-5)*width_ratio;
@@ -64,9 +67,16 @@ void MakeOption(RenderResources* resources, SDL_Renderer* renderer, const char* 
     SDL_Rect textRect = {(buttonX + (buttonWidth - textWidth) / 2)*width_ratio, (buttonY + (buttonHeight - textHeight) / 2)*height_ratio, textWidth*width_ratio, textHeight*height_ratio};
     //printf("F\n");
     // 设置按钮对象的属性
-    resources->now_option_button[index]->text_texture = textTexture;
+    //if (resources->now_option_button[index]->text_texture)
+    //{
+    //    SDL_DestroyTexture(resources->now_option_button[index]->text_texture);
+    //}
     resources->now_option_button[index]->text_rect = textRect;
-    resources->now_option_button[index]->IMG_texture = buttonBgTexture;
+    //if (resources->now_option_button[index]->IMG_texture)
+    //{
+    //    SDL_DestroyTexture(resources->now_option_button[index]->IMG_texture);
+    //}
+    //resources->now_option_button[index]->IMG_texture = buttonBgTexture;
     resources->now_option_button[index]->IMG_rect = buttonRect;
     //printf("E\n");
     
@@ -140,6 +150,47 @@ int32_t handleButtonEvents(SDL_Event* e, RenderResources* resources)
 
     return -2; // Return -2 if no button was clicked
 }
+// Destroy a texture and clear the pointer so it can neither leak nor be destroyed twice.
+void destroyTexture(SDL_Texture** texture) {
+    if (texture && *texture) {
+        SDL_DestroyTexture(*texture);
+        *texture = NULL;
+    }
+}
+
+// Remove all character sprites from the screen (used by SetCharacter).
+void clearCharacterImages(RenderResources* resources) {
+    for (int i = 0; i < 3; i++) {
+        destroyTexture(&resources->character_IMG_texture[i]);
+    }
+}
+
+// Remove all option buttons (used when an Option action is set up or answered).
+void clearOptionButtons(RenderResources* resources) {
+    for (int i = 0; i < 3; i++) {
+        Button* button = resources->now_option_button[i];
+        if (button) {
+            destroyTexture(&button->text_texture);
+            destroyTexture(&button->IMG_texture);
+            free(button);
+            resources->now_option_button[i] = NULL;
+        }
+    }
+}
+
+// Free the strings owned by a SetCharacterInfo and reset it to "no characters".
+void freeSetCharacterInfo(SetCharacterInfo* info) {
+    for (int32_t i = 0; i < info->number; i++) {
+        if (info->command_list) free(info->command_list[i]);
+        if (info->mood_list) free(info->mood_list[i]);
+    }
+    free(info->command_list);
+    free(info->mood_list);
+    info->command_list = NULL;
+    info->mood_list = NULL;
+    info->number = 0;
+}
+
 void initRenderResources(RenderResources* resources) {
     resources->background_texture = NULL;
     resources->dialog_box_texture = NULL;
@@ -433,6 +484,10 @@ void dialogText(SDL_Renderer* renderer,RenderResources* resources, TTF_Font* fon
     
     //printf("mytext=%s, %d\n",my_text,my_text);
     textSurface = TTF_RenderUTF8_Blended_Wrapped(font, my_text, textColor,400);
+    if (resources->text_texture)
+    {
+        SDL_DestroyTexture(resources->text_texture);
+    }
     resources->text_texture = SDL_CreateTextureFromSurface(renderer, textSurface);
     SDL_SetTextureAlphaMod(resources->text_texture, 255);
     int32_t text_width = textSurface->w;  // 文本寬度
@@ -488,6 +543,10 @@ void dialogText_3(SDL_Renderer* renderer,RenderResources* resources, TTF_Font* f
     //SDL_Texture* textTexture;
     char *print_char = (*text);
     textSurface = TTF_RenderUTF8_Blended_Wrapped(font, print_char, textColor,550);
+    if (resources->text_texture)
+    {
+        SDL_DestroyTexture(resources->text_texture);
+    }
     resources->text_texture = SDL_CreateTextureFromSurface(renderer, textSurface);
     SDL_SetTextureAlphaMod(resources->text_texture, 255);
     int32_t text_width = textSurface->w;  // 文本寬度
@@ -568,9 +627,17 @@ void displayIMG(SDL_Renderer* renderer, RenderResources *resources, toml_table_t
     }
     int32_t emoSize = toml_array_nelem(sprites_list);
     for (int32_t i = 0; i < emoSize; i++) {
-        const char* now_emo = toml_string_at(sprites_list, i).u.s;
-        if (strcmp(now_emo, mood) == 0) {
-            const char* now_emo_path = toml_string_at(sprites_image_list, i).u.s;
+        toml_datum_t now_emo = toml_string_at(sprites_list, i);
+        int32_t matched = now_emo.ok && strcmp(now_emo.u.s, mood) == 0;
+        free(now_emo.u.s);
+        if (matched) {
+            toml_datum_t now_emo_path_datum = toml_string_at(sprites_image_list, i);
+            if (!now_emo_path_datum.ok) {
+                continue;
+            }
+            char now_emo_path[512];
+            snprintf(now_emo_path, sizeof(now_emo_path), "%s", now_emo_path_datum.u.s);
+            free(now_emo_path_datum.u.s);
             char full_path[512];
             snprintf(full_path, sizeof(full_path), "./Assets/%s/character/%s", directory, now_emo_path);
             ///now_emo_path要加上./character.nekocat/image/
@@ -579,6 +646,10 @@ void displayIMG(SDL_Renderer* renderer, RenderResources *resources, toml_table_t
             {
                 fprintf(stderr, "Error: Unable to load image '%s': %s\n", full_path, IMG_GetError());
                 continue;
+            }
+            if (resources->character_IMG_texture[idx])
+            {
+                SDL_DestroyTexture(resources->character_IMG_texture[idx]);
             }
             resources->character_IMG_texture[idx] = SDL_CreateTextureFromSurface(renderer, character_IMG);
             SDL_FreeSurface(character_IMG);
@@ -617,17 +688,20 @@ void displayIMG(SDL_Renderer* renderer, RenderResources *resources, toml_table_t
 void clearAndRender(RenderResources *resources, SDL_Texture *backgroundTexture ) 
 {
     resources->background_texture = backgroundTexture;
-    resources->text_texture = NULL;
+    destroyTexture(&resources->text_texture);
     //SDL_Delay(2000);
 
 }
 ///顯示Expression
 void DisplayTheExpression(SDL_Renderer* renderer, RenderResources *resources, toml_table_t *Character, char* directory, const char* command, const char* mood) ///此段函數要在左上角印出腳色圖片
 {
-    char* command_cpy = calloc(1024,sizeof(char));
-    strcpy(command_cpy,command);
-    command_cpy++;
-    command_cpy[strlen(command_cpy)-1] = 0;
+    // command and mood are raw TOML strings including the quotes, e.g. "\"ohm\""
+    char command_cpy[1024] = {0};
+    snprintf(command_cpy, sizeof(command_cpy), "%s", command + 1);
+    command_cpy[strlen(command_cpy) > 0 ? strlen(command_cpy) - 1 : 0] = 0;
+    char the_mood[1024] = {0};
+    snprintf(the_mood, sizeof(the_mood), "%s", mood + 1);
+    the_mood[strlen(the_mood) > 0 ? strlen(the_mood) - 1 : 0] = 0;
     toml_table_t *now_character = toml_table_in(Character, command_cpy);
     if (!now_character)
     {
@@ -650,21 +724,20 @@ void DisplayTheExpression(SDL_Renderer* renderer, RenderResources *resources, to
     int32_t emoSize = toml_array_nelem(expressions_list);
     for (int32_t i = 0; i < emoSize; i++) 
     {
-        const char* now_emo = toml_string_at(expressions_list, i).u.s;
-        char* mood_copy = calloc(1024,sizeof(char));
-        strcpy(mood_copy,now_emo);
-        char* the_mood = calloc(1024,sizeof(char));
-        printf("the_mood = %s",the_mood);
-        strcpy(the_mood,mood);
-        //printf("before the_mood = %s\n",the_mood);
-        the_mood++;
-        the_mood[strlen(the_mood)-1] = 0;
-        //printf("the_mood = %s\n",the_mood);
-        //printf("mood_copy = %s\n",mood_copy);
-        if (strcmp(mood_copy, the_mood) == 0) 
+        toml_datum_t now_emo = toml_string_at(expressions_list, i);
+        int32_t matched = now_emo.ok && strcmp(now_emo.u.s, the_mood) == 0;
+        free(now_emo.u.s);
+        if (matched) 
         {
             ///此處要加 character.nekocat 的路徑
-            const char* now_emo_path = toml_string_at(expressions_image_list, i).u.s;
+            toml_datum_t now_emo_path_datum = toml_string_at(expressions_image_list, i);
+            if (!now_emo_path_datum.ok)
+            {
+                continue;
+            }
+            char now_emo_path[512];
+            snprintf(now_emo_path, sizeof(now_emo_path), "%s", now_emo_path_datum.u.s);
+            free(now_emo_path_datum.u.s);
             //printf("path = %s\n",now_emo_path);
             char full_path[512];
             snprintf(full_path, sizeof(full_path), "./Assets/%s/%s", directory,now_emo_path);
@@ -677,6 +750,10 @@ void DisplayTheExpression(SDL_Renderer* renderer, RenderResources *resources, to
                 continue;
             }
             //SDL_Texture* character_texture = SDL_CreateTextureFromSurface(renderer, character_IMG);
+            if (resources->expression_texture)
+            {
+                SDL_DestroyTexture(resources->expression_texture);
+            }
             resources->expression_texture = SDL_CreateTextureFromSurface(renderer, character_IMG);
             SDL_FreeSurface(character_IMG);
             if (!resources->expression_texture) 
@@ -702,52 +779,37 @@ int32_t IsOverGap(toml_table_t *Player_Variable, toml_array_t* variable_array, t
         printf("Error!\n");
         return 0;
     }
-    //printf("B\n");
+    printf("IN IsOverGap\n");
     for (int32_t i = 0; i < num_variables; i++) 
     {
         // 获取变量名
-        
-        const char* variable_name = toml_string_at(variable_array, i).u.s;
-        //printf("%s\n",variable_name);
-        // 获取变量的值
-        toml_datum_t var_value = toml_int_in(Player_Variable, variable_name);
-        //printf("C\n");
-        if (!var_value.ok) {
-            printf("Cannot find variable %s in Player_Variable\n", variable_name);
-            return 0;
-        }
-        
-        // 获取模式和比较值
-        char* mode = toml_string_at(mode_array, i).u.s;
+        printf("IN IsOverGap for\n");
+        toml_datum_t variable_name = toml_string_at(variable_array, i);
+        toml_datum_t mode = toml_string_at(mode_array, i);
         int64_t gap = toml_int_at(gap_array, i).u.i;
-        
-        //printf("%ld %ld\n",var_value.u.i,gap);
-        //printf("D\n");
-        // 根据模式进行比较
-        if (strcmp(mode,">")==0)
-        {
-            if (var_value.u.i <= gap) 
-            {
-                return 0;
+        int32_t passed = 0;
+        if (!variable_name.ok || !mode.ok) {
+            printf("Jump condition %d is missing a variable or mode\n", i);
+        } else {
+            // 获取变量的值
+            toml_datum_t var_value = toml_int_in(Player_Variable, variable_name.u.s);
+            if (!var_value.ok) {
+                printf("Cannot find variable %s in Player_Variable\n", variable_name.u.s);
+            } else if (strcmp(mode.u.s, ">") == 0) {
+                passed = var_value.u.i > gap;
+            } else if (strcmp(mode.u.s, "=") == 0) {
+                passed = var_value.u.i == gap;
+            } else if (strcmp(mode.u.s, "<") == 0) {
+                passed = var_value.u.i < gap;
+            } else {
+                fprintf(stderr, "Invalid mode value %s\n", mode.u.s);
             }
         }
-        else if (strcmp(mode,"=")==0)
+        // toml_string_at() returns malloc()ed copies
+        free(variable_name.u.s);
+        free(mode.u.s);
+        if (!passed)
         {
-            if (var_value.u.i != gap) 
-            {
-                return 0;
-            }
-        }
-        else if (strcmp(mode,"<")==0)
-        {
-            if (var_value.u.i >= gap) 
-            {
-                return 0;
-            }
-        }
-        else
-        {
-            fprintf(stderr, "Invalid mode value %s\n", mode);
             return 0;
         }
         /*
@@ -802,8 +864,63 @@ Mix_Chunk* load_sound(const char* file)
     return sound;
 }
 
-void Modify_Variable(FILE* pPlayer_sav_file, toml_table_t* Modify_table, char* variable_name, const char* plus) {
-    // Step 1: Find the variable_name and modify its value in Modify_table
+#define SAVE_MAX_LINES 1024
+#define SAVE_LINE_LEN 1024
+
+// Read the whole save file into a heap buffer. Returns the number of lines, or -1 on error.
+static int32_t read_save_lines(FILE* pPlayer_sav_file, char (**out)[SAVE_LINE_LEN]) {
+    char (*lines)[SAVE_LINE_LEN] = calloc(SAVE_MAX_LINES, sizeof(*lines));
+    if (!lines) {
+        return -1;
+    }
+    int32_t line_count = 0;
+    rewind(pPlayer_sav_file);
+    while (line_count < SAVE_MAX_LINES && fgets(lines[line_count], SAVE_LINE_LEN, pPlayer_sav_file)) {
+        line_count++;
+    }
+    *out = lines;
+    return line_count;
+}
+
+// Rewrite the save file in place. The FILE* stays open in "r+" mode, so the
+// caller's handle remains valid (it used to be closed and reopened into a
+// local copy, leaving the caller with a dangling FILE*).
+static void write_save_lines(FILE* pPlayer_sav_file, char (*lines)[SAVE_LINE_LEN], int32_t line_count) {
+    rewind(pPlayer_sav_file);
+    for (int32_t i = 0; i < line_count; i++) {
+        fputs(lines[i], pPlayer_sav_file);
+    }
+    fflush(pPlayer_sav_file);
+    if (ftruncate(fileno(pPlayer_sav_file), ftell(pPlayer_sav_file)) != 0) {
+        perror("player.sav");
+    }
+    rewind(pPlayer_sav_file);
+}
+
+// Does this line define exactly `key` (e.g. "key = 1")?
+static int32_t line_has_key(const char* line, const char* key) {
+    while (*line == ' ' || *line == '\t') {
+        line++;
+    }
+    size_t len = strlen(key);
+    if (strncmp(line, key, len) != 0) {
+        return 0;
+    }
+    line += len;
+    while (*line == ' ' || *line == '\t') {
+        line++;
+    }
+    return *line == '=';
+}
+
+// Set `variable_name` inside `[section]` of player.sav. `plus` is either an
+// absolute value ("3") or a relative change ("+1" / "-1"); the current value is
+// read from Modify_table, which must be parsed from the current save file.
+void Modify_Variable(FILE* pPlayer_sav_file, const char* section, toml_table_t* Modify_table, const char* variable_name, const char* plus) {
+    if (!pPlayer_sav_file || !Modify_table || !variable_name || !plus) {
+        fprintf(stderr, "Error: Modify_Variable called with missing data\n");
+        return;
+    }
     toml_datum_t var_value = toml_int_in(Modify_table, variable_name);
     if (!var_value.ok) {
         fprintf(stderr, "Error: Variable %s not found\n", variable_name);
@@ -812,65 +929,39 @@ void Modify_Variable(FILE* pPlayer_sav_file, toml_table_t* Modify_table, char* v
 
     int32_t current_value = var_value.u.i;
     int32_t new_value;
-
-    // Determine if plus is a signed change or direct assignment
     if (plus[0] == '+' || plus[0] == '-') {
         new_value = current_value + atoi(plus);
     } else {
         new_value = atoi(plus);
     }
 
-    char new_value_str[32];
-    sprintf(new_value_str, "%d", new_value);
-
-    // Step 2: Read file content into a string array
-    char lines[1024][1024];
-    int line_count = 0;
-
-    fseek(pPlayer_sav_file, 0, SEEK_SET);
-    while (fgets(lines[line_count], 1024, pPlayer_sav_file)) {
-        line_count++;
+    char (*lines)[SAVE_LINE_LEN] = NULL;
+    int32_t line_count = read_save_lines(pPlayer_sav_file, &lines);
+    if (line_count < 0) {
+        fprintf(stderr, "Error: out of memory while reading player.sav\n");
+        return;
     }
 
-    // Step 3: Modify the variable value in the string array
-    for (int i = 0; i < line_count; i++) 
-    {
-        char* pos = strstr(lines[i], variable_name);
-        if (strchr(lines[i],'{')==NULL)
-        {
-            if (pos) 
-            {
-                char* equal_sign = strchr(pos, '=');
-                if (equal_sign) {
-                    sprintf(equal_sign + 2, "%d\n", new_value); // +2 to skip over "= "
-                    break;
-                }
-            }
+    char section_header[256];
+    snprintf(section_header, sizeof(section_header), "[%s]", section);
+    int32_t in_section = 0;
+    for (int32_t i = 0; i < line_count; i++) {
+        const char* p = lines[i];
+        while (*p == ' ' || *p == '\t') {
+            p++;
         }
-        
+        if (*p == '[') {
+            in_section = strncmp(p, section_header, strlen(section_header)) == 0;
+            continue;
+        }
+        if (in_section && line_has_key(lines[i], variable_name)) {
+            snprintf(lines[i], SAVE_LINE_LEN, "%s = %d\n", variable_name, new_value);
+            break;
+        }
     }
 
-    // Step 4: Close and reopen the file to write the modified content
-    fclose(pPlayer_sav_file);
-    pPlayer_sav_file = fopen("player.sav", "w");
-    if (!pPlayer_sav_file) {
-        fprintf(stderr, "Error: Unable to open file for writing\n");
-        return;
-    }
-
-    for (int i = 0; i < line_count; i++) {
-        fputs(lines[i], pPlayer_sav_file);
-    }
-
-    fflush(pPlayer_sav_file); // Ensure all changes are written to the file
-    fclose(pPlayer_sav_file);
-
-    // Reopen the file for reading and writing
-    pPlayer_sav_file = fopen("player.sav", "r+");
-    if (!pPlayer_sav_file) {
-        fprintf(stderr, "Error: Unable to reopen file\n");
-        return;
-    }
+    write_save_lines(pPlayer_sav_file, lines, line_count);
+    free(lines);
 }
 void initLeaveButton(RenderResources* resources, SDL_Renderer* renderer, const char* text, TTF_Font* font) {
     int32_t button_x = 585*width_ratio;
@@ -888,6 +979,7 @@ void initLeaveButton(RenderResources* resources, SDL_Renderer* renderer, const c
 
     // Initialize text texture
     SDL_Surface* textSurface = TTF_RenderUTF8_Blended_Wrapped(font, text, textColor,400);
+    
     resources->leave_button->text_texture = SDL_CreateTextureFromSurface(renderer, textSurface);
     
     // Get text width and height
@@ -1038,12 +1130,11 @@ int32_t checkSaveButton(SDL_Event* e, Button* save_button)
 }
 void SaveIt(FILE* pPlayer_sav_file, const char* save_Background, const char* save_Music, SetCharacterInfo save_Character, const char* save_Jump, int32_t save_col_idx) {
     // Step 1: Read the whole file content into a string array
-    char lines[1024][1024];
-    int line_count = 0;
-
-    fseek(pPlayer_sav_file, 0, SEEK_SET);
-    while (fgets(lines[line_count], 1024, pPlayer_sav_file)) {
-        line_count++;
+    char (*lines)[SAVE_LINE_LEN] = NULL;
+    int32_t line_count = read_save_lines(pPlayer_sav_file, &lines);
+    if (line_count < 0) {
+        fprintf(stderr, "Error: out of memory while reading player.sav\n");
+        return;
     }
 
     // Step 2: Find the start of the [Other] section
@@ -1055,8 +1146,9 @@ void SaveIt(FILE* pPlayer_sav_file, const char* save_Background, const char* sav
         }
     }
 
-    if (other_start_index == -1) {
+    if (other_start_index == -1 || other_start_index + 8 >= SAVE_MAX_LINES) {
         fprintf(stderr, "Error: [Other] section not found\n");
+        free(lines);
         return;
     }
 
@@ -1104,11 +1196,8 @@ void SaveIt(FILE* pPlayer_sav_file, const char* save_Background, const char* sav
     snprintf(lines[current_line++], sizeof(lines[current_line]), "]\n");
 
     // Step 4: Write the modified string array back to the file
-    freopen(NULL, "w", pPlayer_sav_file); // Open the file in write mode to clear existing content
-    for (int i = 0; i < current_line; i++) {
-        fputs(lines[i], pPlayer_sav_file);
-    }
-    fflush(pPlayer_sav_file); // Ensure all changes are written to the file
+    write_save_lines(pPlayer_sav_file, lines, current_line);
+    free(lines);
 }
 int32_t hexCharToInt(char c) 
 {
@@ -1143,6 +1232,10 @@ void dialogName_3(SDL_Renderer* renderer,RenderResources* resources, TTF_Font* f
     //SDL_Texture* textTexture;
     char *print_char = (*text);
     textSurface = TTF_RenderUTF8_Blended_Wrapped(font, print_char, textColor,400);
+    if (resources->name_texture)
+    {
+        SDL_DestroyTexture(resources->name_texture);
+    }
     resources->name_texture = SDL_CreateTextureFromSurface(renderer, textSurface);
     SDL_SetTextureAlphaMod(resources->text_texture, 255);
     int32_t text_width = textSurface->w;  // 文本寬度
