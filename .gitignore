@@ -1,0 +1,4 @@
+.vscode
+main
+main_asan
+*.o
