@@ -22,7 +22,6 @@
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_mixer.h>
 #include <SDL2/SDL_image.h>
-#include <curl/curl.h>
 /*
 #define WHITE 255, 255, 255
 #define BLACK 0, 0, 0

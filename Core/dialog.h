@@ -56,7 +56,7 @@ typedef struct {
     char** command_list;
     char** mood_list;
 } SetCharacterInfo;
-void change_ratio();
+void change_ratio(int32_t a, int32_t b, int32_t c, int32_t d);
 int32_t handleButtonEvents(SDL_Event* e, RenderResources* resources) ;
 void initButton(SDL_Renderer* renderer, TTF_Font* font, Button* button, SDL_Rect rect, SDL_Color color, const char* text);
 int32_t checkLeaveButton(SDL_Event* e, Button* leave_button);
