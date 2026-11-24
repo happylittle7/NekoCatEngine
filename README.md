@@ -1,445 +1,466 @@
-# NekoCat Engine 系統架構說明
-NekoCat Engine 是一款採用SDL2框架由C寫成的視覺小說引擎，只要輕鬆幾行指令，就可以快速建立專業高級的視覺小說遊戲！
+# NekoCat Engine
 
-## 建置與執行
+NekoCat Engine 是一款以 C 語言搭配 SDL2 寫成的視覺小說引擎。劇本、角色、素材全部用 TOML 格式的設定檔描述，不需要改任何程式碼，就能做出一款有對話、分支選項、道具背包與存檔的視覺小說遊戲。
+
+> 專案內附的範例遊戲為《歐姆巴的奇幻之旅》，可直接編譯遊玩，也可以當作撰寫劇本的參考。
+
+## 目錄
+
+- [快速開始](#快速開始)
+- [操作方式](#操作方式)
+- [專案結構](#專案結構)
+- [設定檔說明](#設定檔說明)
+  - [system.conf](#systemconf)
+  - [assets.nekocat](#assetsnekocat)
+  - [character.nekocat](#characternekocat)
+  - [item.nekocat](#itemnekocat)
+  - [player.sav](#playersav)
+  - [script.nekocat](#scriptnekocat)
+- [Script Actions 指令參考](#script-actions-指令參考)
+- [授權](#授權)
+
+## 快速開始
+
 需要 SDL2 以及 SDL2_image、SDL2_ttf、SDL2_mixer 的開發套件。以 Ubuntu / Debian 為例：
+
 ```bash
 sudo apt install build-essential libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev libsdl2-mixer-dev
+```
+
+```bash
 make
+```
+
+```bash
 ./main
 ```
-`make` 會在原始碼有變動時重新編譯，編譯失敗會直接顯示錯誤（不會再默默執行舊的執行檔）。
-遊戲進度存在 `player.sav`，想從頭開始可以用 `git checkout -- player.sav` 還原。
 
-## 系統架構
+- `make` 只會在原始碼有變動時重新編譯；編譯失敗會直接顯示錯誤，不會默默執行舊的執行檔。
+- `make clean` 可刪除編譯產物。
+- 遊戲進度存在 `player.sav`，想從頭開始可以還原它：
+
+```bash
+git checkout -- player.sav
+```
+
+## 操作方式
+
+| 操作       | 功能                 |
+| ---------- | -------------------- |
+| 滑鼠左鍵   | 推進對話、點選選項   |
+| `E` 鍵     | 開啟／關閉道具背包   |
+| 畫面存檔鈕 | 將目前進度寫入 `player.sav` |
+
+## 專案結構
+
 ```
 .
-├── Assets/
-│   ├── music
-│   ├── background
-│   ├── item
-│   ├── sound
-│   └── ...
-├── Core/
-├── assets.nekocat	所有其他素材的相關資料
-├── character.nekocat	所有角色的設定，例如name、color…等
-├── item.nekocat	所有物品的設定
-├── script.nekocat	遊戲的劇本
-├── player.sav	        玩家存檔
-└── system.conf	有關系統和介面的相關全域設置，例如文字顯示速度、音量控制…等
+├── Assets/               所有素材
+│   ├── background/       背景圖
+│   ├── music/            背景音樂（BGM）
+│   ├── sound/            音效
+│   ├── item/             道具圖示
+│   ├── font/             字型
+│   ├── image/            介面圖片（按鈕、對話框等）
+│   └── <角色資料夾>/      各角色的頭像與立繪
+├── Core/                 引擎核心（對話、背包、開場畫面…）
+├── Library/              第三方函式庫（TOML 解析器、cJSON）
+├── master.c              引擎主程式
+├── Makefile
+├── system.conf           系統全域設定
+├── assets.nekocat        背景、音樂、音效素材宣告
+├── character.nekocat     角色設定
+├── item.nekocat          道具設定
+├── script.nekocat        遊戲劇本
+└── player.sav            玩家存檔
 ```
-`Nekocat Engine`由以下檔案組成:
-| 檔案名稱          | 說明                                                          |
-| ----------------- | ------------------------------------------------------------- |
-| assets.nekocat    | 所有其他素材的相關資料                                          |
-| character.nekocat | 所有角色的設定，例如`name`、`color`...等                        |
-| item.nekocat      | 所有物品的設定                                                |
-| script.nekocat    | 遊戲的劇本                                                   |
-| player.sav        | 玩家存擋                                                              |
-| system.conf       | 有關系統和介面的相關全域設置，例如文字顯示速度、音量控制...等 |
 
-## assets.nekocat
+## 設定檔說明
 
-在`Nekocat Engine`中，角色和物品相關的素材必須分別定義於`character.nekocat`和`item.nekocat`內，其餘的所有素材必須在`assets.nekocat`中宣告。
+所有 `.nekocat`、`.conf`、`.sav` 檔案都是 [TOML](https://toml.io/) 格式。
 
-在`assets.nekocat`宣告的素材，檔案必須放置在專案資料夾中`Assets`裡對應`Action ID`的資料夾，舉例來說：
+| 檔案                | 說明                                           |
+| ------------------- | ---------------------------------------------- |
+| `system.conf`       | 系統與介面的全域設定                           |
+| `assets.nekocat`    | 背景、音樂、音效的素材宣告                     |
+| `character.nekocat` | 所有角色的設定，例如 `name`、`color`…等         |
+| `item.nekocat`      | 所有道具的設定                                 |
+| `player.sav`        | 玩家存檔：變數、持有道具與目前進度             |
+| `script.nekocat`    | 遊戲劇本                                       |
 
+### system.conf
 
-```toml=
-# 注意：是小寫background
+系統全域設定。目前支援的欄位：
+
+```toml
+[Global]
+gamename = "歐姆巴的奇幻之旅"
+```
+
+> 文字速度、音量等設定尚在規劃中。
+
+### assets.nekocat
+
+角色與道具的素材分別定義在 `character.nekocat` 與 `item.nekocat`，**其餘素材（背景、音樂、音效）都必須在 `assets.nekocat` 中宣告**，格式為 `素材 ID = "檔名"`。
+
+| 區塊           | 檔案存放位置          | 使用的指令                  |
+| -------------- | --------------------- | --------------------------- |
+| `[background]` | `Assets/background/`  | [`Background`](#background) |
+| `[Music]`      | `Assets/music/`       | [`Music`](#music)           |
+| `[Sound]`      | `Assets/sound/`       | [`Sound`](#sound)           |
+
+> 注意大小寫：區塊名稱是小寫的 `background`，但 `Music`、`Sound` 首字大寫；資料夾名稱則一律小寫。
+
+```toml
 [background]
 mountain = "mountain.png"
-
-[Sound]
-riverFlow = "river_water_flowing.mp3"
 
 [Music]
 ntnu = "ntnu.mp3"
 
-```
-其中的檔案結構應類似如下：
-```
-.
-├── Assets/
-│   ├── background/
-│   │   └── mountain.png
-│   ├── sound/
-│   │   └── river_water_flowing.mp3
-│   └── ...
-├─ ...
-```
-## character.nekocat
-`character.nekocat`定義了遊戲裡所有角色的資料，每個角色擁有屬於自己的一張`table`，每個`table`有對應的屬性，相關的屬性請參考以下。
-
-### 屬性
-| 名稱                     | 型態            | 可選 | 說明                                                    |
-| ------------------------ | --------------- | ---- | ------------------------------------------------------- |
-| `description`            | `string`        | 否   | 角色的個性、背景故事等，是用來丟給LLM互動的重要人格資料 |
-| `name`                   | `string`        | 否   | 角色名字                                                |
-| `color`                  | `string`        | 是   | 角色名字顏色，預設為黑色                                |
-| `directory`              | `string`        | 否   | 角色素材在Assets目錄下的自訂子資料夾名稱                |
-| `sprites_list`           | `Array<string>` | 否   | 角色所有立繪名稱                                        |
-| `sprites_image_list`     | `Array<string>` | 否   | 角色立繪名稱各自對應到的檔案名稱                        |
-| `expressions_list`       | `Array<string>` | 否   | 角色所有頭部縮圖名稱                                    |
-| `expressions_image_list` | `Array<string>` | 否   | 角色頭部縮圖名稱各自對應到的檔案名稱                    |
-
-
-讀檔用法已放在 GitHub 上: [https://github.com/happylittle7/NekoCatEngine/tree/toml](https://github.com/happylittle7/NekoCatEngine/tree/toml)
-
-#### P.S:角色 expression 和 sprite 說明：  
-![example](https://hackmd.io/_uploads/rJrK12gzR.jpg)
-
-## item.nekocat
-這個檔案存放所有遊戲中會用到的道具
-```toml=
-[Flashlight]
-name = "手電筒"
-description = "一個普通的手電筒"
-
-[lolipop]
-name = "哥哥的棒棒糖"
-description = "來自哥哥用心準備的棒棒糖"
-icon_path = "flashlight.jpg"
-
-
+[Sound]
+riverFlow = "river_water_flowing.mp3"
 ```
 
-## script.nekocat
-`script.nekocat`為劇情腳本的檔案，檔案內可包含數個`table`，每個`table`內必須有一個`script`陣列，裡面儲存相關劇情的指令，可使用的指令請參考 [Script Actions](https://hackmd.io/@happylittle7/rk6DKmMzC)。
+對應的檔案結構：
 
-`script.nekocat`內必須至少包含`[Start]`區塊，Nekocat Engine會從`[Start]`處開始執行指令。  
-注意！在`Start`區塊中的第一個action必須是Background。
+```
+Assets/
+├── background/
+│   └── mountain.png
+├── music/
+│   └── ntnu.mp3
+└── sound/
+    └── river_water_flowing.mp3
+```
 
+### character.nekocat
 
-## player.sav
-此為玩家存檔檔案，裡面記錄了所有遊戲中用到的變數和對應的值。
-注意：要在`script.nekocat`裡使用的變數和`items`必須事先在這邊宣告，且`item`和`variable`中的id名字不可相同。
-```toml=
-#此區塊儲存所有變數
+定義遊戲中所有角色。檔案最上方的 `char_list` 列出所有角色 ID，接著每個角色各有一個以角色 ID 命名的 table。
+
+#### 屬性
+
+| 名稱                     | 型態            | 必填 | 說明                                                         |
+| ------------------------ | --------------- | ---- | ------------------------------------------------------------ |
+| `name`                   | `string`        | 是   | 角色顯示名稱                                                 |
+| `description`            | `string`        | 是   | 角色個性、背景故事等，作為 LLM 互動用的人格資料              |
+| `color`                  | `string`        | 否   | 名字顏色（如 `"#F5D80A"`），預設為黑色                       |
+| `directory`              | `string`        | 是   | 角色素材在 `Assets/` 下的資料夾名稱                          |
+| `expressions_list`       | `Array<string>` | 是   | 頭像（expression）名稱，顯示在對話框旁                       |
+| `expressions_image_list` | `Array<string>` | 是   | 每個頭像名稱對應的檔名，順序需與 `expressions_list` 相同      |
+| `sprites_list`           | `Array<string>` | 否   | 立繪（sprite）名稱，顯示在畫面中央                           |
+| `sprites_image_list`     | `Array<string>` | 否   | 每個立繪名稱對應的檔名，順序需與 `sprites_list` 相同          |
+
+**expression 與 sprite 的差別：**
+
+![expression 與 sprite 示意](https://hackmd.io/_uploads/rJrK12gzR.jpg)
+
+#### 素材放置位置
+
+- 頭像（expression）：`Assets/<directory>/`
+- 立繪（sprite）：`Assets/<directory>/character/`
+
+#### 範例
+
+```toml
+char_list = ["ohm", "lunei"]
+
+[ohm]
+name = "歐姆巴"
+description = "殺伐果斷，利己主義，帶著點傲嬌的反差"
+color = "#F5D80A"
+directory = "ohm"
+
+expressions_list = ["normal"]
+expressions_image_list = ["ohm_normal_head.png"]
+
+[lunei]
+name = "嚕捏"
+description = "能力是不死，初期個性偏溫和"
+color = "#F5D80A"
+directory = "lunei"
+
+sprites_list = ["happy", "sad"]
+sprites_image_list = ["lunei_happy.png", "lunei_sad.png"]
+
+expressions_list = ["normal"]
+expressions_image_list = ["lunei_normal_head.png"]
+```
+
+```
+Assets/
+├── ohm/
+│   └── ohm_normal_head.png
+└── lunei/
+    ├── lunei_normal_head.png
+    └── character/
+        ├── lunei_happy.png
+        └── lunei_sad.png
+```
+
+### item.nekocat
+
+定義遊戲中所有道具，每個道具一個 table，table 名稱即為道具 ID。
+
+| 名稱          | 型態     | 說明                                   |
+| ------------- | -------- | -------------------------------------- |
+| `name`        | `string` | 道具名稱                               |
+| `description` | `string` | 道具說明，會顯示在背包中               |
+| `icon_path`   | `string` | 道具圖示檔名，檔案放在 `Assets/item/`  |
+
+```toml
+[love-letter]
+name = "土匪寫給未婚妻的情書"
+description = "寶貝，等我打完這場仗後就回家鄉跟你結婚"
+icon_path = "love-letter.png"
+```
+
+### player.sav
+
+玩家存檔，記錄遊戲中所有變數、持有道具與目前進度。
+
+> ⚠️ 劇本中用到的**變數與道具都必須先在這裡宣告並給初始值**，且變數與道具的 ID 不可重複。
+
+```toml
+# 所有劇情變數
 [Variable]
 HP = 1200
 ohmLove = 100
 
-#目前玩家擁有的道具清單
+# 玩家持有的道具與數量（數量為 0 也必須先宣告）
 [Items]
-flashlight = 1;
-cake = 0; #須邀先初始化
+flashlight = 1
+cake = 0
 
-#玩家目前執行到的進度
+# 目前進度（由引擎存檔時自動寫入，通常不需要手動編輯）
 [Other]
-current_table_id = "Start"
-{ action = "Background", background = "background_1"}
-{ action = "Music", music_id = "BGM_1"}
-{ action = "SetCharacter", number = 2, command_list = ["ohm","ohmf"], mood_list = ["Normal","sad"]}
-
-```
-
-## system.conf
-此為有關遊戲系統的設定黨，包含了如音量、文字速度等相關設定，詳細內容待定。
-
-## Example
-檔案架構：
-```
-├── assets/
-│   ├── ohm/
-│   │   ├── ohm_happy.png
-│   │   └── ohm_sad.png
-│   ├── ohmf/
-│   │   ├── ohmf_happy.png
-│   │   └── ohmf_sad.png
-│   └── ohmm/
-│       ├── ohmm_happy.png
-│       └── ohmm_sad.png
-├── character.nekocat
-├── script.nekocat
-├── system.conf
-├── ...
-```
-character.nekocat:
-```toml=
-char_list = ["ohm","ohmf","ohmm"]
-
-[ohm]
-name = "歐姆巴"
-description = "性格怪異，平常喜歡在家睡覺，講話開頭會加欸幹兩個字，充滿滿滿的台味。"
-color = "#F5D80A"
-directory = "ohm"
-
-sprites_list = ["happy","sad"]
-sprites_image_list = ["ohm_happy.png","ohm_happy.png"]
-
-expressions_list = ["happy","sad"]
-expressions_image_list = ["ohm_happy.png","ohm_sad.png"]
-
-[ohmf]
-name = "歐姆爸"
-color = "#F5D80A"
-directory = "ohmf"
-
-sprites_list = ["happy","sad"]
-sprites_image_list = ["ohmf_happy.png","ohmf_happy.png"]
-
-expressions_list = ["happy","sad"]
-expressions_image_list = ["ohmf_happy.png","ohmf_sad.png"]
-
-[ohmm]
-name = "歐姆媽"
-color = "#F5D80A"
-directory = "ohmm"
-
-sprites_list = ["happy","sad"]
-sprites_image_list = ["ohmm_happy.png","ohmm_happy.png"]
-
-expressions_list = ["happy","sad"]
-expression_image_list = ["ohmm_happy.png","ohmm_sad.png"]
-
-
-```
-script.nekocat:
-```toml=
-[Start]
 script = [
-    # 建議第一行就先指定背景，否則效果很差
-    { action = "SetBackground", background = "mountain"},
-    { action = "Dialog", command = "ohm", text = "Hello world!"},
-    
-    { action = "Dialog", command = "ohm", text = "Hello world!"},
-    { action = "Dialog", command = "no name", text = "Hello world!"},
-    { action = "Jump", label_id = "Ending"}, 
-    #會有兩種jump一個是要看變數值決定，另一個是直接跳
-]
-
-[Ending]
-script = [
-
-    { action = "Dialog", command = "no name", text = "Hello world!"},
-    { action = "Option", optionCount = 3, optionContent = ["Button1","Button2","Button3"], optionJump = ["label_id_1","label_id_2","label_id_3"]}
+    { action = "Background", background = "mountain"},
+    { action = "Music", music_id = "ntnu"},
+    { action = "SetCharacter", number = 1, command_list = ["lunei"], mood_list = ["happy"]},
+    { action = "Jump", label_id = "Start", col_idx = 3},
 ]
 ```
 
-# Script Actions
+`[Other]` 會在讀檔時被執行，用來還原背景、音樂、角色，最後 `Jump` 回存檔時的劇本位置。
 
-## Dialogs
-**Action ID:** `Dialog`
-用來顯示對話，包含控制對話框旁的expression
-### 屬性參數
-| 參數名稱  | 型態     | 說明                                  |
-| --------- | -------- | ------------------------------------- |
-| `command` | `string` | 發言的角色，若為`no name`則不顯示名字 |
-| `mood`          |  `string`        |    旁邊角色要顯示`expression`的`expression id`                                   |
-| `text`    | `string` | 要顯示在對話框中的文字                |
+### script.nekocat
 
-### Example
+劇本檔案，由數個 table（段落）組成，每個 table 內有一個 `script` 陣列，依序存放要執行的[指令](#script-actions-指令參考)。
 
-```toml=
+- 必須包含 `[Start]` 段落，遊戲會從這裡開始執行。
+- `[Start]` 的第一個指令必須是 `Background`。
+
+```toml
 [Start]
 script = [
+    { action = "Background", background = "mountain"},
+    { action = "Music", music_id = "ntnu"},
     { action = "Dialog", command = "ohm", mood = "normal", text = "Hello world!"},
-    #注意：以下控制的是對話框旁的expression顯示，不是螢幕中間的立繪
-    { action = "Dialog", command = "no name", text = "Hello world!"},
-    
+    { action = "Dialog", command = "no name", text = "（旁白）"},
+    { action = "Option", optionCount = 2, optionContent = ["往左走", "往右走"], optionJump = ["left", "right"]},
+]
+
+[left]
+script = [
+    { action = "Dialog", command = "ohm", mood = "normal", text = "左邊什麼都沒有。"},
+    { action = "Jump", label_id = "Ending"},
+]
+
+[right]
+script = [
+    { action = "Give item", item_id = "flashlight", count = "+1"},
     { action = "Jump", label_id = "Ending"},
 ]
 
 [Ending]
 script = [
-
-    { action = "Dialog", command = "no name", text = "Hello world!"},
-    
+    { action = "Dialog", command = "no name", text = "全劇終"},
 ]
 ```
 
+## Script Actions 指令參考
 
+| 指令                                     | 功能                         |
+| ---------------------------------------- | ---------------------------- |
+| [`Dialog`](#dialog)                      | 顯示對話                     |
+| [`Background`](#background)              | 更換背景                     |
+| [`SetCharacter`](#setcharacter)          | 顯示角色立繪                 |
+| [`Music`](#music)                        | 播放／停止背景音樂           |
+| [`Sound`](#sound)                        | 播放音效                     |
+| [`Option`](#option)                      | 顯示選項按鈕並分支           |
+| [`Jump`](#jump)                          | 跳到其他段落（可加條件）     |
+| [`Modify variable`](#modify-variable)    | 修改變數                     |
+| [`Give item`](#give-item)                | 給予／移除道具               |
 
-## Clear
-**Action ID:** `Clear`
-清除文字框
+### Dialog
 
-## Play Music (BGM)
-**Action ID:** `Music`
-播放背景音樂(BGM)，會一直重複播放
+顯示一句對話，並可控制對話框旁的角色頭像（expression）。
 
-### 屬性參數
-| 參數名稱   | 型態     | 說明                                             |
-| ---------- | -------- | ------------------------------------------------ |
-| `music_id` | `string` | 要用來播放的音樂，必須先在assets.nekocat中`[Music]`宣告過，另外，如果music_id是close的話則終止音樂 |
+| 參數      | 型態     | 說明                                                         |
+| --------- | -------- | ------------------------------------------------------------ |
+| `command` | `string` | 發言角色的 ID；填 `"no name"` 則不顯示名字（旁白）           |
+| `mood`    | `string` | 對話框旁要顯示的頭像，需為該角色 `expressions_list` 中的名稱 |
+| `text`    | `string` | 對話內容                                                     |
 
-### Example
-```toml=
-[Start]
-script = [
-    { action = "Music", music_id = "ntnu.mp3"},
-]
-```
-## Play Sound Effects
-**Action ID:** `Sound`
-播放背景音樂(BGM)，會一直重複播放
-
-### 屬性參數
-| 參數名稱   | 型態     | 說明                                             |
-| ---------- | -------- | ------------------------------------------------ |
-| `sound_id` | `string` | 要用來播放的音樂，必須先在assets.nekocat中`[Sound]`宣告過 |
-
-### Example
-```toml=
-[Start]
-script = [
-    { action = "Sound", sound_id = "door.mp3"},
-]
-```
-## Change Background
-**Action ID:** `Background`
-更換背景圖片
-
-### 屬性參數
-| 型態            | 說明     |                                                  |
-| --------------- | -------- | ------------------------------------------------ |
-| `background` | `string` | 要更換的背景，必須先在assets.nekocat中`[background]`宣告過 |
-
-### Example
-```toml=
-[Start]
-script = [
-    { action = "Background", background = "mountain"},
-]
+```toml
+{ action = "Dialog", command = "ohm", mood = "normal", text = "Hello world!"},
+{ action = "Dialog", command = "no name", text = "這是一段旁白。"},
 ```
 
-## Set Character
-**Action ID:** `SetCharacter`
-顯示角色立繪
+> `mood` 控制的是對話框旁的頭像，不是畫面中央的立繪；立繪請用 [`SetCharacter`](#setcharacter)。
 
-### 屬性參數
+### Background
 
+更換背景圖片。
 
-### Example
-```toml=
-[Start]
-script = [
-    { action = "SetCharacter", number = 2, command_list = ["ohm","ohmf"], mood_list = ["Normal","sad"]},
-]
+| 參數         | 型態     | 說明                                                  |
+| ------------ | -------- | ----------------------------------------------------- |
+| `background` | `string` | 背景 ID，須先在 `assets.nekocat` 的 `[background]` 宣告 |
+
+```toml
+{ action = "Background", background = "mountain"},
 ```
 
-## Option
-**Action ID:** `Option`
-在畫面中顯示按鈕，供玩家點擊觸發對應的分支
+### SetCharacter
 
-### 屬性參數
-| 參數名稱       | 型態     | 說明                       |
-| -------------- | -------- | -------------------------- |
-| `optionCount` | `int`    | 選項數量                   |
-| `optionContent`  | `string` | 每個選項要顯示的文字       |
-| `optionJump`  | `string` | 選擇該選項後要jump到的段落 |
+在畫面中央顯示角色立繪，會取代目前畫面上的所有立繪。
 
-### Example
-```toml=
+| 參數           | 型態            | 說明                                                         |
+| -------------- | --------------- | ------------------------------------------------------------ |
+| `number`       | `int`           | 要顯示的角色數量（最多 3 位）；設為 `0` 則清除所有立繪       |
+| `command_list` | `Array<string>` | 要顯示的角色 ID                                              |
+| `mood_list`    | `Array<string>` | 每位角色要用的立繪，需為該角色 `sprites_list` 中的名稱       |
+
+```toml
+{ action = "SetCharacter", number = 2, command_list = ["lunei", "12"], mood_list = ["happy", "sad"]},
+{ action = "SetCharacter", number = 0},
+```
+
+### Music
+
+播放背景音樂，會不斷循環直到被替換或停止。
+
+| 參數       | 型態     | 說明                                                                 |
+| ---------- | -------- | -------------------------------------------------------------------- |
+| `music_id` | `string` | 音樂 ID，須先在 `assets.nekocat` 的 `[Music]` 宣告；填 `"close"` 則停止音樂 |
+
+```toml
+{ action = "Music", music_id = "ntnu"},
+{ action = "Music", music_id = "close"},
+```
+
+### Sound
+
+播放一次音效。
+
+| 參數       | 型態     | 說明                                                |
+| ---------- | -------- | --------------------------------------------------- |
+| `sound_id` | `string` | 音效 ID，須先在 `assets.nekocat` 的 `[Sound]` 宣告 |
+
+```toml
+{ action = "Sound", sound_id = "door"},
+```
+
+### Option
+
+在畫面上顯示選項按鈕，玩家點選後跳到對應段落。
+
+| 參數            | 型態            | 說明                                 |
+| --------------- | --------------- | ------------------------------------ |
+| `optionCount`   | `int`           | 選項數量（最多 3 個）                |
+| `optionContent` | `Array<string>` | 每個選項顯示的文字                   |
+| `optionJump`    | `Array<string>` | 每個選項被選擇後要跳到的段落 ID      |
+
+```toml
 [Start]
 script = [
-    { action = "Option", optionCount = 3, optionContent = ["我想吃壽司","我想睡覺","我想耍廢"], optionJump = ["eat","sleep","rest"]},
+    { action = "Option", optionCount = 3, optionContent = ["我想吃壽司", "我想睡覺", "我想耍廢"], optionJump = ["eat", "sleep", "rest"]},
 ]
 
 [eat]
 script = [
-    { action = "Dialog", command = "ohm", text = "壽司好吃"}
+    { action = "Dialog", command = "ohm", mood = "normal", text = "壽司好吃"},
 ]
 
 [sleep]
 script = [
-    { action = "Dialog", command = "ohm", text = "睡覺好爽"}
+    { action = "Dialog", command = "ohm", mood = "normal", text = "睡覺好爽"},
 ]
-    
+
 [rest]
 script = [
-    { action = "Dialog", command = "ohm", text = "耍廢中"}
-]
-```
-## Logical option (已淘汰Duplicated)
-**Action ID:** `Logical option`
-邏輯判斷玩家的各種變數，當compare_variable的條件全部同時（and關係）達成，則jump到對應的段落
-
-### 屬性參數
-| 參數名稱           | 型態     | 說明                                     |
-| ------------------ | -------- | ---------------------------------------- |
-| `choose_count`     | `int`    | 選項數量                                 |
-| `condition_mode`   | `string` | 進行比較的模式（符號）                   |
-| `compare_variable` | `string` | 要用來比較的變數名稱（會放在符號的左邊） |
-| `compare_value`    | `int`    | 要用來比較的數值（會放在符號右邊）       |
-| `success_jump`     | `string` | 前面比較條件全部達成要跳到的地方         |
-| `fail_jump`        | `string` | 未達成前面全部條件要跳到的地方 **（注意！：可以為空，當為`fail_jump`為空時，沒達成條件就繼續往下執行下一個指令）**           |
-
-### Example
-```toml=
-[Start]
-script = [
-    { action = "Logical operation", choose_count = 3, condition_mode = ["<","=",">"], compare_variable = ["love_point","temperature","hungry_point"], compare_value = [100,27,10],success_jump="true_end", fail_jump="bad_end"}
-]
-
-```
-
-## Give item
-**Action ID:** `Give item`
-給予玩家道具，道具必須在item.nekocat裡面事先定義過
-
-### 屬性參數
-|    參數名稱        |型態       |        說明               |
-| --------- | -------- | ------------ |
-| `item_id` | `string` | 要給的道具id |
-| `count`   | `string`    | 給的道具數量（可以是負數） |
-
-在`count`中如果數字前面有加正負號，表示對該變數進行加或減，若沒有正負號或者是 $0$，則表示將該變數指定為該數值。
-
-注意！`count`是`string`型態，必須長像範例那樣用雙引號包起數字(`"1"`)。
-
-### Example
-```toml=
-[Start]
-script = [
-    { action = "Give item", item_id = "flashlight", count = "1"},
+    { action = "Dialog", command = "ohm", mood = "normal", text = "耍廢中"},
 ]
 ```
 
-## Modify variable
-**Action ID:** `Modify variable`
-修改玩家身上的變數
+### Jump
 
-### 屬性參數
-|    參數名稱        |型態       |        說明               |
-| --------------- | -------- | --------------------- |
-| `variable_name` | `string` | 要新增/修改的變數名稱 |
-| `value`         | `string` | 要設定的值            |
+跳到另一個段落。可以無條件跳轉，也可以依變數值決定是否跳轉。
 
-在`value`中如果數字前面有加正負號，表示對該變數進行加或減，若沒有正負號或者是 $0$，則表示將該變數指定為該數值。
+| 參數       | 型態            | 必填 | 說明                                                         |
+| ---------- | --------------- | ---- | ------------------------------------------------------------ |
+| `label_id` | `string`        | 是   | 目標段落 ID                                                  |
+| `variable` | `Array<string>` | 否   | 要判斷的變數名稱（須在 `player.sav` 的 `[Variable]` 宣告）   |
+| `mode`     | `Array<string>` | 否   | 比較方式：`">"`、`"="`、`"<"`                                |
+| `gap`      | `Array<int>`    | 否   | 比較的數值                                                   |
+| `col_idx`  | `int`           | 否   | 從目標段落的第幾個指令開始執行（從 0 起算），預設為 0         |
 
-注意！`value`是`string`型態，必須長像範例那樣用雙引號包起數字(`"1"`)。
+- 沒有 `variable` 時為**無條件跳轉**。
+- 有 `variable` 時，會逐一檢查 `變數 mode gap`，**全部條件成立（AND）才跳轉**，否則繼續執行下一個指令。
 
-### Example
-```toml=
-[Start]
-script = [
-    { action = "Modify variable", variable_name = "hp", value = "-1"},
-    { action = "Modify variable", variable_name = "mp", value = "0"},
-]
+```toml
+# 無條件跳轉
+{ action = "Jump", label_id = "Ending"},
+
+# 條件跳轉：love > 100 且 hp < 10 才跳到 true_end
+{ action = "Jump", label_id = "true_end", variable = ["love", "hp"], mode = [">", "<"], gap = [100, 10]},
+{ action = "Jump", label_id = "bad_end"},
 ```
 
+> 舊版的 `Logical option` 指令已淘汰，請改用條件式 `Jump`。
 
-## LLM Mode
-**Action ID:** `LLM`
-進入大型語言模型開放對話模式
+### Modify variable
 
-### 屬性參數
-| 參數名稱       | 型態     | 說明                                     |
-| -------------- | -------- | ---------------------------------------- |
-| `prompt`       | `string` | 要傳入的提示詞(prompt)                   |
-| `history`      | `string` | 對話的歷史紀錄，如果沒有的話請傳`"NULL"` |
-| `character_id` | `string` | 要進行LLM模式的角色                     |
+修改 `player.sav` 中 `[Variable]` 的變數。
 
-回傳：對話歷史cJSON物件
+| 參數            | 型態     | 說明           |
+| --------------- | -------- | -------------- |
+| `variable_name` | `string` | 要修改的變數   |
+| `value`         | `string` | 要設定的值     |
 
-### Example
-```toml=
-[Start]
-script = [
-    { action = "LLM", prompt = "", value = "-1"},
+`value` 規則：
 
-]
+- 有正負號（如 `"+5"`、`"-1"`）：在原本的值上加減。
+- 沒有正負號（如 `"3"`、`"0"`）：直接指定為該值。
+- 必須是**字串**，要用雙引號包起來。
+
+```toml
+{ action = "Modify variable", variable_name = "hp", value = "-1"},
+{ action = "Modify variable", variable_name = "mp", value = "0"},
 ```
 
+### Give item
+
+增減玩家持有的道具，道具須先在 `item.nekocat` 定義、並在 `player.sav` 的 `[Items]` 宣告。
+
+| 參數      | 型態     | 說明                         |
+| --------- | -------- | ---------------------------- |
+| `item_id` | `string` | 道具 ID                      |
+| `count`   | `string` | 數量，規則同 `Modify variable` 的 `value` |
+
+```toml
+{ action = "Give item", item_id = "flashlight", count = "+1"},
+{ action = "Give item", item_id = "cake", count = "0"},
+```
+
+## 開發中功能
+
+以下功能已有設計或部分程式碼，但**尚未接入引擎**，目前寫在劇本裡不會有作用：
+
+- `Clear`：清除對話框文字。
+- `LLM`：與角色進行大型語言模型開放式對話（相關程式碼位於 `Core/InteractLLM.c`，角色的 `description` 即為其人格資料）。
+
+## 授權
+
+本專案採用 [MIT License](LICENSE)。
